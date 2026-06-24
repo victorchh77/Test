@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+* { box-sizing: border-box; }
+
+body {
+  background-color: #0F1419;
+  color: #F7FAFC;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #1A202C; }
+::-webkit-scrollbar-thumb { background: #2D3748; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #ED8936; }
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .scrollbar-thin { scrollbar-width: thin; scrollbar-color: #2D3748 #1A202C; }
+}
+
+@layer components {
+  .input-base {
+    @apply w-full bg-bg border border-border rounded-lg px-3 py-2.5 text-textprim text-sm
+           placeholder:text-textsec focus:outline-none focus:border-orange transition-colors duration-150;
+  }
+  .btn-primary {
+    @apply inline-flex items-center gap-2 bg-orange hover:bg-orange-hover text-white font-semibold
+           px-4 py-2.5 rounded-lg text-sm transition-all duration-150 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 bg-card hover:bg-border text-textprim font-medium
+           px-4 py-2.5 rounded-lg text-sm border border-border transition-all duration-150 active:scale-95;
+  }
+  .btn-danger {
+    @apply inline-flex items-center gap-2 bg-error/10 hover:bg-error/20 text-error font-medium
+           px-4 py-2.5 rounded-lg text-sm border border-error/30 transition-all duration-150 active:scale-95;
+  }
+  .card-base {
+    @apply bg-card border border-border rounded-xl p-5;
+  }
+  .table-row-hover {
+    @apply hover:bg-white/[0.02] transition-colors duration-100;
+  }
+}
