@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VH Group S.R.L. – Concesionaria de Autos | Encarnación, Paraguay</title>
+  <meta name="description" content="VH Group S.R.L. – Tu concesionaria de confianza en Encarnación. Encontrá tu próximo auto con las mejores condiciones de financiamiento." />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+
+  <!-- ============================================================
+       TOP BAR
+  ============================================================ -->
+  <div class="topbar">
+    <div class="container">
+      <div class="topbar__left">
+        <span><i class="fas fa-map-marker-alt"></i> Carlos Antonio López casi Villarrica, Encarnación, Paraguay</span>
+        <span><i class="fas fa-clock"></i> Lun–Vie: 8:00–18:00 | Sáb: 8:00–13:00</span>
+      </div>
+      <div class="topbar__right">
+        <a href="tel:+595985000000"><i class="fas fa-phone"></i> +595 985 000 000</a>
+        <a href="https://facebook.com" target="_blank" rel="noopener"><i class="fab fa-facebook-f"></i></a>
+        <a href="https://instagram.com" target="_blank" rel="noopener"><i class="fab fa-instagram"></i></a>
+        <a href="https://wa.me/595985000000" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       HEADER / NAV
+  ============================================================ -->
+  <header class="header" id="header">
+    <div class="container">
+      <a href="#" class="header__logo">
+        <img src="assets/images/logo.png" alt="VH Group S.R.L." />
+      </a>
+
+      <button class="nav__burger" id="burger" aria-label="Menú">
+        <span></span><span></span><span></span>
+      </button>
+
+      <nav class="nav" id="nav">
+        <ul class="nav__list">
+          <li><a href="#inicio" class="nav__link active">Inicio</a></li>
+          <li><a href="#vehiculos" class="nav__link">Vehículos</a></li>
+          <li><a href="#servicios" class="nav__link">Servicios</a></li>
+          <li><a href="#financiamiento" class="nav__link">Financiamiento</a></li>
+          <li><a href="#nosotros" class="nav__link">Nosotros</a></li>
+          <li><a href="#contacto" class="nav__link">Contacto</a></li>
+        </ul>
+        <a href="https://wa.me/595985000000" class="btn btn--orange nav__cta" target="_blank" rel="noopener">
+          <i class="fab fa-whatsapp"></i> Consultar ahora
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       HERO SLIDER
+  ============================================================ -->
+  <section class="hero" id="inicio">
+    <div class="hero__slider" id="heroSlider">
+
+      <div class="hero__slide active" style="background-image: url('https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1600&q=80')">
+        <div class="hero__overlay"></div>
+        <div class="hero__content container">
+          <span class="hero__badge">Nuevo Stock Disponible</span>
+          <h1 class="hero__title">Encontrá el auto<br/><span>de tus sueños</span></h1>
+          <p class="hero__sub">Las mejores marcas al mejor precio, con financiamiento a tu medida en Encarnación.</p>
+          <div class="hero__actions">
+            <a href="#vehiculos" class="btn btn--orange">Ver vehículos <i class="fas fa-arrow-right"></i></a>
+            <a href="#contacto" class="btn btn--outline">Solicitar cotización</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero__slide" style="background-image: url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1600&q=80')">
+        <div class="hero__overlay"></div>
+        <div class="hero__content container">
+          <span class="hero__badge">Financiamiento Flexible</span>
+          <h1 class="hero__title">Manejá tu sueño<br/><span>hoy mismo</span></h1>
+          <p class="hero__sub">Cuotas accesibles, aprobación rápida y los mejores planes para que arranques ya.</p>
+          <div class="hero__actions">
+            <a href="#financiamiento" class="btn btn--orange">Ver planes <i class="fas fa-arrow-right"></i></a>
+            <a href="#contacto" class="btn btn--outline">Contactarnos</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero__slide" style="background-image: url('https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=1600&q=80')">
+        <div class="hero__overlay"></div>
+        <div class="hero__content container">
+          <span class="hero__badge">Calidad Garantizada</span>
+          <h1 class="hero__title">Confianza y<br/><span>experiencia</span></h1>
+          <p class="hero__sub">Años de trayectoria en Encarnación, brindando calidad y honestidad en cada venta.</p>
+          <div class="hero__actions">
+            <a href="#nosotros" class="btn btn--orange">Conocenos <i class="fas fa-arrow-right"></i></a>
+            <a href="#vehiculos" class="btn btn--outline">Ver stock</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <button class="hero__arrow hero__arrow--prev" id="heroPrev"><i class="fas fa-chevron-left"></i></button>
+    <button class="hero__arrow hero__arrow--next" id="heroNext"><i class="fas fa-chevron-right"></i></button>
+
+    <div class="hero__dots" id="heroDots"></div>
+  </section>
+
+  <!-- ============================================================
+       SEARCH BAR
+  ============================================================ -->
+  <section class="search-bar">
+    <div class="container">
+      <form class="search-form" id="searchForm">
+        <div class="search-form__group">
+          <label>Marca</label>
+          <select name="marca">
+            <option value="">Todas las marcas</option>
+            <option>Toyota</option>
+            <option>Chevrolet</option>
+            <option>Ford</option>
+            <option>Honda</option>
+            <option>Hyundai</option>
+            <option>Kia</option>
+            <option>Volkswagen</option>
+            <option>Nissan</option>
+            <option>Suzuki</option>
+          </select>
+        </div>
+        <div class="search-form__group">
+          <label>Modelo</label>
+          <select name="modelo">
+            <option value="">Todos los modelos</option>
+            <option>Sedán</option>
+            <option>SUV / 4x4</option>
+            <option>Pick-up</option>
+            <option>Hatchback</option>
+            <option>Van / Minivan</option>
+          </select>
+        </div>
+        <div class="search-form__group">
+          <label>Año</label>
+          <select name="anio">
+            <option value="">Cualquier año</option>
+            <option>2025</option>
+            <option>2024</option>
+            <option>2023</option>
+            <option>2022</option>
+            <option>2021</option>
+            <option>2020 o anterior</option>
+          </select>
+        </div>
+        <div class="search-form__group">
+          <label>Precio máx.</label>
+          <select name="precio">
+            <option value="">Sin límite</option>
+            <option>Hasta $15.000</option>
+            <option>Hasta $25.000</option>
+            <option>Hasta $40.000</option>
+            <option>Hasta $60.000</option>
+            <option>Más de $60.000</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn--orange">
+          <i class="fas fa-search"></i> Buscar
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       STATS
+  ============================================================ -->
+  <section class="stats">
+    <div class="container">
+      <div class="stats__grid">
+        <div class="stat-card">
+          <i class="fas fa-car"></i>
+          <span class="stat-card__num" data-target="250">0</span>+
+          <p>Vehículos disponibles</p>
+        </div>
+        <div class="stat-card">
+          <i class="fas fa-users"></i>
+          <span class="stat-card__num" data-target="1500">0</span>+
+          <p>Clientes satisfechos</p>
+        </div>
+        <div class="stat-card">
+          <i class="fas fa-star"></i>
+          <span class="stat-card__num" data-target="10">0</span>+
+          <p>Años de experiencia</p>
+        </div>
+        <div class="stat-card">
+          <i class="fas fa-handshake"></i>
+          <span class="stat-card__num" data-target="15">0</span>+
+          <p>Marcas representadas</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FEATURED VEHICLES
+  ============================================================ -->
+  <section class="vehicles" id="vehiculos">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-header__tag">Nuestro Stock</span>
+        <h2 class="section-header__title">Vehículos <span>Destacados</span></h2>
+        <p class="section-header__sub">Encontrá el auto perfecto para vos. Stock actualizado con las mejores marcas del mercado.</p>
+      </div>
+
+      <div class="vehicles__tabs">
+        <button class="tab-btn active" data-filter="all">Todos</button>
+        <button class="tab-btn" data-filter="suv">SUV / 4x4</button>
+        <button class="tab-btn" data-filter="sedan">Sedán</button>
+        <button class="tab-btn" data-filter="pickup">Pick-up</button>
+        <button class="tab-btn" data-filter="hatch">Hatchback</button>
+      </div>
+
+      <div class="vehicles__grid" id="vehiclesGrid">
+
+        <!-- Card 1 -->
+        <article class="car-card" data-cat="suv">
+          <div class="car-card__img-wrap">
+            <img src="https://images.unsplash.com/photo-1567844711-93-de8d4ba4b?w=600&q=80"
+                 onerror="this.src='https://images.unsplash.com/photo-1551830820-42f00fc5c95a?w=600&q=80'"
+                 alt="Toyota RAV4 2024" loading="lazy" />
+            <span class="car-card__badge car-card__badge--new">Nuevo</span>
+            <button class="car-card__fav" aria-label="Guardar"><i class="far fa-heart"></i></button>
+          </div>
+          <div class="car-card__body">
+            <div class="car-card__brand">Toyota</div>
+            <h3 class="car-card__name">RAV4 2024</h3>
+            <div class="car-card__specs">
+              <span><i class="fas fa-tachometer-alt"></i> 0 km</span>
+              <span><i class="fas fa-gas-pump"></i> Nafta</span>
+              <span><i class="fas fa-cog"></i> Automático</span>
+            </div>
+            <div class="car-card__footer">
+              <div class="car-card__price">
+                <small>Desde</small>
+                <strong>$42.500</strong>
+              </div>
+              <a href="#contacto" class="btn btn--orange btn--sm">Ver más</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 2 -->
+        <article class="car-card" data-cat="pickup">
+          <div class="car-card__img-wrap">
+            <img src="https://images.unsplash.com/photo-1590362891991-f776e747a588?w=600&q=80"
+                 alt="Ford Ranger 2024" loading="lazy" />
+            <span class="car-card__badge car-card__badge--new">Nuevo</span>
+            <button class="car-card__fav" aria-label="Guardar"><i class="far fa-heart"></i></button>
+          </div>
+          <div class="car-card__body">
+            <div class="car-card__brand">Ford</div>
+            <h3 class="car-card__name">Ranger 2024</h3>
+            <div class="car-card__specs">
+              <span><i class="fas fa-tachometer-alt"></i> 0 km</span>
+              <span><i class="fas fa-gas-pump"></i> Diesel</span>
+              <span><i class="fas fa-cog"></i> Manual</span>
+            </div>
+            <div class="car-card__footer">
+              <div class="car-card__price">
+                <small>Desde</small>
+                <strong>$38.900</strong>
+              </div>
+              <a href="#contacto" class="btn btn--orange btn--sm">Ver más</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 3 -->
+        <article class="car-card" data-cat="sedan">
+          <div class="car-card__img-wrap">
+            <img src="https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600&q=80"
+                 alt="Toyota Corolla 2023" loading="lazy" />
+            <span class="car-card__badge car-card__badge--used">Usado</span>
+            <button class="car-card__fav" aria-label="Guardar"><i class="far fa-heart"></i></button>
+          </div>
+          <div class="car-card__body">
+            <div class="car-card__brand">Toyota</div>
+            <h3 class="car-card__name">Corolla 2023</h3>
+            <div class="car-card__specs">
+              <span><i class="fas fa-tachometer-alt"></i> 18.000 km</span>
+              <span><i class="fas fa-gas-pump"></i> Nafta</span>
+              <span><i class="fas fa-cog"></i> CVT</span>
+            </div>
+            <div class="car-card__footer">
+              <div class="car-card__price">
+                <small>Desde</small>
+                <strong>$28.000</strong>
+              </div>
+              <a href="#contacto" class="btn btn--orange btn--sm">Ver más</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 4 -->
+        <article class="car-card" data-cat="suv">
+          <div class="car-card__img-wrap">
+            <img src="https://images.unsplash.com/photo-1614200179396-2bdb77ebf81b?w=600&q=80"
+                 alt="Hyundai Tucson 2024" loading="lazy" />
+            <span class="car-card__badge car-card__badge--new">Nuevo</span>
+            <button class="car-card__fav" aria-label="Guardar"><i class="far fa-heart"></i></button>
+          </div>
+          <div class="car-card__body">
+            <div class="car-card__brand">Hyundai</div>
+            <h3 class="car-card__name">Tucson 2024</h3>
+            <div class="car-card__specs">
+              <span><i class="fas fa-tachometer-alt"></i> 0 km</span>
+              <span><i class="fas fa-gas-pump"></i> Nafta</span>
+              <span><i class="fas fa-cog"></i> Automático</span>
+            </div>
+            <div class="car-card__footer">
+              <div class="car-card__price">
+                <small>Desde</small>
+                <strong>$36.500</strong>
+              </div>
+              <a href="#contacto" class="btn btn--orange btn--sm">Ver más</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 5 -->
+        <article class="car-card" data-cat="hatch">
+          <div class="car-card__img-wrap">
+            <img src="https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=600&q=80"
+                 alt="Honda Fit 2022" loading="lazy" />
+            <span class="car-card__badge car-card__badge--used">Usado</span>
+            <button class="car-card__fav" aria-label="Guardar"><i class="far fa-heart"></i></button>
+          </div>
+          <div class="car-card__body">
+            <div class="car-card__brand">Honda</div>
+            <h3 class="car-card__name">Fit 2022</h3>
+            <div class="car-card__specs">
+              <span><i class="fas fa-tachometer-alt"></i> 32.000 km</span>
+              <span><i class="fas fa-gas-pump"></i> Nafta</span>
+              <span><i class="fas fa-cog"></i> CVT</span>
+            </div>
+            <div class="car-card__footer">
+              <div class="car-card__price">
+                <small>Desde</small>
+                <strong>$19.900</strong>
+              </div>
+              <a href="#contacto" class="btn btn--orange btn--sm">Ver más</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 6 -->
+        <article class="car-card" data-cat="pickup">
+          <div class="car-card__img-wrap">
+            <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80"
+                 alt="Chevrolet S10 2023" loading="lazy" />
+            <span class="car-card__badge car-card__badge--used">Usado</span>
+            <button class="car-card__fav" aria-label="Guardar"><i class="far fa-heart"></i></button>
+          </div>
+          <div class="car-card__body">
+            <div class="car-card__brand">Chevrolet</div>
+            <h3 class="car-card__name">S10 2023</h3>
+            <div class="car-card__specs">
+              <span><i class="fas fa-tachometer-alt"></i> 25.000 km</span>
+              <span><i class="fas fa-gas-pump"></i> Diesel</span>
+              <span><i class="fas fa-cog"></i> Manual</span>
+            </div>
+            <div class="car-card__footer">
+              <div class="car-card__price">
+                <small>Desde</small>
+                <strong>$31.000</strong>
+              </div>
+              <a href="#contacto" class="btn btn--orange btn--sm">Ver más</a>
+            </div>
+          </div>
+        </article>
+
+      </div>
+
+      <div class="vehicles__more">
+        <a href="#contacto" class="btn btn--dark">Ver todo el stock <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SERVICES
+  ============================================================ -->
+  <section class="services" id="servicios">
+    <div class="container">
+      <div class="section-header section-header--light">
+        <span class="section-header__tag">Lo que ofrecemos</span>
+        <h2 class="section-header__title">Nuestros <span>Servicios</span></h2>
+        <p class="section-header__sub">Te acompañamos en cada paso para que tu experiencia de compra sea perfecta.</p>
+      </div>
+
+      <div class="services__grid">
+        <div class="service-card">
+          <div class="service-card__icon">
+            <i class="fas fa-car"></i>
+          </div>
+          <h3>Venta de Autos Nuevos</h3>
+          <p>Las últimas novedades del mercado con garantía de fábrica y los mejores precios de la región.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-card__icon">
+            <i class="fas fa-exchange-alt"></i>
+          </div>
+          <h3>Autos Usados Verificados</h3>
+          <p>Selección rigurosa de vehículos usados, revisados y con documentación en orden. Comprá con confianza.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-card__icon">
+            <i class="fas fa-dollar-sign"></i>
+          </div>
+          <h3>Financiamiento a tu medida</h3>
+          <p>Planes flexibles, cuotas accesibles y aprobación rápida para que no pierdas tu oportunidad.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-card__icon">
+            <i class="fas fa-sync-alt"></i>
+          </div>
+          <h3>Permuta / Take-back</h3>
+          <p>Entregá tu auto usado como parte de pago. Valuación justa y transparente en el momento.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-card__icon">
+            <i class="fas fa-file-contract"></i>
+          </div>
+          <h3>Gestión de Documentos</h3>
+          <p>Nos encargamos de todos los trámites de transferencia, patente y documentación para vos.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-card__icon">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <h3>Seguros Vehiculares</h3>
+          <p>Asesoramiento y gestión de seguros para tu vehículo con las mejores aseguradoras del mercado.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FINANCING BANNER
+  ============================================================ -->
+  <section class="financing" id="financiamiento">
+    <div class="financing__bg" style="background-image: url('https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1600&q=80')">
+      <div class="financing__overlay"></div>
+    </div>
+    <div class="container financing__content">
+      <div class="financing__text">
+        <span class="section-header__tag">Financiamiento</span>
+        <h2>¿Querés comprar tu auto<br/><span>en cuotas cómodas?</span></h2>
+        <p>En VH Group tenemos planes de financiamiento diseñados para adaptarse a tu presupuesto. Con pocos requisitos y aprobación rápida, podés llevarte tu auto hoy mismo.</p>
+        <ul class="financing__list">
+          <li><i class="fas fa-check-circle"></i> Financiamiento propio sin banco</li>
+          <li><i class="fas fa-check-circle"></i> Cuotas fijas en dólares o guaraníes</li>
+          <li><i class="fas fa-check-circle"></i> Hasta 48 cuotas disponibles</li>
+          <li><i class="fas fa-check-circle"></i> Mínimos requisitos documentales</li>
+          <li><i class="fas fa-check-circle"></i> Aprobación en el día</li>
+        </ul>
+        <a href="https://wa.me/595985000000?text=Hola!%20Me%20interesa%20saber%20sobre%20los%20planes%20de%20financiamiento." class="btn btn--orange" target="_blank" rel="noopener">
+          <i class="fab fa-whatsapp"></i> Consultar mi plan
+        </a>
+      </div>
+      <div class="financing__card">
+        <h3>Simulador rápido</h3>
+        <form class="sim-form" id="simForm">
+          <div class="sim-form__group">
+            <label>Valor del vehículo (USD)</label>
+            <input type="number" id="simPrice" placeholder="Ej: 25000" min="5000" max="200000" />
+          </div>
+          <div class="sim-form__group">
+            <label>Entrada inicial (%)</label>
+            <input type="number" id="simDown" placeholder="Ej: 30" min="0" max="80" />
+          </div>
+          <div class="sim-form__group">
+            <label>Cantidad de cuotas</label>
+            <select id="simQuotas">
+              <option value="12">12 cuotas</option>
+              <option value="18">18 cuotas</option>
+              <option value="24" selected>24 cuotas</option>
+              <option value="36">36 cuotas</option>
+              <option value="48">48 cuotas</option>
+            </select>
+          </div>
+          <button type="button" class="btn btn--orange" onclick="calcSim()">Calcular cuota</button>
+          <div class="sim-result" id="simResult" style="display:none;">
+            <p>Cuota estimada: <strong id="simOut">—</strong> / mes</p>
+            <small>Valores orientativos. Consultá condiciones reales con nuestro equipo.</small>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       BRANDS
+  ============================================================ -->
+  <section class="brands">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-header__tag">Marcas</span>
+        <h2 class="section-header__title">Trabajamos con las mejores <span>marcas</span></h2>
+      </div>
+      <div class="brands__track">
+        <div class="brands__inner" id="brandsInner">
+          <div class="brand-logo"><img src="https://upload.wikimedia.org/wikipedia/commons/9/9d/Toyota_carlogo.svg" alt="Toyota" /></div>
+          <div class="brand-logo"><img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Ford-logo_color.svg" alt="Ford" /></div>
+          <div class="brand-logo"><img src="https://upload.wikimedia.org/wikipedia/commons/1/15/Chevrolet_logo.svg" alt="Chevrolet" /></div>
+          <div class="brand-logo"><img src="https://upload.wikimedia.org/wikipedia/commons/7/76/Honda_logo_white.svg" alt="Honda" /></div>
+          <div class="brand-logo"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Hyundai_Motor_Company_logo.svg/1280px-Hyundai_Motor_Company_logo.svg.png" alt="Hyundai" /></div>
+          <div class="brand-logo"><img src="https://upload.wikimedia.org/wikipedia/commons/1/13/Kia-logo.svg" alt="Kia" /></div>
+          <div class="brand-logo"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6d/Volkswagen_logo_2019.svg" alt="Volkswagen" /></div>
+          <div class="brand-logo"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Nissan_2020_logo.svg/1280px-Nissan_2020_logo.svg.png" alt="Nissan" /></div>
+          <!-- duplicates for infinite scroll -->
+          <div class="brand-logo"><img src="https://upload.wikimedia.org/wikipedia/commons/9/9d/Toyota_carlogo.svg" alt="Toyota" /></div>
+          <div class="brand-logo"><img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Ford-logo_color.svg" alt="Ford" /></div>
+          <div class="brand-logo"><img src="https://upload.wikimedia.org/wikipedia/commons/1/15/Chevrolet_logo.svg" alt="Chevrolet" /></div>
+          <div class="brand-logo"><img src="https://upload.wikimedia.org/wikipedia/commons/7/76/Honda_logo_white.svg" alt="Honda" /></div>
+          <div class="brand-logo"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Hyundai_Motor_Company_logo.svg/1280px-Hyundai_Motor_Company_logo.svg.png" alt="Hyundai" /></div>
+          <div class="brand-logo"><img src="https://upload.wikimedia.org/wikipedia/commons/1/13/Kia-logo.svg" alt="Kia" /></div>
+          <div class="brand-logo"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6d/Volkswagen_logo_2019.svg" alt="Volkswagen" /></div>
+          <div class="brand-logo"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Nissan_2020_logo.svg/1280px-Nissan_2020_logo.svg.png" alt="Nissan" /></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       ABOUT
+  ============================================================ -->
+  <section class="about" id="nosotros">
+    <div class="container about__grid">
+      <div class="about__media">
+        <img src="https://images.unsplash.com/photo-1562141961-b3ae08a1b6ea?w=800&q=80" alt="Concesionaria VH Group Encarnación" loading="lazy" />
+        <div class="about__exp-badge">
+          <strong>+10</strong>
+          <span>años de<br/>trayectoria</span>
+        </div>
+      </div>
+      <div class="about__text">
+        <span class="section-header__tag">Quiénes somos</span>
+        <h2 class="section-header__title">VH Group S.R.L.<br/><span>Tu concesionaria de confianza</span></h2>
+        <p>Somos una empresa paraguaya con más de 10 años en el mercado automotor, ubicada en el corazón de Encarnación. Nuestro compromiso es brindarte la mejor experiencia de compra, con honestidad, transparencia y el respaldo que merecés.</p>
+        <p>Contamos con un equipo de profesionales apasionados por los autos, listos para asesorarte y ayudarte a encontrar el vehículo ideal para tu vida y tu bolsillo.</p>
+        <div class="about__values">
+          <div class="about__value">
+            <i class="fas fa-medal"></i>
+            <div>
+              <strong>Calidad</strong>
+              <p>Stock seleccionado y verificado</p>
+            </div>
+          </div>
+          <div class="about__value">
+            <i class="fas fa-handshake"></i>
+            <div>
+              <strong>Confianza</strong>
+              <p>Transparencia en cada operación</p>
+            </div>
+          </div>
+          <div class="about__value">
+            <i class="fas fa-heart"></i>
+            <div>
+              <strong>Compromiso</strong>
+              <p>Te acompañamos post-venta</p>
+            </div>
+          </div>
+        </div>
+        <a href="#contacto" class="btn btn--orange">Contactarnos <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       TESTIMONIALS
+  ============================================================ -->
+  <section class="testimonials">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-header__tag">Opiniones</span>
+        <h2 class="section-header__title">Lo que dicen nuestros <span>clientes</span></h2>
+      </div>
+      <div class="testimonials__grid">
+        <div class="testimonial-card">
+          <div class="testimonial-card__stars">
+            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+          </div>
+          <p>"Excelente atención, me ayudaron a encontrar el auto perfecto para mi familia. Los trámites los hicieron ellos y fue rapidísimo."</p>
+          <div class="testimonial-card__author">
+            <div class="testimonial-card__avatar">MR</div>
+            <div>
+              <strong>Mario Rodríguez</strong>
+              <span>Encarnación</span>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-card__stars">
+            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+          </div>
+          <p>"Compré mi Toyota RAV4 con ellos. El precio fue justo, el financiamiento muy accesible y el trato fue increíble. Muy recomendados!"</p>
+          <div class="testimonial-card__author">
+            <div class="testimonial-card__avatar">LP</div>
+            <div>
+              <strong>Laura Paredes</strong>
+              <span>Cambyretá</span>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-card__stars">
+            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+          </div>
+          <p>"Di mi auto en permuta y la valuación fue super transparente. Me dieron buen precio y me ayudaron con todo. Volveré a comprar acá."</p>
+          <div class="testimonial-card__author">
+            <div class="testimonial-card__avatar">CS</div>
+            <div>
+              <strong>Carlos Sánchez</strong>
+              <span>Capitán Miranda</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       CONTACT
+  ============================================================ -->
+  <section class="contact" id="contacto">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-header__tag">Contacto</span>
+        <h2 class="section-header__title">Hablemos sobre<br/><span>tu próximo auto</span></h2>
+        <p class="section-header__sub">Completá el formulario o escribinos por WhatsApp. Te respondemos a la brevedad.</p>
+      </div>
+
+      <div class="contact__grid">
+        <div class="contact__form-wrap">
+          <form class="contact-form" id="contactForm">
+            <div class="contact-form__row">
+              <div class="contact-form__group">
+                <label>Nombre completo *</label>
+                <input type="text" name="nombre" placeholder="Tu nombre" required />
+              </div>
+              <div class="contact-form__group">
+                <label>Teléfono *</label>
+                <input type="tel" name="telefono" placeholder="Ej: 0985 000 000" required />
+              </div>
+            </div>
+            <div class="contact-form__group">
+              <label>Correo electrónico</label>
+              <input type="email" name="email" placeholder="tucorreo@ejemplo.com" />
+            </div>
+            <div class="contact-form__group">
+              <label>¿En qué podemos ayudarte?</label>
+              <select name="interes">
+                <option>Me interesa un vehículo del stock</option>
+                <option>Quiero hacer una permuta</option>
+                <option>Consulta sobre financiamiento</option>
+                <option>Quiero vender mi auto</option>
+                <option>Otro</option>
+              </select>
+            </div>
+            <div class="contact-form__group">
+              <label>Mensaje</label>
+              <textarea name="mensaje" rows="4" placeholder="Contanos qué estás buscando…"></textarea>
+            </div>
+            <button type="submit" class="btn btn--orange">
+              <i class="fas fa-paper-plane"></i> Enviar consulta
+            </button>
+          </form>
+        </div>
+
+        <div class="contact__info">
+          <div class="contact-info-card">
+            <i class="fas fa-map-marker-alt"></i>
+            <div>
+              <strong>Dirección</strong>
+              <p>Carlos Antonio López casi Villarrica<br/>Encarnación, Itapúa – Paraguay</p>
+            </div>
+          </div>
+          <div class="contact-info-card">
+            <i class="fas fa-phone-alt"></i>
+            <div>
+              <strong>Teléfono / WhatsApp</strong>
+              <p><a href="tel:+595985000000">+595 985 000 000</a></p>
+            </div>
+          </div>
+          <div class="contact-info-card">
+            <i class="fas fa-envelope"></i>
+            <div>
+              <strong>Email</strong>
+              <p><a href="mailto:info@vhgroup.com.py">info@vhgroup.com.py</a></p>
+            </div>
+          </div>
+          <div class="contact-info-card">
+            <i class="fas fa-clock"></i>
+            <div>
+              <strong>Horario de atención</strong>
+              <p>Lunes a Viernes: 8:00 – 18:00 hs<br/>Sábados: 8:00 – 13:00 hs</p>
+            </div>
+          </div>
+
+          <a href="https://wa.me/595985000000?text=Hola!%20Estoy%20interesado%20en%20un%20vehículo%20de%20VH%20Group." class="btn btn--whatsapp" target="_blank" rel="noopener">
+            <i class="fab fa-whatsapp"></i> Escribir por WhatsApp
+          </a>
+
+          <div class="contact__map">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3598.9!2d-55.8661!3d-27.3306!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjfCsDE5JzUwLjIiUyA1NcKwNTInMTUuOSJX!5e0!3m2!1ses!2spy!4v1234567890"
+              width="100%" height="220" style="border:0;border-radius:12px;" allowfullscreen=""
+              loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Ubicación VH Group Encarnación">
+            </iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FOOTER
+  ============================================================ -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__col footer__col--brand">
+          <img src="assets/images/logo.png" alt="VH Group S.R.L." class="footer__logo" />
+          <p>Tu concesionaria de confianza en Encarnación. Más de 10 años conectando personas con el auto de sus sueños.</p>
+          <div class="footer__social">
+            <a href="https://facebook.com" target="_blank" rel="noopener" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="https://wa.me/595985000000" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+            <a href="https://youtube.com" target="_blank" rel="noopener" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+          </div>
+        </div>
+
+        <div class="footer__col">
+          <h4>Navegación</h4>
+          <ul>
+            <li><a href="#inicio">Inicio</a></li>
+            <li><a href="#vehiculos">Vehículos</a></li>
+            <li><a href="#servicios">Servicios</a></li>
+            <li><a href="#financiamiento">Financiamiento</a></li>
+            <li><a href="#nosotros">Nosotros</a></li>
+            <li><a href="#contacto">Contacto</a></li>
+          </ul>
+        </div>
+
+        <div class="footer__col">
+          <h4>Categorías</h4>
+          <ul>
+            <li><a href="#vehiculos">Autos Nuevos 0km</a></li>
+            <li><a href="#vehiculos">Autos Usados</a></li>
+            <li><a href="#vehiculos">SUV / 4x4</a></li>
+            <li><a href="#vehiculos">Pick-ups</a></li>
+            <li><a href="#vehiculos">Sedanes</a></li>
+            <li><a href="#vehiculos">Hatchback</a></li>
+          </ul>
+        </div>
+
+        <div class="footer__col">
+          <h4>Contacto</h4>
+          <ul class="footer__contact-list">
+            <li><i class="fas fa-map-marker-alt"></i> C. A. López c/ Villarrica, Encarnación</li>
+            <li><i class="fas fa-phone"></i> <a href="tel:+595985000000">+595 985 000 000</a></li>
+            <li><i class="fas fa-envelope"></i> <a href="mailto:info@vhgroup.com.py">info@vhgroup.com.py</a></li>
+            <li><i class="fas fa-clock"></i> Lun–Vie 8:00–18:00 | Sáb 8:00–13:00</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer__bottom">
+        <p>© 2025 VH Group S.R.L. – Todos los derechos reservados. | Encarnación, Paraguay</p>
+        <p>Desarrollado con ❤ para Encarnación</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- WhatsApp floating button -->
+  <a href="https://wa.me/595985000000?text=Hola!%20Me%20interesa%20un%20vehículo%20de%20VH%20Group." class="whatsapp-float" target="_blank" rel="noopener" aria-label="WhatsApp">
+    <i class="fab fa-whatsapp"></i>
+    <span>¿Necesitás ayuda?</span>
+  </a>
+
+  <!-- Back to top -->
+  <button class="back-to-top" id="backToTop" aria-label="Volver arriba">
+    <i class="fas fa-chevron-up"></i>
+  </button>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
