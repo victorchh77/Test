@@ -18,8 +18,14 @@ export async function updateSession(request: NextRequest) {
   const isAuthPage = pathname.startsWith('/login')
   const isDashboard = !isAuthPage && pathname !== '/'
 
-  // If Supabase isn't configured yet, don't crash — just let requests through.
+  // If Supabase isn't configured yet, keep users on the login page instead of
+  // letting dashboard routes render (which would crash creating a server client).
   if (!isConfigured()) {
+    if (isDashboard) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      return NextResponse.redirect(url)
+    }
     return supabaseResponse
   }
 

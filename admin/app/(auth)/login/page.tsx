@@ -29,7 +29,10 @@ export default function LoginPage() {
     setServerErr('')
     const result = await login(data.email, data.password)
     if (result.error) {
-      setServerErr('Email o contraseña incorrectos')
+      const msg = /invalid login credentials/i.test(result.error)
+        ? 'Email o contraseña incorrectos'
+        : result.error
+      setServerErr(msg)
     } else {
       router.push('/dashboard')
       router.refresh()
