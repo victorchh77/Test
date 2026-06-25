@@ -20,15 +20,14 @@ export async function getSales(fromDate?: string, toDate?: string) {
 
 export async function createSale(formData: SaleFormData): Promise<ActionResult> {
   const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
 
   const { error } = await supabase.from('sales').insert({
     vehicle_id:   formData.vehicle_id,
-    client_id:    formData.client_id,
+    client_id:    formData.client_id || null,
     precio_final: formData.precio_final,
     fecha_venta:  formData.fecha_venta,
-    comision:     formData.comision ?? 0,
-    vendedor_id:  formData.vendedor_id || user?.id || null,
+    comision:     0,
+    vendedor_id:  formData.vendedor_id || null,
     notas:        formData.notas ?? null,
   })
   if (error) return { error: error.message }
