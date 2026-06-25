@@ -6,6 +6,7 @@ export interface Profile {
   id: string
   full_name: string
   role: Role
+  username: string | null
   created_at: string
 }
 

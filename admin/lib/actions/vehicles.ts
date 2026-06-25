@@ -115,6 +115,22 @@ export async function getVehiclePhotos(vehicleId: string) {
   return data ?? []
 }
 
+export async function getMainPhotosForVehicles(vehicleIds: string[]): Promise<Record<string, string>> {
+  if (!vehicleIds.length) return {}
+  const supabase = createClient()
+  const { data } = await supabase
+    .from('vehicle_photos')
+    .select('vehicle_id, url, is_main')
+    .in('vehicle_id', vehicleIds)
+  if (!data) return {}
+  const map: Record<string, string> = {}
+  // Prefer is_main; fall back to first photo encountered
+  data.forEach((p: { vehicle_id: string; url: string; is_main: boolean }) => {
+    if (!map[p.vehicle_id] || p.is_main) map[p.vehicle_id] = p.url
+  })
+  return map
+}
+
 export async function getDashboardStats() {
   const supabase = createClient()
   const now = new Date()

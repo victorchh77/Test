@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Car, Receipt, Users, ShoppingBag,
-  X, UserCog, ListOrdered, ChevronRight,
+  X, UserCog, ListOrdered, ChevronRight, Settings,
 } from 'lucide-react'
 import type { Profile } from '@/types'
 
@@ -17,6 +17,7 @@ const adminNav = [
   { href: '/ventas',        label: 'Ventas',           icon: ShoppingBag },
   { href: '/empleados',     label: 'Empleados',        icon: UserCog },
   { href: '/lista-precios', label: 'Lista de Precios', icon: ListOrdered },
+  { href: '/settings',     label: 'Configuración',   icon: Settings },
 ]
 
 const vendedorNav = [
@@ -25,6 +26,7 @@ const vendedorNav = [
   { href: '/clientes',      label: 'Clientes',         icon: Users },
   { href: '/ventas',        label: 'Mis Ventas',       icon: ShoppingBag },
   { href: '/lista-precios', label: 'Lista de Precios', icon: ListOrdered },
+  { href: '/settings',     label: 'Configuración',   icon: Settings },
 ]
 
 interface Props { open: boolean; onClose: () => void; role?: string }

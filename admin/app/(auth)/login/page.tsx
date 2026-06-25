@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/Button'
 import { Eye, EyeOff, Car, Shield, TrendingUp } from 'lucide-react'
 
 const schema = z.object({
-  email:    z.string().email('Email inválido'),
+  username: z.string().min(1, 'Ingresá tu usuario o email'),
   password: z.string().min(6, 'Mínimo 6 caracteres'),
 })
 type FormData = z.infer<typeof schema>
@@ -33,10 +33,10 @@ export default function LoginPage() {
 
   async function onSubmit(data: FormData) {
     setServerErr('')
-    const result = await login(data.email, data.password)
+    const result = await login(data.username, data.password)
     if (result.error) {
       const msg = /invalid login credentials/i.test(result.error)
-        ? 'Email o contraseña incorrectos'
+        ? 'Usuario o contraseña incorrectos'
         : result.error
       setServerErr(msg)
     } else {
@@ -49,22 +49,16 @@ export default function LoginPage() {
     <div className="min-h-screen bg-bg flex overflow-hidden">
       {/* ── Left panel (branding) ── */}
       <div className="hidden lg:flex lg:w-[45%] relative flex-col items-center justify-center p-12 overflow-hidden">
-        {/* Background layers */}
         <div className="absolute inset-0 bg-sidebar" />
         <div className="absolute inset-0 bg-dots opacity-60" />
-        {/* Orange radial glow */}
         <div className="absolute inset-0 pointer-events-none"
              style={{ background: 'radial-gradient(ellipse 90% 70% at 50% 50%, rgba(255,140,0,0.12) 0%, transparent 70%)' }} />
-        {/* Top & bottom gradient fades */}
         <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-bg to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-bg to-transparent" />
-        {/* Vertical orange line on right edge */}
         <div className="absolute top-0 right-0 bottom-0 w-px"
              style={{ background: 'linear-gradient(to bottom, transparent, rgba(255,140,0,0.4), transparent)' }} />
 
-        {/* Content */}
         <div className="relative z-10 flex flex-col items-center text-center max-w-sm">
-          {/* Logo with glow */}
           <div className="relative mb-8">
             <div className="absolute inset-0 rounded-3xl bg-orange/25 blur-2xl animate-glow-pulse" />
             <div className="relative w-28 h-28 bg-[#0B1220] border-2 border-orange/40 rounded-3xl
@@ -74,17 +68,12 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <h1 className="font-display text-4xl font-bold text-textprim tracking-tight">
-            VH Group
-          </h1>
-          <p className="text-orange font-semibold text-sm tracking-[0.2em] uppercase mt-1">
-            S.R.L.
-          </p>
+          <h1 className="font-display text-4xl font-bold text-textprim tracking-tight">VH Group</h1>
+          <p className="text-orange font-semibold text-sm tracking-[0.2em] uppercase mt-1">S.R.L.</p>
           <p className="text-textsec text-sm mt-3 leading-relaxed">
             Sistema de gestión avanzada para<br />concesionaria vehicular
           </p>
 
-          {/* Feature list */}
           <div className="mt-10 flex flex-col gap-3 w-full">
             {features.map(({ icon: Icon, label }) => (
               <div key={label} className="flex items-center gap-3 bg-white/[0.03] border border-border
@@ -97,15 +86,12 @@ export default function LoginPage() {
             ))}
           </div>
 
-          <p className="text-xs text-textmuted mt-10">
-            Encarnación, Paraguay — © 2025
-          </p>
+          <p className="text-xs text-textmuted mt-10">Encarnación, Paraguay — © 2025</p>
         </div>
       </div>
 
       {/* ── Right panel (form) ── */}
       <div className="flex-1 flex items-center justify-center p-6 relative">
-        {/* Background pattern for mobile */}
         <div className="absolute inset-0 bg-dots opacity-40 lg:hidden" />
         <div className="absolute inset-0 pointer-events-none lg:hidden"
              style={{ background: 'radial-gradient(ellipse 100% 60% at 50% 20%, rgba(255,140,0,0.08) 0%, transparent 60%)' }} />
@@ -125,35 +111,28 @@ export default function LoginPage() {
             <p className="text-sm text-textsec mt-1">Panel de Gestión · Encarnación</p>
           </div>
 
-          {/* Form card */}
           <div className="relative">
-            {/* Orange border glow */}
             <div className="absolute -inset-px rounded-2xl pointer-events-none"
                  style={{ background: 'linear-gradient(135deg, rgba(255,140,0,0.2), transparent 50%)', borderRadius: '1rem' }} />
 
             <div className="relative bg-card border border-border-bright rounded-2xl shadow-card-lg overflow-hidden">
-              {/* Top accent line */}
               <div className="h-0.5 w-full"
                    style={{ background: 'linear-gradient(90deg, transparent, #FF8C00, transparent)' }} />
 
               <div className="px-8 py-8">
                 <div className="mb-7">
-                  <h2 className="font-display text-xl font-bold text-textprim tracking-tight">
-                    Iniciar sesión
-                  </h2>
-                  <p className="text-sm text-textsec mt-1">
-                    Accedé al panel de gestión
-                  </p>
+                  <h2 className="font-display text-xl font-bold text-textprim tracking-tight">Iniciar sesión</h2>
+                  <p className="text-sm text-textsec mt-1">Accedé al panel de gestión</p>
                 </div>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
                   <Input
-                    {...register('email')}
-                    label="Correo electrónico"
-                    type="email"
-                    placeholder="tu@email.com"
-                    autoComplete="email"
-                    error={errors.email?.message}
+                    {...register('username')}
+                    label="Usuario o email"
+                    type="text"
+                    placeholder="tu.usuario"
+                    autoComplete="username"
+                    error={errors.username?.message}
                   />
 
                   <div className="relative">

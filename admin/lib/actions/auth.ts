@@ -9,12 +9,25 @@ function isConfigured() {
   return !!url && !!key && !url.includes('placeholder') && !key.includes('placeholder')
 }
 
-export async function login(email: string, password: string) {
+export async function login(usernameOrEmail: string, password: string) {
   if (!isConfigured()) {
     return { error: 'El servidor no está conectado a la base de datos. Falta configurar Supabase en Vercel.' }
   }
   try {
     const supabase = createClient()
+    let email = usernameOrEmail.trim()
+
+    // If input has no '@', treat it as a username and look up the email
+    if (!email.includes('@')) {
+      const { data: foundEmail, error: rpcErr } = await supabase.rpc('get_email_by_username', {
+        p_username: email,
+      })
+      if (rpcErr || !foundEmail) {
+        return { error: 'Usuario o contraseña incorrectos' }
+      }
+      email = foundEmail as string
+    }
+
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) return { error: error.message }
     return { error: null }
