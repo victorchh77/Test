@@ -1,16 +1,22 @@
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 import { DashboardShell } from '@/components/layout/DashboardShell'
-import type { Profile } from '@/types'
-
-const MOCK_PROFILE: Profile = {
-  id: 'demo-id',
-  full_name: 'Admin VH Group',
-  role: 'admin',
-  created_at: new Date().toISOString(),
-}
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile) redirect('/login')
+
   return (
-    <DashboardShell profile={MOCK_PROFILE}>
+    <DashboardShell profile={profile}>
       {children}
     </DashboardShell>
   )

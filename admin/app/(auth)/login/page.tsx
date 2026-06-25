@@ -8,7 +8,7 @@ import { z } from 'zod'
 import { login } from '@/lib/actions/auth'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
-import { Eye, EyeOff, Car } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 
 const schema = z.object({
   email:    z.string().email('Email inválido'),
@@ -41,8 +41,9 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-orange rounded-2xl mb-4 shadow-lg shadow-orange/30">
-            <Car className="w-8 h-8 text-white" />
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-card border border-border rounded-2xl mb-4 shadow-2xl">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="VH Group" className="w-14 h-14 object-contain" />
           </div>
           <h1 className="text-2xl font-bold text-textprim">VH Group S.R.L.</h1>
           <p className="text-sm text-textsec mt-1">Panel de Gestión · Encarnación</p>

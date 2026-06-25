@@ -182,3 +182,93 @@ create or replace view public.sales_with_details as
   join public.vehicles v on s.vehicle_id = v.id
   join public.clients c on s.client_id = c.id
   left join public.profiles p on s.vendedor_id = p.id;
+
+-- ── Vehicle Photos ──────────────────────────────────────────────
+create table if not exists public.vehicle_photos (
+  id           uuid primary key default uuid_generate_v4(),
+  vehicle_id   uuid not null references public.vehicles(id) on delete cascade,
+  url          text not null,
+  storage_path text not null,
+  is_main      boolean not null default false,
+  created_by   uuid references public.profiles(id),
+  created_at   timestamptz not null default now()
+);
+
+alter table public.vehicle_photos enable row level security;
+create policy "Auth users can manage vehicle_photos" on public.vehicle_photos
+  for all using (auth.role() = 'authenticated');
+
+-- ── Employees ──────────────────────────────────────────────────
+create table if not exists public.employees (
+  id                   uuid primary key default uuid_generate_v4(),
+  profile_id           uuid references public.profiles(id) on delete set null,
+  nombre               text not null,
+  documento            text,
+  telefono             text,
+  email                text,
+  cargo                text not null default 'vendedor',
+  salario_base         bigint not null default 0,
+  comision_porcentaje  numeric(5,2) not null default 0,
+  fecha_ingreso        date not null default current_date,
+  activo               boolean not null default true,
+  notas                text,
+  created_at           timestamptz not null default now(),
+  updated_at           timestamptz not null default now()
+);
+
+alter table public.employees enable row level security;
+create policy "Auth users can view employees" on public.employees
+  for select using (auth.role() = 'authenticated');
+create policy "Admin can manage employees" on public.employees
+  for all using (
+    exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
+  );
+
+create trigger employees_updated_at before update on public.employees
+  for each row execute function public.set_updated_at();
+
+-- ── Price Lists ────────────────────────────────────────────────
+create table if not exists public.price_lists (
+  id          uuid primary key default uuid_generate_v4(),
+  titulo      text not null,
+  descripcion text,
+  activa      boolean not null default true,
+  created_by  uuid references public.profiles(id),
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+alter table public.price_lists enable row level security;
+create policy "Auth users can view price_lists" on public.price_lists
+  for select using (auth.role() = 'authenticated');
+create policy "Admin can manage price_lists" on public.price_lists
+  for all using (
+    exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
+  );
+
+create trigger price_lists_updated_at before update on public.price_lists
+  for each row execute function public.set_updated_at();
+
+-- ── Price List Items ───────────────────────────────────────────
+create table if not exists public.price_list_items (
+  id            uuid primary key default uuid_generate_v4(),
+  price_list_id uuid not null references public.price_lists(id) on delete cascade,
+  vehicle_id    uuid not null references public.vehicles(id) on delete cascade,
+  precio_lista  bigint not null,
+  notas         text,
+  created_at    timestamptz not null default now()
+);
+
+alter table public.price_list_items enable row level security;
+create policy "Auth users can view price_list_items" on public.price_list_items
+  for select using (auth.role() = 'authenticated');
+create policy "Admin can manage price_list_items" on public.price_list_items
+  for all using (
+    exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
+  );
+
+-- ── Storage bucket (run in Supabase dashboard) ─────────────────
+-- 1. Go to Storage > New bucket
+-- 2. Name: vehicle-photos
+-- 3. Enable "Public bucket"
+-- This allows public URLs for vehicle photos.

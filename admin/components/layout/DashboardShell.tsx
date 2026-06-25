@@ -7,11 +7,13 @@ import { usePathname } from 'next/navigation'
 import type { Profile } from '@/types'
 
 const pageTitles: Record<string, string> = {
-  '/dashboard': 'Dashboard',
-  '/vehiculos':  'Vehículos',
-  '/gastos':     'Gastos',
-  '/clientes':   'Clientes',
-  '/ventas':     'Ventas',
+  '/dashboard':     'Dashboard',
+  '/vehiculos':     'Vehículos',
+  '/gastos':        'Gastos',
+  '/clientes':      'Clientes',
+  '/ventas':        'Ventas',
+  '/empleados':     'Empleados',
+  '/lista-precios': 'Lista de Precios',
 }
 
 function getTitle(pathname: string) {
@@ -27,7 +29,7 @@ export function DashboardShell({ children, profile }: { children: React.ReactNod
 
   return (
     <div className="flex h-screen bg-bg overflow-hidden">
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} role={profile?.role} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header

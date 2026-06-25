@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Edit, Trash2, Plus, TrendingUp } from 'lucide-react'
-import { getVehicle, getVehicleExpenses, getVehiclePriceHistory, deleteVehicle } from '@/lib/actions/vehicles'
+import { ArrowLeft, Edit, TrendingUp } from 'lucide-react'
+import { getVehicle, getVehicleExpenses, getVehiclePriceHistory, getVehiclePhotos } from '@/lib/actions/vehicles'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader } from '@/components/ui/Card'
@@ -9,6 +9,7 @@ import { formatCurrency, formatKm, formatDate, formatDatetime, calcRentabilidad 
 import { EXPENSE_TYPES } from '@/lib/utils/constants'
 import { AddExpenseModal } from './AddExpenseModal'
 import { DeleteVehicleBtn } from './DeleteVehicleBtn'
+import { PhotoSection } from './PhotoSection'
 import type { VehicleStatus } from '@/types'
 
 const statusBadge: Record<VehicleStatus, 'success' | 'warning' | 'error'> = {
@@ -18,15 +19,16 @@ const statusBadge: Record<VehicleStatus, 'success' | 'warning' | 'error'> = {
 }
 
 export default async function VehicleDetailPage({ params }: { params: { id: string } }) {
-  const [vehicle, expenses, priceHistory] = await Promise.all([
+  const [vehicle, expenses, priceHistory, photos] = await Promise.all([
     getVehicle(params.id),
     getVehicleExpenses(params.id),
     getVehiclePriceHistory(params.id),
+    getVehiclePhotos(params.id),
   ])
 
   if (!vehicle) notFound()
 
-  const totalGastos = expenses.reduce((a, e) => a + e.monto, 0)
+  const totalGastos = expenses.reduce((a: number, e: any) => a + e.monto, 0)
   const rentabilidad = calcRentabilidad(vehicle.precio_venta, vehicle.precio_compra, totalGastos)
 
   return (
@@ -54,6 +56,11 @@ export default async function VehicleDetailPage({ params }: { params: { id: stri
           <DeleteVehicleBtn vehicleId={vehicle.id} />
         </div>
       </div>
+
+      {/* Photos */}
+      <Card>
+        <PhotoSection vehicleId={vehicle.id} photos={photos as any} />
+      </Card>
 
       <div className="grid lg:grid-cols-3 gap-4">
         {/* Info */}
@@ -86,33 +93,31 @@ export default async function VehicleDetailPage({ params }: { params: { id: stri
         </Card>
 
         {/* Rentabilidad */}
-        <div className="flex flex-col gap-4">
-          <Card>
-            <CardHeader title="Rentabilidad estimada" />
-            <div className="flex flex-col gap-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-textsec">Precio de venta</span>
-                <span className="text-textprim font-medium">{formatCurrency(vehicle.precio_venta)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-textsec">Precio de compra</span>
-                <span className="text-error">−{formatCurrency(vehicle.precio_compra)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-textsec">Total gastos</span>
-                <span className="text-error">−{formatCurrency(totalGastos)}</span>
-              </div>
-              <div className="border-t border-border pt-3 flex justify-between items-center">
-                <span className="text-sm font-semibold text-textprim flex items-center gap-1">
-                  <TrendingUp className="w-4 h-4" /> Ganancia neta
-                </span>
-                <span className={`text-lg font-bold ${rentabilidad >= 0 ? 'text-success' : 'text-error'}`}>
-                  {rentabilidad >= 0 ? '+' : ''}{formatCurrency(rentabilidad)}
-                </span>
-              </div>
+        <Card>
+          <CardHeader title="Rentabilidad estimada" />
+          <div className="flex flex-col gap-3">
+            <div className="flex justify-between text-sm">
+              <span className="text-textsec">Precio de venta</span>
+              <span className="text-textprim font-medium">{formatCurrency(vehicle.precio_venta)}</span>
             </div>
-          </Card>
-        </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-textsec">Precio de compra</span>
+              <span className="text-error">−{formatCurrency(vehicle.precio_compra)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-textsec">Total gastos</span>
+              <span className="text-error">−{formatCurrency(totalGastos)}</span>
+            </div>
+            <div className="border-t border-border pt-3 flex justify-between items-center">
+              <span className="text-sm font-semibold text-textprim flex items-center gap-1">
+                <TrendingUp className="w-4 h-4" /> Ganancia neta
+              </span>
+              <span className={`text-lg font-bold ${rentabilidad >= 0 ? 'text-success' : 'text-error'}`}>
+                {rentabilidad >= 0 ? '+' : ''}{formatCurrency(rentabilidad)}
+              </span>
+            </div>
+          </div>
+        </Card>
       </div>
 
       {/* Expenses */}
@@ -137,7 +142,7 @@ export default async function VehicleDetailPage({ params }: { params: { id: stri
               </tr>
             </thead>
             <tbody>
-              {expenses.map(e => (
+              {expenses.map((e: any) => (
                 <tr key={e.id} className="border-b border-border/40 hover:bg-white/[0.02]">
                   <td className="py-2.5 px-1">
                     <Badge color="orange">
@@ -162,18 +167,18 @@ export default async function VehicleDetailPage({ params }: { params: { id: stri
             <thead>
               <tr className="border-b border-border">
                 <th className="text-left py-2 px-1 text-xs text-textsec font-medium">Fecha</th>
-                <th className="text-right py-2 px-1 text-xs text-textsec font-medium">Precio anterior</th>
-                <th className="text-right py-2 px-1 text-xs text-textsec font-medium">Precio nuevo</th>
+                <th className="text-right py-2 px-1 text-xs text-textsec font-medium">Anterior</th>
+                <th className="text-right py-2 px-1 text-xs text-textsec font-medium">Nuevo</th>
                 <th className="text-left py-2 px-1 text-xs text-textsec font-medium">Motivo</th>
               </tr>
             </thead>
             <tbody>
-              {priceHistory.map(h => (
+              {priceHistory.map((h: any) => (
                 <tr key={h.id} className="border-b border-border/40 hover:bg-white/[0.02]">
                   <td className="py-2.5 px-1 text-textsec text-xs">{formatDatetime(h.created_at)}</td>
                   <td className="py-2.5 px-1 text-right text-textsec">{formatCurrency(h.precio_anterior)}</td>
                   <td className={`py-2.5 px-1 text-right font-medium ${h.precio_nuevo > h.precio_anterior ? 'text-success' : 'text-error'}`}>
-                    {formatCurrency(h.precio_nuevo)}
+                    {h.precio_nuevo > h.precio_anterior ? '▲' : '▼'} {formatCurrency(h.precio_nuevo)}
                   </td>
                   <td className="py-2.5 px-1 text-textsec">{h.motivo || '—'}</td>
                 </tr>
