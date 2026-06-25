@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { isAdmin } from '@/lib/auth/roles'
 import type { VehicleFormData } from '@/lib/validations/vehicle'
 import type { ActionResult, Vehicle, SaleWithDetails } from '@/types'
 
@@ -24,6 +25,7 @@ export async function getVehicle(id: string) {
 }
 
 export async function createVehicle(formData: VehicleFormData): Promise<ActionResult<Vehicle>> {
+  if (!(await isAdmin())) return { error: 'No autorizado: solo administradores pueden agregar vehículos.' }
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const { data, error } = await supabase
@@ -37,6 +39,7 @@ export async function createVehicle(formData: VehicleFormData): Promise<ActionRe
 }
 
 export async function updateVehicle(id: string, formData: VehicleFormData): Promise<ActionResult<Vehicle>> {
+  if (!(await isAdmin())) return { error: 'No autorizado: solo administradores pueden modificar vehículos.' }
   const supabase = createClient()
   const { data, error } = await supabase
     .from('vehicles')
@@ -51,6 +54,7 @@ export async function updateVehicle(id: string, formData: VehicleFormData): Prom
 }
 
 export async function deleteVehicle(id: string): Promise<ActionResult> {
+  if (!(await isAdmin())) return { error: 'No autorizado: solo administradores pueden eliminar vehículos.' }
   const supabase = createClient()
   const { error } = await supabase.from('vehicles').delete().eq('id', id)
   if (error) return { error: error.message }

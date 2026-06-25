@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { isAdmin } from '@/lib/auth/roles'
 import type { EmployeeFormData } from '@/lib/validations/employee'
 import type { ActionResult, Employee } from '@/types'
 
@@ -23,6 +24,7 @@ export async function getEmployee(id: string) {
 }
 
 export async function createEmployee(formData: EmployeeFormData): Promise<ActionResult<Employee>> {
+  if (!(await isAdmin())) return { error: 'No autorizado.' }
   const supabase = createClient()
   const { data, error } = await supabase
     .from('employees')
@@ -35,6 +37,7 @@ export async function createEmployee(formData: EmployeeFormData): Promise<Action
 }
 
 export async function updateEmployee(id: string, formData: EmployeeFormData): Promise<ActionResult<Employee>> {
+  if (!(await isAdmin())) return { error: 'No autorizado.' }
   const supabase = createClient()
   const { data, error } = await supabase
     .from('employees')
@@ -49,6 +52,7 @@ export async function updateEmployee(id: string, formData: EmployeeFormData): Pr
 }
 
 export async function deleteEmployee(id: string): Promise<ActionResult> {
+  if (!(await isAdmin())) return { error: 'No autorizado.' }
   const supabase = createClient()
   const { error } = await supabase.from('employees').delete().eq('id', id)
   if (error) return { error: error.message }

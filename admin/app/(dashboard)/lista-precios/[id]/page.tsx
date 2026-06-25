@@ -7,12 +7,14 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardHeader } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { formatCurrency, formatDate, formatKm } from '@/lib/utils/format'
+import { isAdmin } from '@/lib/auth/roles'
 import { AddVehicleToPriceListForm } from './AddVehicleToPriceListForm'
 
 export default async function PriceListDetailPage({ params }: { params: { id: string } }) {
-  const [list, vehicles] = await Promise.all([
+  const [list, vehicles, admin] = await Promise.all([
     getPriceList(params.id),
     getVehicles({ estado: 'Disponible' }),
+    isAdmin(),
   ])
 
   if (!list) notFound()
@@ -36,14 +38,16 @@ export default async function PriceListDetailPage({ params }: { params: { id: st
             </div>
           </div>
         </div>
-        <form action={async () => {
-          'use server'
-          await togglePriceListActive(params.id, !(list as any).activa)
-        }}>
-          <Button variant="secondary" size="sm" type="submit">
-            {(list as any).activa ? <><XCircle className="w-3.5 h-3.5" />Desactivar</> : <><CheckCircle className="w-3.5 h-3.5" />Activar</>}
-          </Button>
-        </form>
+        {admin && (
+          <form action={async () => {
+            'use server'
+            await togglePriceListActive(params.id, !(list as any).activa)
+          }}>
+            <Button variant="secondary" size="sm" type="submit">
+              {(list as any).activa ? <><XCircle className="w-3.5 h-3.5" />Desactivar</> : <><CheckCircle className="w-3.5 h-3.5" />Activar</>}
+            </Button>
+          </form>
+        )}
       </div>
 
       {(list as any).descripcion && (
@@ -52,7 +56,7 @@ export default async function PriceListDetailPage({ params }: { params: { id: st
         </Card>
       )}
 
-      <AddVehicleToPriceListForm priceListId={params.id} vehicles={vehicles} />
+      {admin && <AddVehicleToPriceListForm priceListId={params.id} vehicles={vehicles} />}
 
       <Card padding={false}>
         <div className="px-4 py-3 border-b border-border">
@@ -67,8 +71,8 @@ export default async function PriceListDetailPage({ params }: { params: { id: st
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
-                {['Vehículo', 'Km', 'Color', 'Estado', 'Precio lista', 'Notas', ''].map(h => (
-                  <th key={h} className="text-left py-3 px-4 text-xs font-medium text-textsec uppercase tracking-wide whitespace-nowrap">{h}</th>
+                {['Vehículo', 'Km', 'Color', 'Estado', 'Precio lista', 'Notas', ...(admin ? [''] : [])].map((h, i) => (
+                  <th key={i} className="text-left py-3 px-4 text-xs font-medium text-textsec uppercase tracking-wide whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -88,16 +92,18 @@ export default async function PriceListDetailPage({ params }: { params: { id: st
                   </td>
                   <td className="py-3 px-4 font-semibold text-orange">{formatCurrency(item.precio_lista)}</td>
                   <td className="py-3 px-4 text-textsec text-xs">{item.notas ?? '—'}</td>
-                  <td className="py-3 px-4">
-                    <form action={async () => {
-                      'use server'
-                      await removeFromPriceList(item.id, params.id)
-                    }}>
-                      <button type="submit" className="p-1.5 hover:bg-error/10 hover:text-error rounded-lg transition-colors text-textsec">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </form>
-                  </td>
+                  {admin && (
+                    <td className="py-3 px-4">
+                      <form action={async () => {
+                        'use server'
+                        await removeFromPriceList(item.id, params.id)
+                      }}>
+                        <button type="submit" className="p-1.5 hover:bg-error/10 hover:text-error rounded-lg transition-colors text-textsec">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </form>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

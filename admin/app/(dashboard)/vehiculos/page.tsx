@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { VehicleFiltersClient } from './VehicleFiltersClient'
 import { formatCurrency, formatKm, formatDate } from '@/lib/utils/format'
+import { isAdmin } from '@/lib/auth/roles'
 import type { VehicleStatus, VehicleFilters } from '@/types'
 
 const statusBadge: Record<VehicleStatus, 'success' | 'warning' | 'error'> = {
@@ -19,7 +20,7 @@ export default async function VehiculosPage({
 }: {
   searchParams: VehicleFilters
 }) {
-  const vehicles = await getVehicles(searchParams)
+  const [vehicles, admin] = await Promise.all([getVehicles(searchParams), isAdmin()])
 
   return (
     <div className="flex flex-col gap-5 animate-fade-in">
@@ -28,9 +29,11 @@ export default async function VehiculosPage({
           <h1 className="text-xl font-bold text-textprim">Vehículos</h1>
           <p className="text-sm text-textsec mt-0.5">{vehicles.length} vehículos encontrados</p>
         </div>
-        <Link href="/vehiculos/nuevo">
-          <Button><Plus className="w-4 h-4" />Nuevo vehículo</Button>
-        </Link>
+        {admin && (
+          <Link href="/vehiculos/nuevo">
+            <Button><Plus className="w-4 h-4" />Nuevo vehículo</Button>
+          </Link>
+        )}
       </div>
 
       <VehicleFiltersClient current={searchParams} />
@@ -76,9 +79,11 @@ export default async function VehiculosPage({
                       <Link href={`/vehiculos/${v.id}`}>
                         <Button variant="secondary" size="sm">Ver</Button>
                       </Link>
-                      <Link href={`/vehiculos/${v.id}/editar`}>
-                        <Button variant="ghost" size="sm">Editar</Button>
-                      </Link>
+                      {admin && (
+                        <Link href={`/vehiculos/${v.id}/editar`}>
+                          <Button variant="ghost" size="sm">Editar</Button>
+                        </Link>
+                      )}
                     </div>
                   </td>
                 </tr>

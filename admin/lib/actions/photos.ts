@@ -2,9 +2,13 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { isAdmin } from '@/lib/auth/roles'
 import type { ActionResult } from '@/types'
 
+const NO_AUTH = { error: 'No autorizado: solo administradores pueden modificar las fotos.' }
+
 export async function uploadVehiclePhoto(vehicleId: string, formData: FormData): Promise<ActionResult<{ url: string }>> {
+  if (!(await isAdmin())) return NO_AUTH
   const supabase = createClient()
   const file = formData.get('file') as File
   if (!file) return { error: 'No se seleccionó archivo' }
@@ -39,6 +43,7 @@ export async function uploadVehiclePhoto(vehicleId: string, formData: FormData):
 }
 
 export async function setMainPhoto(photoId: string, vehicleId: string): Promise<ActionResult> {
+  if (!(await isAdmin())) return NO_AUTH
   const supabase = createClient()
   await supabase.from('vehicle_photos').update({ is_main: false }).eq('vehicle_id', vehicleId)
   const { error } = await supabase.from('vehicle_photos').update({ is_main: true }).eq('id', photoId)
@@ -48,6 +53,7 @@ export async function setMainPhoto(photoId: string, vehicleId: string): Promise<
 }
 
 export async function deleteVehiclePhoto(photoId: string, storagePath: string, vehicleId: string): Promise<ActionResult> {
+  if (!(await isAdmin())) return NO_AUTH
   const supabase = createClient()
   await supabase.storage.from('vehicle-photos').remove([storagePath])
   const { error } = await supabase.from('vehicle_photos').delete().eq('id', photoId)

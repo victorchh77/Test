@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { formatDate } from '@/lib/utils/format'
+import { isAdmin } from '@/lib/auth/roles'
 
 export default async function ListaPreciosPage() {
-  const lists = await getPriceLists()
+  const [lists, admin] = await Promise.all([getPriceLists(), isAdmin()])
   const activas = lists.filter((l: any) => l.activa).length
 
   return (
@@ -17,9 +18,11 @@ export default async function ListaPreciosPage() {
           <h1 className="text-xl font-bold text-textprim">Lista de Precios</h1>
           <p className="text-sm text-textsec">{activas} activas · {lists.length} total</p>
         </div>
-        <Link href="/lista-precios/nueva">
-          <Button><Plus className="w-4 h-4" />Nueva lista</Button>
-        </Link>
+        {admin && (
+          <Link href="/lista-precios/nueva">
+            <Button><Plus className="w-4 h-4" />Nueva lista</Button>
+          </Link>
+        )}
       </div>
 
       {lists.length === 0 ? (

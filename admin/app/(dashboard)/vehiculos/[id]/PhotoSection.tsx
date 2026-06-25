@@ -7,9 +7,9 @@ import { uploadVehiclePhoto, setMainPhoto, deleteVehiclePhoto } from '@/lib/acti
 import { Button } from '@/components/ui/Button'
 import type { VehiclePhoto } from '@/types'
 
-interface Props { vehicleId: string; photos: VehiclePhoto[] }
+interface Props { vehicleId: string; photos: VehiclePhoto[]; canEdit?: boolean }
 
-export function PhotoSection({ vehicleId, photos: initialPhotos }: Props) {
+export function PhotoSection({ vehicleId, photos: initialPhotos, canEdit = false }: Props) {
   const [photos, setPhotos] = useState(initialPhotos)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
@@ -47,23 +47,25 @@ export function PhotoSection({ vehicleId, photos: initialPhotos }: Props) {
           <h2 className="text-base font-semibold text-textprim">Fotos del vehículo</h2>
           <p className="text-xs text-textsec">{photos.length} foto{photos.length !== 1 ? 's' : ''}</p>
         </div>
-        <div>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleUpload}
-          />
-          <Button
-            size="sm"
-            variant="secondary"
-            loading={uploading}
-            onClick={() => fileRef.current?.click()}
-          >
-            <Upload className="w-3.5 h-3.5" />Subir foto
-          </Button>
-        </div>
+        {canEdit && (
+          <div>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleUpload}
+            />
+            <Button
+              size="sm"
+              variant="secondary"
+              loading={uploading}
+              onClick={() => fileRef.current?.click()}
+            >
+              <Upload className="w-3.5 h-3.5" />Subir foto
+            </Button>
+          </div>
+        )}
       </div>
 
       {error && (
@@ -71,14 +73,21 @@ export function PhotoSection({ vehicleId, photos: initialPhotos }: Props) {
       )}
 
       {photos.length === 0 ? (
-        <button
-          onClick={() => fileRef.current?.click()}
-          className="w-full h-40 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2
-                     hover:border-orange/40 hover:bg-orange/5 transition-all duration-200 group"
-        >
-          <Camera className="w-8 h-8 text-textsec/40 group-hover:text-orange/60 transition-colors" />
-          <p className="text-sm text-textsec">Clic para agregar fotos</p>
-        </button>
+        canEdit ? (
+          <button
+            onClick={() => fileRef.current?.click()}
+            className="w-full h-40 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2
+                       hover:border-orange/40 hover:bg-orange/5 transition-all duration-200 group"
+          >
+            <Camera className="w-8 h-8 text-textsec/40 group-hover:text-orange/60 transition-colors" />
+            <p className="text-sm text-textsec">Clic para agregar fotos</p>
+          </button>
+        ) : (
+          <div className="w-full h-40 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2">
+            <Camera className="w-8 h-8 text-textsec/30" />
+            <p className="text-sm text-textsec">Este vehículo no tiene fotos</p>
+          </div>
+        )
       ) : (
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
           {photos.map(photo => (
@@ -95,33 +104,37 @@ export function PhotoSection({ vehicleId, photos: initialPhotos }: Props) {
                   PRINCIPAL
                 </div>
               )}
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                {!photo.is_main && (
+              {canEdit && (
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  {!photo.is_main && (
+                    <button
+                      onClick={() => handleSetMain(photo.id)}
+                      className="p-1.5 bg-orange/80 hover:bg-orange rounded-lg transition-colors"
+                      title="Hacer principal"
+                    >
+                      <Star className="w-3.5 h-3.5 text-white" />
+                    </button>
+                  )}
                   <button
-                    onClick={() => handleSetMain(photo.id)}
-                    className="p-1.5 bg-orange/80 hover:bg-orange rounded-lg transition-colors"
-                    title="Hacer principal"
+                    onClick={() => handleDelete(photo)}
+                    className="p-1.5 bg-error/80 hover:bg-error rounded-lg transition-colors"
+                    title="Eliminar"
                   >
-                    <Star className="w-3.5 h-3.5 text-white" />
+                    <Trash2 className="w-3.5 h-3.5 text-white" />
                   </button>
-                )}
-                <button
-                  onClick={() => handleDelete(photo)}
-                  className="p-1.5 bg-error/80 hover:bg-error rounded-lg transition-colors"
-                  title="Eliminar"
-                >
-                  <Trash2 className="w-3.5 h-3.5 text-white" />
-                </button>
-              </div>
+                </div>
+              )}
             </div>
           ))}
-          <button
-            onClick={() => fileRef.current?.click()}
-            className="aspect-square rounded-lg border-2 border-dashed border-border flex items-center justify-center
-                       hover:border-orange/40 hover:bg-orange/5 transition-all duration-200 group"
-          >
-            <Camera className="w-6 h-6 text-textsec/40 group-hover:text-orange/60 transition-colors" />
-          </button>
+          {canEdit && (
+            <button
+              onClick={() => fileRef.current?.click()}
+              className="aspect-square rounded-lg border-2 border-dashed border-border flex items-center justify-center
+                         hover:border-orange/40 hover:bg-orange/5 transition-all duration-200 group"
+            >
+              <Camera className="w-6 h-6 text-textsec/40 group-hover:text-orange/60 transition-colors" />
+            </button>
+          )}
         </div>
       )}
     </div>

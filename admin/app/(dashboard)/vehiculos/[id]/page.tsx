@@ -10,6 +10,7 @@ import { EXPENSE_TYPES } from '@/lib/utils/constants'
 import { AddExpenseModal } from './AddExpenseModal'
 import { DeleteVehicleBtn } from './DeleteVehicleBtn'
 import { PhotoSection } from './PhotoSection'
+import { isAdmin } from '@/lib/auth/roles'
 import type { VehicleStatus } from '@/types'
 
 const statusBadge: Record<VehicleStatus, 'success' | 'warning' | 'error'> = {
@@ -19,11 +20,12 @@ const statusBadge: Record<VehicleStatus, 'success' | 'warning' | 'error'> = {
 }
 
 export default async function VehicleDetailPage({ params }: { params: { id: string } }) {
-  const [vehicle, expenses, priceHistory, photos] = await Promise.all([
+  const [vehicle, expenses, priceHistory, photos, admin] = await Promise.all([
     getVehicle(params.id),
     getVehicleExpenses(params.id),
     getVehiclePriceHistory(params.id),
     getVehiclePhotos(params.id),
+    isAdmin(),
   ])
 
   if (!vehicle) notFound()
@@ -49,22 +51,24 @@ export default async function VehicleDetailPage({ params }: { params: { id: stri
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Link href={`/vehiculos/${vehicle.id}/editar`}>
-            <Button variant="secondary" size="sm"><Edit className="w-3.5 h-3.5" />Editar</Button>
-          </Link>
-          <DeleteVehicleBtn vehicleId={vehicle.id} />
-        </div>
+        {admin && (
+          <div className="flex items-center gap-2">
+            <Link href={`/vehiculos/${vehicle.id}/editar`}>
+              <Button variant="secondary" size="sm"><Edit className="w-3.5 h-3.5" />Editar</Button>
+            </Link>
+            <DeleteVehicleBtn vehicleId={vehicle.id} />
+          </div>
+        )}
       </div>
 
       {/* Photos */}
       <Card>
-        <PhotoSection vehicleId={vehicle.id} photos={photos as any} />
+        <PhotoSection vehicleId={vehicle.id} photos={photos as any} canEdit={admin} />
       </Card>
 
-      <div className="grid lg:grid-cols-3 gap-4">
+      <div className={`grid gap-4 ${admin ? 'lg:grid-cols-3' : 'lg:grid-cols-1'}`}>
         {/* Info */}
-        <Card className="lg:col-span-2">
+        <Card className={admin ? 'lg:col-span-2' : ''}>
           <CardHeader title="Información del vehículo" />
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {[
@@ -74,9 +78,9 @@ export default async function VehicleDetailPage({ params }: { params: { id: stri
               { label: 'Kilometraje',   value: formatKm(vehicle.km) },
               { label: 'Color',         value: vehicle.color || '—' },
               { label: 'Estado',        value: vehicle.estado },
-              { label: 'P. Compra',     value: formatCurrency(vehicle.precio_compra) },
+              ...(admin ? [{ label: 'P. Compra', value: formatCurrency(vehicle.precio_compra) }] : []),
               { label: 'P. Venta',      value: formatCurrency(vehicle.precio_venta) },
-              { label: 'Total Gastos',  value: formatCurrency(totalGastos) },
+              ...(admin ? [{ label: 'Total Gastos', value: formatCurrency(totalGastos) }] : []),
             ].map(({ label, value }) => (
               <div key={label}>
                 <p className="text-xs text-textsec uppercase tracking-wide mb-0.5">{label}</p>
@@ -92,7 +96,8 @@ export default async function VehicleDetailPage({ params }: { params: { id: stri
           )}
         </Card>
 
-        {/* Rentabilidad */}
+        {/* Rentabilidad — admin only */}
+        {admin && (
         <Card>
           <CardHeader title="Rentabilidad estimada" />
           <div className="flex flex-col gap-3">
@@ -118,9 +123,11 @@ export default async function VehicleDetailPage({ params }: { params: { id: stri
             </div>
           </div>
         </Card>
+        )}
       </div>
 
-      {/* Expenses */}
+      {/* Expenses — admin only (reveals cost/margin) */}
+      {admin && (
       <Card>
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -158,6 +165,7 @@ export default async function VehicleDetailPage({ params }: { params: { id: stri
           </table>
         )}
       </Card>
+      )}
 
       {/* Price History */}
       {priceHistory.length > 0 && (

@@ -5,12 +5,14 @@ import { getClient, getClientSales } from '@/lib/actions/clients'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader } from '@/components/ui/Card'
 import { formatCurrency, formatDate } from '@/lib/utils/format'
+import { isAdmin } from '@/lib/auth/roles'
 import { EditClientModal } from './EditClientModal'
 
 export default async function ClienteDetailPage({ params }: { params: { id: string } }) {
-  const [client, sales] = await Promise.all([
+  const [client, sales, admin] = await Promise.all([
     getClient(params.id),
     getClientSales(params.id),
+    isAdmin(),
   ])
 
   if (!client) notFound()
@@ -29,7 +31,7 @@ export default async function ClienteDetailPage({ params }: { params: { id: stri
             <p className="text-sm text-textsec">Cliente desde {formatDate(client.created_at)}</p>
           </div>
         </div>
-        <EditClientModal client={client} />
+        {admin && <EditClientModal client={client} />}
       </div>
 
       <div className="grid lg:grid-cols-3 gap-4">

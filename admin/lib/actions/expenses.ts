@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { isAdmin } from '@/lib/auth/roles'
 import type { ExpenseFormData } from '@/lib/validations/expense'
 import type { ActionResult } from '@/types'
 
@@ -15,6 +16,7 @@ export async function getAllExpenses() {
 }
 
 export async function createExpense(formData: ExpenseFormData): Promise<ActionResult> {
+  if (!(await isAdmin())) return { error: 'No autorizado: solo administradores pueden registrar gastos.' }
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const { error } = await supabase.from('expenses').insert({ ...formData, created_by: user?.id })
@@ -25,6 +27,7 @@ export async function createExpense(formData: ExpenseFormData): Promise<ActionRe
 }
 
 export async function deleteExpense(id: string, vehicleId: string): Promise<ActionResult> {
+  if (!(await isAdmin())) return { error: 'No autorizado: solo administradores pueden eliminar gastos.' }
   const supabase = createClient()
   const { error } = await supabase.from('expenses').delete().eq('id', id)
   if (error) return { error: error.message }
