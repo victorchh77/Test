@@ -10,23 +10,47 @@ import type { VehiclePhoto } from '@/types'
 interface Props { vehicleId: string; photos: VehiclePhoto[]; canEdit?: boolean }
 
 export function PhotoSection({ vehicleId, photos: initialPhotos, canEdit = false }: Props) {
+  const MAX_PHOTOS = 10
   const [photos, setPhotos] = useState(initialPhotos)
   const [uploading, setUploading] = useState(false)
+  const [progress, setProgress] = useState('')
   const [error, setError] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const files = Array.from(e.target.files ?? [])
+    if (files.length === 0) return
+
+    const remaining = MAX_PHOTOS - photos.length
+    if (remaining <= 0) {
+      setError(`Máximo ${MAX_PHOTOS} fotos por vehículo.`)
+      return
+    }
+    const toUpload = files.slice(0, remaining)
+    if (files.length > remaining) {
+      setError(`Solo se subirán ${remaining} foto(s); el máximo es ${MAX_PHOTOS}.`)
+    } else {
+      setError('')
+    }
+
     setUploading(true)
-    setError('')
-    const fd = new FormData()
-    fd.append('file', file)
-    fd.append('is_main', photos.length === 0 ? 'true' : 'false')
-    const result = await uploadVehiclePhoto(vehicleId, fd)
+    let uploaded = 0
+    let firstError = ''
+    for (let i = 0; i < toUpload.length; i++) {
+      setProgress(`Subiendo ${i + 1} de ${toUpload.length}…`)
+      const fd = new FormData()
+      fd.append('file', toUpload[i])
+      // First photo of an empty gallery becomes the main one.
+      fd.append('is_main', photos.length === 0 && i === 0 ? 'true' : 'false')
+      const result = await uploadVehiclePhoto(vehicleId, fd)
+      if (result.error) { firstError = result.error; break }
+      uploaded++
+    }
     setUploading(false)
-    if (result.error) { setError(result.error); return }
-    window.location.reload()
+    setProgress('')
+    if (firstError) { setError(firstError); return }
+    if (fileRef.current) fileRef.current.value = ''
+    if (uploaded > 0) window.location.reload()
   }
 
   async function handleSetMain(photoId: string) {
@@ -45,14 +69,18 @@ export function PhotoSection({ vehicleId, photos: initialPhotos, canEdit = false
       <div className="flex items-center justify-between mb-3">
         <div>
           <h2 className="text-base font-semibold text-textprim">Fotos del vehículo</h2>
-          <p className="text-xs text-textsec">{photos.length} foto{photos.length !== 1 ? 's' : ''}</p>
+          <p className="text-xs text-textsec">
+            {photos.length} de {MAX_PHOTOS} foto{photos.length !== 1 ? 's' : ''}
+            {progress && <span className="text-orange ml-2">{progress}</span>}
+          </p>
         </div>
-        {canEdit && (
+        {canEdit && photos.length < MAX_PHOTOS && (
           <div>
             <input
               ref={fileRef}
               type="file"
               accept="image/*"
+              multiple
               className="hidden"
               onChange={handleUpload}
             />
@@ -62,7 +90,7 @@ export function PhotoSection({ vehicleId, photos: initialPhotos, canEdit = false
               loading={uploading}
               onClick={() => fileRef.current?.click()}
             >
-              <Upload className="w-3.5 h-3.5" />Subir foto
+              <Upload className="w-3.5 h-3.5" />Subir fotos
             </Button>
           </div>
         )}

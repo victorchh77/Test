@@ -28,9 +28,10 @@ export async function createVehicle(formData: VehicleFormData): Promise<ActionRe
   if (!(await isAdmin())) return { error: 'No autorizado: solo administradores pueden agregar vehículos.' }
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  const { motivo_precio: _omit, ...vehicleData } = formData
   const { data, error } = await supabase
     .from('vehicles')
-    .insert({ ...formData, created_by: user?.id })
+    .insert({ ...vehicleData, created_by: user?.id })
     .select()
     .single()
   if (error) return { error: error.message }
@@ -41,13 +42,35 @@ export async function createVehicle(formData: VehicleFormData): Promise<ActionRe
 export async function updateVehicle(id: string, formData: VehicleFormData): Promise<ActionResult<Vehicle>> {
   if (!(await isAdmin())) return { error: 'No autorizado: solo administradores pueden modificar vehículos.' }
   const supabase = createClient()
+  const { motivo_precio, ...vehicleData } = formData
+
+  // Capture old price to record history with the reason.
+  const { data: old } = await supabase
+    .from('vehicles')
+    .select('precio_venta')
+    .eq('id', id)
+    .single()
+
   const { data, error } = await supabase
     .from('vehicles')
-    .update(formData)
+    .update(vehicleData)
     .eq('id', id)
     .select()
     .single()
   if (error) return { error: error.message }
+
+  // Record price change (manually, so we can store the motivo).
+  if (old && old.precio_venta !== vehicleData.precio_venta) {
+    const { data: { user } } = await supabase.auth.getUser()
+    await supabase.from('price_history').insert({
+      vehicle_id: id,
+      precio_anterior: old.precio_venta,
+      precio_nuevo: vehicleData.precio_venta,
+      motivo: motivo_precio || null,
+      changed_by: user?.id,
+    })
+  }
+
   revalidatePath('/vehiculos')
   revalidatePath(`/vehiculos/${id}`)
   return { data: data as Vehicle }

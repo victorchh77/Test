@@ -34,6 +34,27 @@ export interface Employee {
   updated_at: string
 }
 
+export interface EmployeePayment {
+  id: string
+  employee_id: string
+  monto: number
+  tipo: 'salario' | 'comision' | 'aguinaldo' | 'adelanto' | 'bonificacion' | 'otro'
+  fecha: string
+  notas: string | null
+  created_by: string | null
+  created_at: string
+}
+
+export interface EmployeeSalaryHistory {
+  id: string
+  employee_id: string
+  salario_anterior: number
+  salario_nuevo: number
+  motivo: string | null
+  changed_by: string | null
+  created_at: string
+}
+
 export interface VehiclePhoto {
   id: string
   vehicle_id: string

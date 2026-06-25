@@ -1,23 +1,33 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Phone, Mail, Calendar, DollarSign, TrendingUp, ShoppingBag } from 'lucide-react'
-import { getEmployee, getEmployeeSales } from '@/lib/actions/employees'
+import { ArrowLeft, Phone, Mail, Calendar, DollarSign, TrendingUp, ShoppingBag, Edit, ArrowUpRight } from 'lucide-react'
+import {
+  getEmployee, getEmployeeSales, getEmployeePayments, getEmployeeSalaryHistory,
+} from '@/lib/actions/employees'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader } from '@/components/ui/Card'
-import { formatCurrency, formatDate } from '@/lib/utils/format'
+import { formatCurrency, formatDate, formatDatetime } from '@/lib/utils/format'
+import { RegisterPaymentModal } from './RegisterPaymentModal'
+
+const TIPO_LABEL: Record<string, string> = {
+  salario: 'Salario', comision: 'Comisión', aguinaldo: 'Aguinaldo',
+  adelanto: 'Adelanto', bonificacion: 'Bonificación', otro: 'Otro',
+}
 
 export default async function EmpleadoDetailPage({ params }: { params: { id: string } }) {
-  const [employee, sales] = await Promise.all([
+  const [employee, sales, payments, salaryHistory] = await Promise.all([
     getEmployee(params.id),
     getEmployeeSales(params.id),
+    getEmployeePayments(params.id),
+    getEmployeeSalaryHistory(params.id),
   ])
 
   if (!employee) notFound()
 
-  const totalVentas = sales.reduce((a: number, s: any) => a + s.precio_final, 0)
+  const totalVentas     = sales.reduce((a: number, s: any) => a + s.precio_final, 0)
   const totalComisiones = sales.reduce((a: number, s: any) => a + (s.comision ?? 0), 0)
-  const totalGanancias = sales.reduce((a: number, s: any) => a + (s.ganancia ?? 0), 0)
+  const totalPagado     = payments.reduce((a: number, p: any) => a + p.monto, 0)
 
   return (
     <div className="flex flex-col gap-5 animate-fade-in">
@@ -42,9 +52,12 @@ export default async function EmpleadoDetailPage({ params }: { params: { id: str
             </div>
           </div>
         </div>
-        <Link href={`/empleados/${employee.id}/editar`}>
-          <Button variant="secondary" size="sm">Editar</Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <RegisterPaymentModal employeeId={employee.id} salarioBase={employee.salario_base} />
+          <Link href={`/empleados/${employee.id}/editar`}>
+            <Button variant="secondary" size="sm"><Edit className="w-3.5 h-3.5" />Editar</Button>
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -54,11 +67,6 @@ export default async function EmpleadoDetailPage({ params }: { params: { id: str
           <p className="text-xs text-textsec mt-0.5">Ventas totales</p>
         </Card>
         <Card className="text-center">
-          <TrendingUp className="w-5 h-5 text-success mx-auto mb-1" />
-          <p className="text-lg font-bold text-success">{formatCurrency(totalGanancias)}</p>
-          <p className="text-xs text-textsec mt-0.5">Ganancia generada</p>
-        </Card>
-        <Card className="text-center">
           <DollarSign className="w-5 h-5 text-textprim mx-auto mb-1" />
           <p className="text-lg font-bold text-textprim">{formatCurrency(totalVentas)}</p>
           <p className="text-xs text-textsec mt-0.5">Total facturado</p>
@@ -66,7 +74,12 @@ export default async function EmpleadoDetailPage({ params }: { params: { id: str
         <Card className="text-center">
           <DollarSign className="w-5 h-5 text-warning mx-auto mb-1" />
           <p className="text-lg font-bold text-warning">{formatCurrency(totalComisiones)}</p>
-          <p className="text-xs text-textsec mt-0.5">Total comisiones</p>
+          <p className="text-xs text-textsec mt-0.5">Comisiones generadas</p>
+        </Card>
+        <Card className="text-center">
+          <DollarSign className="w-5 h-5 text-success mx-auto mb-1" />
+          <p className="text-lg font-bold text-success">{formatCurrency(totalPagado)}</p>
+          <p className="text-xs text-textsec mt-0.5">Total pagado</p>
         </Card>
       </div>
 
@@ -115,35 +128,92 @@ export default async function EmpleadoDetailPage({ params }: { params: { id: str
               <p className="text-[10px] text-textsec uppercase tracking-wide mb-1">Comisión por venta</p>
               <p className="text-xl font-bold text-orange">{employee.comision_porcentaje}%</p>
             </div>
-            <div className="pt-3 border-t border-border">
-              <p className="text-[10px] text-textsec uppercase tracking-wide mb-1">Comisiones ganadas (histórico)</p>
-              <p className="text-lg font-semibold text-success">{formatCurrency(totalComisiones)}</p>
-            </div>
           </div>
         </Card>
 
-        <Card className="lg:col-span-1">
-          <CardHeader title="Últimas ventas" />
-          {sales.length === 0 ? (
-            <p className="text-sm text-textsec text-center py-6">Sin ventas registradas</p>
+        {/* Salary history */}
+        <Card>
+          <CardHeader title="Historial de sueldo" />
+          {salaryHistory.length === 0 ? (
+            <p className="text-sm text-textsec text-center py-6">Sin cambios de sueldo registrados</p>
           ) : (
             <div className="flex flex-col gap-3">
-              {sales.slice(0, 5).map((s: any) => (
-                <div key={s.id} className="flex justify-between items-start text-sm">
-                  <div>
-                    <p className="text-textprim font-medium">{s.marca} {s.modelo}</p>
-                    <p className="text-xs text-textsec">{formatDate(s.fecha_venta)}</p>
+              {salaryHistory.map((h: any) => {
+                const subio = h.salario_nuevo > h.salario_anterior
+                return (
+                  <div key={h.id} className="flex items-center justify-between text-sm">
+                    <div>
+                      <p className="text-textsec text-xs">{formatDate(h.created_at)}</p>
+                      <p className="text-textprim">
+                        {formatCurrency(h.salario_anterior)} → {formatCurrency(h.salario_nuevo)}
+                      </p>
+                    </div>
+                    <span className={`flex items-center gap-1 text-xs font-semibold ${subio ? 'text-success' : 'text-error'}`}>
+                      <ArrowUpRight className={`w-3.5 h-3.5 ${subio ? '' : 'rotate-90'}`} />
+                      {subio ? '+' : ''}{formatCurrency(h.salario_nuevo - h.salario_anterior)}
+                    </span>
                   </div>
-                  <div className="text-right">
-                    <p className="text-textprim">{formatCurrency(s.precio_final)}</p>
-                    <p className="text-xs text-success">+{formatCurrency(s.ganancia ?? 0)}</p>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </Card>
       </div>
+
+      {/* Payments */}
+      <Card>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-base font-semibold text-textprim">Pagos realizados</h2>
+            <p className="text-xs text-textsec">{payments.length} pagos · Total {formatCurrency(totalPagado)}</p>
+          </div>
+          <RegisterPaymentModal employeeId={employee.id} salarioBase={employee.salario_base} />
+        </div>
+        {payments.length === 0 ? (
+          <p className="text-sm text-textsec text-center py-8">Sin pagos registrados todavía</p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border">
+                <th className="text-left py-2 px-1 text-xs text-textsec font-medium">Fecha</th>
+                <th className="text-left py-2 px-1 text-xs text-textsec font-medium">Tipo</th>
+                <th className="text-left py-2 px-1 text-xs text-textsec font-medium">Notas</th>
+                <th className="text-right py-2 px-1 text-xs text-textsec font-medium">Monto</th>
+              </tr>
+            </thead>
+            <tbody>
+              {payments.map((p: any) => (
+                <tr key={p.id} className="border-b border-border/40 hover:bg-white/[0.02]">
+                  <td className="py-2.5 px-1 text-textsec text-xs">{formatDate(p.fecha)}</td>
+                  <td className="py-2.5 px-1"><Badge color="orange">{TIPO_LABEL[p.tipo] ?? p.tipo}</Badge></td>
+                  <td className="py-2.5 px-1 text-textsec">{p.notas || '—'}</td>
+                  <td className="py-2.5 px-1 text-right font-medium text-textprim">{formatCurrency(p.monto)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </Card>
+
+      {/* Sales */}
+      <Card>
+        <CardHeader title="Ventas realizadas" />
+        {sales.length === 0 ? (
+          <p className="text-sm text-textsec text-center py-6">Sin ventas registradas</p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {sales.slice(0, 10).map((s: any) => (
+              <div key={s.id} className="flex justify-between items-start text-sm border-b border-border/40 pb-2 last:border-0">
+                <div>
+                  <p className="text-textprim font-medium">{s.marca} {s.modelo}</p>
+                  <p className="text-xs text-textsec">{formatDate(s.fecha_venta)} · {s.client_nombre}</p>
+                </div>
+                <p className="text-textprim">{formatCurrency(s.precio_final)}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
     </div>
   )
 }
