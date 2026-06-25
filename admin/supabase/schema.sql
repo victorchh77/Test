@@ -13,15 +13,28 @@ create table if not exists public.profiles (
   created_at  timestamptz not null default now()
 );
 
-alter table public.profiles enable row level security;
-create policy "Users can view own profile" on public.profiles
-  for select using (auth.uid() = id);
-create policy "Users can update own profile" on public.profiles
-  for update using (auth.uid() = id);
-create policy "Admin can view all profiles" on public.profiles
-  for select using (
-    exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
+-- SECURITY DEFINER helper to check admin role WITHOUT triggering RLS
+-- recursion on the profiles table.
+create or replace function public.is_admin()
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'admin'
   );
+$$;
+
+alter table public.profiles enable row level security;
+create policy "Profiles: view own or admin views all" on public.profiles
+  for select using (auth.uid() = id or public.is_admin());
+create policy "Profiles: update own" on public.profiles
+  for update using (auth.uid() = id);
+create policy "Profiles: admin updates all" on public.profiles
+  for update using (public.is_admin());
 
 -- Trigger: auto-create profile on signup
 create or replace function public.handle_new_user()
@@ -68,9 +81,7 @@ create policy "Auth users can insert vehicles" on public.vehicles
 create policy "Auth users can update vehicles" on public.vehicles
   for update using (auth.role() = 'authenticated');
 create policy "Admin can delete vehicles" on public.vehicles
-  for delete using (
-    exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
-  );
+  for delete using (public.is_admin());
 
 -- ── Expenses ─────────────────────────────────────────────────
 create table if not exists public.expenses (
@@ -220,9 +231,7 @@ alter table public.employees enable row level security;
 create policy "Auth users can view employees" on public.employees
   for select using (auth.role() = 'authenticated');
 create policy "Admin can manage employees" on public.employees
-  for all using (
-    exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
-  );
+  for all using (public.is_admin());
 
 create trigger employees_updated_at before update on public.employees
   for each row execute function public.set_updated_at();
@@ -242,9 +251,7 @@ alter table public.price_lists enable row level security;
 create policy "Auth users can view price_lists" on public.price_lists
   for select using (auth.role() = 'authenticated');
 create policy "Admin can manage price_lists" on public.price_lists
-  for all using (
-    exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
-  );
+  for all using (public.is_admin());
 
 create trigger price_lists_updated_at before update on public.price_lists
   for each row execute function public.set_updated_at();
@@ -263,9 +270,7 @@ alter table public.price_list_items enable row level security;
 create policy "Auth users can view price_list_items" on public.price_list_items
   for select using (auth.role() = 'authenticated');
 create policy "Admin can manage price_list_items" on public.price_list_items
-  for all using (
-    exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
-  );
+  for all using (public.is_admin());
 
 -- ── Storage bucket (run in Supabase dashboard) ─────────────────
 -- 1. Go to Storage > New bucket
