@@ -22,13 +22,22 @@ export async function getSessionProfile(): Promise<Profile | null> {
   }
 }
 
-export async function getRole(): Promise<'admin' | 'vendedor' | null> {
+export async function getRole(): Promise<'admin' | 'vendedor' | 'secretaria' | null> {
   const profile = await getSessionProfile()
-  return (profile?.role as 'admin' | 'vendedor') ?? null
+  return (profile?.role as 'admin' | 'vendedor' | 'secretaria') ?? null
 }
 
 export async function isAdmin(): Promise<boolean> {
   return (await getRole()) === 'admin'
+}
+
+export async function isSecretary(): Promise<boolean> {
+  return (await getRole()) === 'secretaria'
+}
+
+export async function isAdminOrSecretary(): Promise<boolean> {
+  const role = await getRole()
+  return role === 'admin' || role === 'secretaria'
 }
 
 /**

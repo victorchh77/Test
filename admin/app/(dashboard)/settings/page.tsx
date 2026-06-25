@@ -113,11 +113,17 @@ export default function SettingsPage() {
             uppercase tracking-widest border
             ${profile?.role === 'admin'
               ? 'bg-orange/15 text-orange border-orange/25'
+              : profile?.role === 'secretaria'
+              ? 'bg-purple-500/15 text-purple-400 border-purple-500/25'
               : 'bg-blue-500/15 text-blue-400 border-blue-500/25'
             }
           `}>
-            <span className={`w-1.5 h-1.5 rounded-full ${profile?.role === 'admin' ? 'bg-orange' : 'bg-blue-400'}`} />
-            {profile?.role === 'admin' ? 'Administrador' : 'Vendedor'}
+            <span className={`w-1.5 h-1.5 rounded-full ${
+              profile?.role === 'admin' ? 'bg-orange'
+              : profile?.role === 'secretaria' ? 'bg-purple-400'
+              : 'bg-blue-400'
+            }`} />
+            {profile?.role === 'admin' ? 'Administrador' : profile?.role === 'secretaria' ? 'Secretaría' : 'Vendedor'}
           </span>
         </div>
       </div>

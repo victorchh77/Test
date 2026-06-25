@@ -6,18 +6,21 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Car, Receipt, Users, ShoppingBag,
   X, UserCog, ListOrdered, ChevronRight, Settings,
+  ArrowDownCircle, FileText,
 } from 'lucide-react'
 import type { Profile } from '@/types'
 
 const adminNav = [
-  { href: '/dashboard',     label: 'Dashboard',        icon: LayoutDashboard },
-  { href: '/vehiculos',     label: 'Vehículos',        icon: Car },
-  { href: '/gastos',        label: 'Gastos',           icon: Receipt },
-  { href: '/clientes',      label: 'Clientes',         icon: Users },
-  { href: '/ventas',        label: 'Ventas',           icon: ShoppingBag },
-  { href: '/empleados',     label: 'Empleados',        icon: UserCog },
-  { href: '/lista-precios', label: 'Lista de Precios', icon: ListOrdered },
-  { href: '/settings',     label: 'Configuración',   icon: Settings },
+  { href: '/dashboard',         label: 'Dashboard',           icon: LayoutDashboard },
+  { href: '/vehiculos',         label: 'Vehículos',           icon: Car },
+  { href: '/gastos',            label: 'Gastos',              icon: Receipt },
+  { href: '/clientes',          label: 'Clientes',            icon: Users },
+  { href: '/ventas',            label: 'Ventas',              icon: ShoppingBag },
+  { href: '/empleados',         label: 'Empleados',           icon: UserCog },
+  { href: '/lista-precios',     label: 'Lista de Precios',    icon: ListOrdered },
+  { href: '/transferencias',    label: 'Transferencias',      icon: ArrowDownCircle },
+  { href: '/planilla-pagares',  label: 'Planilla de Pagarés', icon: FileText },
+  { href: '/settings',          label: 'Configuración',       icon: Settings },
 ]
 
 const vendedorNav = [
@@ -26,14 +29,21 @@ const vendedorNav = [
   { href: '/clientes',      label: 'Clientes',         icon: Users },
   { href: '/ventas',        label: 'Mis Ventas',       icon: ShoppingBag },
   { href: '/lista-precios', label: 'Lista de Precios', icon: ListOrdered },
-  { href: '/settings',     label: 'Configuración',   icon: Settings },
+  { href: '/settings',      label: 'Configuración',    icon: Settings },
+]
+
+const secretariaNav = [
+  { href: '/dashboard',        label: 'Dashboard',           icon: LayoutDashboard },
+  { href: '/transferencias',   label: 'Transferencias',      icon: ArrowDownCircle },
+  { href: '/planilla-pagares', label: 'Planilla de Pagarés', icon: FileText },
+  { href: '/settings',         label: 'Configuración',       icon: Settings },
 ]
 
 interface Props { open: boolean; onClose: () => void; role?: string }
 
 export function Sidebar({ open, onClose, role }: Props) {
   const pathname = usePathname()
-  const navItems = role === 'admin' ? adminNav : vendedorNav
+  const navItems = role === 'admin' ? adminNav : role === 'secretaria' ? secretariaNav : vendedorNav
 
   const isActive = (href: string) =>
     href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(href)
@@ -108,10 +118,14 @@ export function Sidebar({ open, onClose, role }: Props) {
             uppercase tracking-widest
             ${role === 'admin'
               ? 'bg-orange/15 text-orange border border-orange/25'
+              : role === 'secretaria'
+              ? 'bg-purple-500/15 text-purple-400 border border-purple-500/25'
               : 'bg-blue-500/15 text-blue-400 border border-blue-500/25'
             }`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${role === 'admin' ? 'bg-orange' : 'bg-blue-400'} animate-pulse`} />
-            {role === 'admin' ? 'Administrador' : 'Vendedor'}
+            <span className={`w-1.5 h-1.5 rounded-full ${
+              role === 'admin' ? 'bg-orange' : role === 'secretaria' ? 'bg-purple-400' : 'bg-blue-400'
+            } animate-pulse`} />
+            {role === 'admin' ? 'Administrador' : role === 'secretaria' ? 'Secretaría' : 'Vendedor'}
           </span>
         </div>
 

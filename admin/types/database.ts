@@ -1,4 +1,4 @@
-export type Role = 'admin' | 'vendedor'
+export type Role = 'admin' | 'vendedor' | 'secretaria'
 export type VehicleStatus = 'Disponible' | 'Reservado' | 'Vendido'
 export type ExpenseType = 'mecanica' | 'limpieza' | 'pintura' | 'documentacion' | 'otros'
 
@@ -81,6 +81,41 @@ export interface SaleWithDetails extends Sale {
   client_telefono: string | null
   vendedor_nombre: string | null
   ganancia: number
+}
+
+export interface Transfer {
+  id: string
+  monto: number
+  comprobante_url: string | null
+  notas: string | null
+  verified: boolean
+  verified_by: string | null
+  verified_at: string | null
+  created_by: string
+  created_at: string
+}
+
+export interface ParesContract {
+  id: string
+  client_name: string
+  contract_file_url: string | null
+  dia_pago: number
+  monto_mensual: number
+  notas: string | null
+  activo: boolean
+  created_by: string | null
+  created_at: string
+}
+
+export interface ParesPayment {
+  id: string
+  contract_id: string
+  anio: number
+  mes: number
+  pagado: boolean
+  metodo_pago: string | null
+  pagado_at: string | null
+  created_at: string
 }
 
 export interface Database {
