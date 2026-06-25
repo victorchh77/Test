@@ -10,27 +10,46 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const classes: Record<Variant, string> = {
-  primary:   'bg-orange hover:bg-orange-hover text-white',
-  secondary: 'bg-card hover:bg-border text-textprim border border-border',
-  danger:    'bg-error/10 hover:bg-error/20 text-error border border-error/30',
-  ghost:     'hover:bg-white/5 text-textsec hover:text-textprim',
+  primary: `
+    bg-orange hover:bg-orange-hover text-white font-semibold
+    shadow-orange-sm hover:shadow-orange
+    border border-orange/0 hover:border-orange/20
+  `,
+  secondary: `
+    bg-card-elevated hover:bg-border text-textprim font-medium
+    border border-border hover:border-border-bright
+  `,
+  danger: `
+    bg-error/10 hover:bg-error/20 text-error font-medium
+    border border-error/20 hover:border-error/40
+  `,
+  ghost: `
+    hover:bg-white/5 text-textsec hover:text-textprim font-medium
+    border border-transparent
+  `,
+}
+
+const sizes: Record<'sm' | 'md', string> = {
+  sm: 'px-3 py-1.5 text-xs gap-1.5 rounded-lg',
+  md: 'px-4 py-2.5 text-sm gap-2 rounded-xl',
 }
 
 export const Button = forwardRef<HTMLButtonElement, Props>(
-  ({ variant = 'primary', loading, size = 'md', children, className = '', disabled, ...props }, ref) => {
-    const sz = size === 'sm' ? 'px-3 py-1.5 text-xs' : 'px-4 py-2.5 text-sm'
-    return (
-      <button
-        ref={ref}
-        disabled={disabled || loading}
-        className={`inline-flex items-center gap-2 font-medium rounded-lg transition-all duration-150 active:scale-95
-          disabled:opacity-50 disabled:cursor-not-allowed ${sz} ${classes[variant]} ${className}`}
-        {...props}
-      >
-        {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-        {children}
-      </button>
-    )
-  }
+  ({ variant = 'primary', loading, size = 'md', children, className = '', disabled, ...props }, ref) => (
+    <button
+      ref={ref}
+      disabled={disabled || loading}
+      className={`
+        inline-flex items-center justify-center
+        transition-all duration-200 active:scale-95
+        disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none
+        ${sizes[size]} ${classes[variant]} ${className}
+      `}
+      {...props}
+    >
+      {loading && <Loader2 className="w-3.5 h-3.5 animate-spin flex-shrink-0" />}
+      {children}
+    </button>
+  )
 )
 Button.displayName = 'Button'

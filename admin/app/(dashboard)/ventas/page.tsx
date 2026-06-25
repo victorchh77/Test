@@ -1,9 +1,8 @@
 import Link from 'next/link'
-import { Plus } from 'lucide-react'
+import { Plus, TrendingUp } from 'lucide-react'
 import { getSales } from '@/lib/actions/sales'
 import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
+import { Card, CardHeader } from '@/components/ui/Card'
 import { formatCurrency, formatDate } from '@/lib/utils/format'
 import { isAdmin } from '@/lib/auth/roles'
 import { SalesFiltersClient } from './SalesFiltersClient'
@@ -25,11 +24,23 @@ export default async function VentasPage({
     <div className="flex flex-col gap-5 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-textprim">Ventas</h1>
-          <p className="text-sm text-textsec">
-            {sales.length} ventas · Ingresos: {formatCurrency(totalIngresos)}
-            {admin && <> · Ganancia: <span className={totalGanancias >= 0 ? 'text-success' : 'text-error'}>{formatCurrency(totalGanancias)}</span></>}
-          </p>
+          <h1 className="font-display text-2xl font-bold text-textprim tracking-tight">Ventas</h1>
+          <div className="flex items-center gap-3 mt-1 flex-wrap">
+            <span className="text-sm text-textsec">{sales.length} venta{sales.length !== 1 ? 's' : ''}</span>
+            <span className="text-textmuted">·</span>
+            <span className="text-sm text-textsec">Ingresos: <span className="text-textprim font-medium">{formatCurrency(totalIngresos)}</span></span>
+            {admin && (
+              <>
+                <span className="text-textmuted">·</span>
+                <span className="text-sm text-textsec">
+                  Ganancia:{' '}
+                  <span className={`font-semibold ${totalGanancias >= 0 ? 'text-success' : 'text-error'}`}>
+                    {formatCurrency(totalGanancias)}
+                  </span>
+                </span>
+              </>
+            )}
+          </div>
         </div>
         <Link href="/ventas/nueva">
           <Button><Plus className="w-4 h-4" />Registrar venta</Button>
@@ -42,37 +53,39 @@ export default async function VentasPage({
         <div className="overflow-x-auto scrollbar-thin">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border">
+              <tr>
                 {['Vehículo', 'Cliente', 'Vendedor', ...(admin ? ['P. Compra'] : []), 'P. Venta', ...(admin ? ['Ganancia'] : []), 'Fecha'].map(h => (
-                  <th key={h} className="text-left py-3 px-4 text-xs font-medium text-textsec uppercase tracking-wide whitespace-nowrap">
-                    {h}
-                  </th>
+                  <th key={h} className="table-header-cell">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {sales.length === 0 ? (
                 <tr>
-                  <td colSpan={admin ? 7 : 5} className="py-12 text-center text-textsec">Sin ventas en el período</td>
+                  <td colSpan={admin ? 7 : 5} className="py-16 text-center text-textsec">
+                    Sin ventas en el período seleccionado
+                  </td>
                 </tr>
               ) : sales.map(s => (
-                <tr key={s.id} className="border-b border-border/50 hover:bg-white/[0.02] transition-colors">
-                  <td className="py-3 px-4">
-                    <p className="font-medium text-textprim">{s.marca} {s.modelo}</p>
+                <tr key={s.id} className="table-row-hover">
+                  <td className="table-cell">
+                    <p className="font-semibold text-textprim">{s.marca} {s.modelo}</p>
                     <p className="text-xs text-textsec">{s.anio}</p>
                   </td>
-                  <td className="py-3 px-4 text-textsec">{s.client_nombre}</td>
-                  <td className="py-3 px-4 text-textsec text-xs">{s.vendedor_nombre ?? '—'}</td>
-                  {admin && <td className="py-3 px-4 text-textsec">{formatCurrency(s.precio_compra)}</td>}
-                  <td className="py-3 px-4 font-medium text-textprim">{formatCurrency(s.precio_final)}</td>
+                  <td className="table-cell text-textsec">{s.client_nombre}</td>
+                  <td className="table-cell text-textsec text-xs">{s.vendedor_nombre ?? '—'}</td>
+                  {admin && <td className="table-cell text-textsec">{formatCurrency(s.precio_compra)}</td>}
+                  <td className="table-cell font-semibold text-textprim">{formatCurrency(s.precio_final)}</td>
                   {admin && (
-                    <td className="py-3 px-4">
-                      <span className={`font-semibold text-sm ${(s.ganancia ?? 0) >= 0 ? 'text-success' : 'text-error'}`}>
+                    <td className="table-cell">
+                      <span className={`font-bold ${(s.ganancia ?? 0) >= 0 ? 'text-success' : 'text-error'}`}>
                         {(s.ganancia ?? 0) >= 0 ? '+' : ''}{formatCurrency(s.ganancia ?? 0)}
                       </span>
                     </td>
                   )}
-                  <td className="py-3 px-4 text-textsec text-xs">{formatDate(s.fecha_venta)}</td>
+                  <td className="table-cell text-textsec text-xs whitespace-nowrap">
+                    {formatDate(s.fecha_venta)}
+                  </td>
                 </tr>
               ))}
             </tbody>

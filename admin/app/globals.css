@@ -2,48 +2,159 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;800&display=swap');
 
 * { box-sizing: border-box; }
 
-body {
-  background-color: #0F1419;
-  color: #F7FAFC;
-  font-family: 'Inter', system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased;
+:root {
+  --orange: #FF8C00;
+  --orange-glow: rgba(255, 140, 0, 0.35);
+  --bg: #080C11;
+  --sidebar: #0B0F18;
+  --card: #0F1520;
+  --border: #1C2A3D;
 }
 
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #1A202C; }
-::-webkit-scrollbar-thumb { background: #2D3748; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #ED8936; }
+body {
+  background-color: var(--bg);
+  color: #EEF4FF;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, .font-display {
+  font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+}
+
+/* Premium scrollbar */
+::-webkit-scrollbar              { width: 5px; height: 5px; }
+::-webkit-scrollbar-track        { background: transparent; }
+::-webkit-scrollbar-thumb        { background: #1C2A3D; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover  { background: var(--orange); }
 
 @layer utilities {
-  .text-balance { text-wrap: balance; }
-  .scrollbar-thin { scrollbar-width: thin; scrollbar-color: #2D3748 #1A202C; }
+  .text-balance  { text-wrap: balance; }
+  .scrollbar-thin { scrollbar-width: thin; scrollbar-color: #1C2A3D transparent; }
+
+  /* Grid background pattern */
+  .bg-grid {
+    background-image:
+      linear-gradient(rgba(255, 140, 0, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 140, 0, 0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
+  /* Dot pattern */
+  .bg-dots {
+    background-image: radial-gradient(circle, rgba(255, 140, 0, 0.07) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* Orange gradient text */
+  .text-gradient-orange {
+    background: linear-gradient(135deg, #FF8C00, #FFB347);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Glass morphism */
+  .glass {
+    background: rgba(15, 21, 32, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .glass-light {
+    background: rgba(28, 42, 61, 0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  /* Orange glow */
+  .glow-orange    { box-shadow: 0 0 24px rgba(255, 140, 0, 0.3); }
+  .glow-orange-sm { box-shadow: 0 0 12px rgba(255, 140, 0, 0.2); }
+
+  /* Shimmer effect for loading states */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(255,255,255,0) 0%,
+      rgba(255,255,255,0.04) 50%,
+      rgba(255,255,255,0) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
+  }
 }
 
 @layer components {
+  /* Inputs */
   .input-base {
-    @apply w-full bg-bg border border-border rounded-lg px-3 py-2.5 text-textprim text-sm
-           placeholder:text-textsec focus:outline-none focus:border-orange transition-colors duration-150;
+    @apply w-full bg-[#0B1220] border border-border rounded-xl px-4 py-3 text-textprim text-sm
+           placeholder:text-textmuted focus:outline-none focus:border-orange focus:ring-1 focus:ring-orange/20
+           transition-all duration-200;
   }
+
+  /* Buttons */
   .btn-primary {
-    @apply inline-flex items-center gap-2 bg-orange hover:bg-orange-hover text-white font-semibold
-           px-4 py-2.5 rounded-lg text-sm transition-all duration-150 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center gap-2 font-semibold px-5 py-2.5 rounded-xl text-sm
+           bg-orange hover:bg-orange-hover text-white
+           transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed
+           shadow-orange-sm hover:shadow-orange;
   }
+
   .btn-secondary {
-    @apply inline-flex items-center gap-2 bg-card hover:bg-border text-textprim font-medium
-           px-4 py-2.5 rounded-lg text-sm border border-border transition-all duration-150 active:scale-95;
+    @apply inline-flex items-center gap-2 font-medium px-5 py-2.5 rounded-xl text-sm
+           bg-card-elevated hover:bg-border text-textprim border border-border hover:border-border-bright
+           transition-all duration-200 active:scale-95;
   }
+
   .btn-danger {
-    @apply inline-flex items-center gap-2 bg-error/10 hover:bg-error/20 text-error font-medium
-           px-4 py-2.5 rounded-lg text-sm border border-error/30 transition-all duration-150 active:scale-95;
+    @apply inline-flex items-center gap-2 font-medium px-5 py-2.5 rounded-xl text-sm
+           bg-error/10 hover:bg-error/20 text-error border border-error/20 hover:border-error/40
+           transition-all duration-200 active:scale-95;
   }
+
+  /* Cards */
   .card-base {
-    @apply bg-card border border-border rounded-xl p-5;
+    @apply bg-card border border-border rounded-2xl p-5
+           shadow-card hover:border-border-bright transition-all duration-300;
   }
+
+  .card-elevated {
+    @apply bg-card-elevated border border-border-bright rounded-2xl p-5
+           shadow-card-lg;
+  }
+
+  /* Table */
   .table-row-hover {
-    @apply hover:bg-white/[0.02] transition-colors duration-100;
+    @apply hover:bg-white/[0.025] transition-colors duration-150;
+  }
+
+  .table-header-cell {
+    @apply text-left py-3.5 px-4 text-[11px] font-semibold text-textmuted uppercase tracking-widest
+           whitespace-nowrap border-b border-border;
+  }
+
+  .table-cell {
+    @apply py-3.5 px-4 text-textprim border-b border-border/40;
+  }
+
+  /* Accent line (top border glow) */
+  .accent-line-orange  { border-top: 2px solid #FF8C00; box-shadow: 0 -2px 12px rgba(255, 140, 0, 0.25); }
+  .accent-line-success { border-top: 2px solid #00C984; box-shadow: 0 -2px 12px rgba(0, 201, 132, 0.2); }
+  .accent-line-error   { border-top: 2px solid #FF4D6A; box-shadow: 0 -2px 12px rgba(255, 77, 106, 0.2); }
+  .accent-line-default { border-top: 2px solid #2A3F58; }
+
+  /* Section headings */
+  .section-label {
+    @apply text-[10px] font-semibold uppercase tracking-[0.15em] text-textmuted;
+  }
+
+  /* Stat value */
+  .stat-value {
+    @apply text-2xl font-bold text-textprim font-display;
   }
 }

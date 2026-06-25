@@ -10,13 +10,13 @@ export const Input = forwardRef<HTMLInputElement, Props>(
   ({ label, error, hint, className = '', ...props }, ref) => (
     <div className="flex flex-col gap-1.5">
       {label && (
-        <label className="text-xs font-medium text-textsec uppercase tracking-wide">
+        <label className="section-label">
           {label}
         </label>
       )}
       <input
         ref={ref}
-        className={`input-base ${error ? 'border-error focus:border-error' : ''} ${className}`}
+        className={`input-base ${error ? 'border-error/60 focus:border-error focus:ring-error/20' : ''} ${className}`}
         {...props}
       />
       {error && <p className="text-xs text-error">{error}</p>}

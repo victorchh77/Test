@@ -14,36 +14,48 @@ const statusColor: Record<VehicleStatus, 'success' | 'warning' | 'error'> = {
 }
 
 function MiniChart({ sales }: { sales: { fecha_venta: string; precio_final: number }[] }) {
-  if (!sales.length) return <p className="text-sm text-textsec text-center py-4">Sin ventas este mes</p>
+  if (!sales.length) {
+    return (
+      <p className="text-sm text-textsec text-center py-8 italic">
+        Sin ventas este mes
+      </p>
+    )
+  }
 
-  // Group by day
   const byDay: Record<string, number> = {}
-  sales.forEach(s => {
-    const d = s.fecha_venta
-    byDay[d] = (byDay[d] || 0) + s.precio_final
-  })
+  sales.forEach(s => { byDay[s.fecha_venta] = (byDay[s.fecha_venta] || 0) + s.precio_final })
   const entries = Object.entries(byDay).sort(([a], [b]) => a.localeCompare(b))
   const max = Math.max(...entries.map(([, v]) => v))
 
   return (
-    <div className="mt-2">
-      <div className="flex items-end gap-1 h-20">
-        {entries.map(([day, val]) => (
+    <div className="mt-1">
+      <div className="flex items-end gap-1.5 h-24">
+        {entries.map(([day, val], i) => (
           <div key={day} className="flex-1 flex flex-col items-center gap-1 group relative">
             <div
-              className="w-full bg-orange/20 hover:bg-orange/50 rounded-sm transition-all duration-200 cursor-default"
-              style={{ height: `${(val / max) * 100}%`, minHeight: 4 }}
+              className="w-full rounded-t-sm transition-all duration-300 cursor-default
+                         group-hover:brightness-125"
+              style={{
+                height: `${Math.max((val / max) * 100, 6)}%`,
+                background: `linear-gradient(to top, rgba(255,140,0,0.25), rgba(255,140,0,${0.4 + (i % 2) * 0.1}))`,
+                borderTop: '1.5px solid rgba(255,140,0,0.5)',
+              }}
             />
-            <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[9px] bg-card border border-border px-1.5 py-0.5 rounded
-                             opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+            {/* Tooltip */}
+            <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-[9px] bg-card-elevated border border-border
+                             px-1.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 shadow-card">
               {formatCurrency(val)}
             </span>
           </div>
         ))}
       </div>
-      <div className="flex justify-between mt-1">
-        <span className="text-[10px] text-textsec">{entries[0]?.[0] ? formatDate(entries[0][0]) : ''}</span>
-        <span className="text-[10px] text-textsec">{entries[entries.length - 1]?.[0] ? formatDate(entries[entries.length - 1][0]) : ''}</span>
+      <div className="flex justify-between mt-2">
+        <span className="text-[10px] text-textmuted">
+          {entries[0]?.[0] ? formatDate(entries[0][0]) : ''}
+        </span>
+        <span className="text-[10px] text-textmuted">
+          {entries[entries.length - 1]?.[0] ? formatDate(entries[entries.length - 1][0]) : ''}
+        </span>
       </div>
     </div>
   )
@@ -55,59 +67,102 @@ export default async function DashboardPage() {
     isAdmin(),
   ])
   const lastSales = sales.slice(0, 8)
+  const totalIngresos = sales.reduce((a, s) => a + s.precio_final, 0)
 
   return (
     <div className="flex flex-col gap-6 animate-fade-in">
-      {/* Header */}
-      <div>
-        <h1 className="text-xl font-bold text-textprim">Resumen General</h1>
-        <p className="text-sm text-textsec mt-0.5">
-          {new Date().toLocaleDateString('es-PY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-        </p>
+      {/* Page header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="font-display text-2xl font-bold text-textprim tracking-tight">
+            Resumen General
+          </h1>
+          <p className="text-sm text-textsec mt-1 capitalize">
+            {new Date().toLocaleDateString('es-PY', {
+              weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+            })}
+          </p>
+        </div>
+        {/* Month badge */}
+        <div className="hidden sm:flex items-center gap-2 bg-orange/10 border border-orange/20
+                        rounded-xl px-3 py-1.5 flex-shrink-0">
+          <span className="w-1.5 h-1.5 rounded-full bg-orange animate-pulse" />
+          <span className="text-xs text-orange font-semibold">
+            {new Date().toLocaleDateString('es-PY', { month: 'long', year: 'numeric' })}
+          </span>
+        </div>
       </div>
 
-      {/* Stats */}
+      {/* Stats grid */}
       <div className={`grid grid-cols-2 gap-4 ${admin ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}>
-        <StatCard title="Vehículos en stock" value={enStock}       icon={Car}         color="orange" />
-        <StatCard title="Ventas del mes"      value={ventasMes}    icon={ShoppingBag}  color="success" />
+        <StatCard
+          title="Vehículos en stock"
+          value={enStock}
+          icon={Car}
+          color="orange"
+        />
+        <StatCard
+          title="Ventas del mes"
+          value={ventasMes}
+          icon={ShoppingBag}
+          color="success"
+        />
         {admin && (
-          <StatCard title="Ganancia del mes"    value={formatCurrency(gananciaMes)} icon={TrendingUp} color={gananciaMes >= 0 ? 'success' : 'error'} />
+          <StatCard
+            title="Ganancia del mes"
+            value={formatCurrency(gananciaMes)}
+            icon={TrendingUp}
+            color={gananciaMes >= 0 ? 'success' : 'error'}
+          />
         )}
-        <StatCard title="Clientes"            value={totalClients} icon={Users}        color="default" />
+        <StatCard
+          title="Clientes totales"
+          value={totalClients}
+          icon={Users}
+          color="default"
+        />
       </div>
 
+      {/* Content row */}
       <div className="grid lg:grid-cols-5 gap-4">
-        {/* Recent sales table */}
+        {/* Recent sales */}
         <Card className="lg:col-span-3">
-          <CardHeader title="Últimas ventas del mes" />
+          <CardHeader
+            title="Últimas ventas"
+            subtitle={`${lastSales.length} ventas este mes`}
+          />
           {lastSales.length === 0 ? (
-            <p className="text-sm text-textsec py-8 text-center">Sin ventas este mes</p>
+            <p className="text-sm text-textsec py-10 text-center">Sin ventas este mes</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            <div className="overflow-x-auto scrollbar-thin -mx-5 px-5">
+              <table className="w-full text-sm min-w-[500px]">
                 <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left py-2 px-1 text-xs text-textsec font-medium">Vehículo</th>
-                    <th className="text-left py-2 px-1 text-xs text-textsec font-medium">Cliente</th>
-                    <th className="text-right py-2 px-1 text-xs text-textsec font-medium">Precio</th>
-                    {admin && <th className="text-right py-2 px-1 text-xs text-textsec font-medium">Ganancia</th>}
-                    <th className="text-right py-2 px-1 text-xs text-textsec font-medium">Fecha</th>
+                  <tr>
+                    <th className="table-header-cell">Vehículo</th>
+                    <th className="table-header-cell">Cliente</th>
+                    <th className="table-header-cell text-right">Precio</th>
+                    {admin && <th className="table-header-cell text-right">Ganancia</th>}
+                    <th className="table-header-cell text-right">Fecha</th>
                   </tr>
                 </thead>
                 <tbody>
                   {lastSales.map((s) => (
-                    <tr key={s.id} className="border-b border-border/40 hover:bg-white/[0.02] transition-colors">
-                      <td className="py-2.5 px-1 text-textprim font-medium">
+                    <tr key={s.id} className="table-row-hover">
+                      <td className="table-cell font-semibold text-textprim">
                         {s.marca} {s.modelo} {s.anio}
                       </td>
-                      <td className="py-2.5 px-1 text-textsec">{s.client_nombre}</td>
-                      <td className="py-2.5 px-1 text-right text-textprim">{formatCurrency(s.precio_final)}</td>
+                      <td className="table-cell text-textsec">{s.client_nombre}</td>
+                      <td className="table-cell text-right font-medium text-textprim">
+                        {formatCurrency(s.precio_final)}
+                      </td>
                       {admin && (
-                        <td className={`py-2.5 px-1 text-right font-medium ${s.ganancia >= 0 ? 'text-success' : 'text-error'}`}>
+                        <td className={`table-cell text-right font-semibold ${s.ganancia >= 0 ? 'text-success' : 'text-error'}`}>
                           {s.ganancia >= 0 ? '+' : ''}{formatCurrency(s.ganancia)}
                         </td>
                       )}
-                      <td className="py-2.5 px-1 text-right text-textsec text-xs">{formatDate(s.fecha_venta)}</td>
+                      <td className="table-cell text-right text-textsec text-xs whitespace-nowrap">
+                        {formatDate(s.fecha_venta)}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -120,10 +175,10 @@ export default async function DashboardPage() {
         <Card className="lg:col-span-2">
           <CardHeader title="Ingresos del mes" />
           <MiniChart sales={sales} />
-          <div className="mt-4 pt-4 border-t border-border">
-            <p className="text-xs text-textsec">Total acumulado</p>
-            <p className="text-lg font-bold text-textprim mt-0.5">
-              {formatCurrency(sales.reduce((a, s) => a + s.precio_final, 0))}
+          <div className="mt-5 pt-4 border-t border-border">
+            <p className="section-label mb-1">Total acumulado</p>
+            <p className="font-display text-2xl font-bold text-gradient-orange">
+              {formatCurrency(totalIngresos)}
             </p>
           </div>
         </Card>

@@ -37,7 +37,8 @@ export function DashboardShell({ children, profile }: { children: React.ReactNod
           onMenuClick={() => setSidebarOpen(true)}
           title={getTitle(pathname)}
         />
-        <main className="flex-1 overflow-y-auto scrollbar-thin p-4 sm:p-6">
+        {/* Main content with subtle grid background */}
+        <main className="flex-1 overflow-y-auto scrollbar-thin p-4 sm:p-6 bg-grid">
           {children}
         </main>
       </div>
