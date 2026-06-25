@@ -4,6 +4,7 @@ import { StatCard } from '@/components/shared/StatCard'
 import { Card, CardHeader } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { formatCurrency, formatDate } from '@/lib/utils/format'
+import { isAdmin } from '@/lib/auth/roles'
 import type { VehicleStatus } from '@/types'
 
 const statusColor: Record<VehicleStatus, 'success' | 'warning' | 'error'> = {
@@ -49,7 +50,10 @@ function MiniChart({ sales }: { sales: { fecha_venta: string; precio_final: numb
 }
 
 export default async function DashboardPage() {
-  const { enStock, ventasMes, gananciaMes, totalClients, sales } = await getDashboardStats()
+  const [{ enStock, ventasMes, gananciaMes, totalClients, sales }, admin] = await Promise.all([
+    getDashboardStats(),
+    isAdmin(),
+  ])
   const lastSales = sales.slice(0, 8)
 
   return (
@@ -63,10 +67,12 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className={`grid grid-cols-2 gap-4 ${admin ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}>
         <StatCard title="Vehículos en stock" value={enStock}       icon={Car}         color="orange" />
         <StatCard title="Ventas del mes"      value={ventasMes}    icon={ShoppingBag}  color="success" />
-        <StatCard title="Ganancia del mes"    value={formatCurrency(gananciaMes)} icon={TrendingUp} color={gananciaMes >= 0 ? 'success' : 'error'} />
+        {admin && (
+          <StatCard title="Ganancia del mes"    value={formatCurrency(gananciaMes)} icon={TrendingUp} color={gananciaMes >= 0 ? 'success' : 'error'} />
+        )}
         <StatCard title="Clientes"            value={totalClients} icon={Users}        color="default" />
       </div>
 
@@ -84,7 +90,7 @@ export default async function DashboardPage() {
                     <th className="text-left py-2 px-1 text-xs text-textsec font-medium">Vehículo</th>
                     <th className="text-left py-2 px-1 text-xs text-textsec font-medium">Cliente</th>
                     <th className="text-right py-2 px-1 text-xs text-textsec font-medium">Precio</th>
-                    <th className="text-right py-2 px-1 text-xs text-textsec font-medium">Ganancia</th>
+                    {admin && <th className="text-right py-2 px-1 text-xs text-textsec font-medium">Ganancia</th>}
                     <th className="text-right py-2 px-1 text-xs text-textsec font-medium">Fecha</th>
                   </tr>
                 </thead>
@@ -96,9 +102,11 @@ export default async function DashboardPage() {
                       </td>
                       <td className="py-2.5 px-1 text-textsec">{s.client_nombre}</td>
                       <td className="py-2.5 px-1 text-right text-textprim">{formatCurrency(s.precio_final)}</td>
-                      <td className={`py-2.5 px-1 text-right font-medium ${s.ganancia >= 0 ? 'text-success' : 'text-error'}`}>
-                        {s.ganancia >= 0 ? '+' : ''}{formatCurrency(s.ganancia)}
-                      </td>
+                      {admin && (
+                        <td className={`py-2.5 px-1 text-right font-medium ${s.ganancia >= 0 ? 'text-success' : 'text-error'}`}>
+                          {s.ganancia >= 0 ? '+' : ''}{formatCurrency(s.ganancia)}
+                        </td>
+                      )}
                       <td className="py-2.5 px-1 text-right text-textsec text-xs">{formatDate(s.fecha_venta)}</td>
                     </tr>
                   ))}

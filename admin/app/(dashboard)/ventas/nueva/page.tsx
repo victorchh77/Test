@@ -11,6 +11,7 @@ import { createSale } from '@/lib/actions/sales'
 import { getVehicles, getVehicleExpenses } from '@/lib/actions/vehicles'
 import { getClients } from '@/lib/actions/clients'
 import { getEmployees } from '@/lib/actions/employees'
+import { getProfile } from '@/lib/actions/auth'
 import { Select } from '@/components/ui/Select'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
@@ -26,6 +27,7 @@ export default function NuevaVentaPage() {
   const [employees, setEmployees] = useState<Employee[]>([])
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
   const [totalGastos, setTotalGastos] = useState(0)
+  const [admin, setAdmin] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -46,10 +48,12 @@ export default function NuevaVentaPage() {
       getVehicles({ estado: 'Disponible' }),
       getClients(),
       getEmployees(),
-    ]).then(([v, c, e]) => {
+      getProfile(),
+    ]).then(([v, c, e, p]) => {
       setVehicles(v)
       setClients(c)
       setEmployees(e.filter(emp => emp.activo))
+      setAdmin((p as any)?.role === 'admin')
     })
   }, [])
 
@@ -105,7 +109,7 @@ export default function NuevaVentaPage() {
             error={errors.vehicle_id?.message}
           />
 
-          {selectedVehicle && (
+          {selectedVehicle && admin && (
             <div className={`rounded-xl p-4 border flex items-start gap-3 ${
               gananciaPos ? 'bg-success/5 border-success/30' : 'bg-error/5 border-error/30'
             }`}>

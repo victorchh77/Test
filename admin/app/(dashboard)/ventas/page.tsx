@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { formatCurrency, formatDate } from '@/lib/utils/format'
+import { isAdmin } from '@/lib/auth/roles'
 import { SalesFiltersClient } from './SalesFiltersClient'
 
 export default async function VentasPage({
@@ -12,7 +13,10 @@ export default async function VentasPage({
 }: {
   searchParams: { from?: string; to?: string }
 }) {
-  const sales = await getSales(searchParams.from, searchParams.to)
+  const [sales, admin] = await Promise.all([
+    getSales(searchParams.from, searchParams.to),
+    isAdmin(),
+  ])
 
   const totalIngresos  = sales.reduce((a, s) => a + s.precio_final, 0)
   const totalGanancias = sales.reduce((a, s) => a + (s.ganancia ?? 0), 0)
@@ -23,8 +27,8 @@ export default async function VentasPage({
         <div>
           <h1 className="text-xl font-bold text-textprim">Ventas</h1>
           <p className="text-sm text-textsec">
-            {sales.length} ventas · Ingresos: {formatCurrency(totalIngresos)} ·
-            Ganancia: <span className={totalGanancias >= 0 ? 'text-success' : 'text-error'}>{formatCurrency(totalGanancias)}</span>
+            {sales.length} ventas · Ingresos: {formatCurrency(totalIngresos)}
+            {admin && <> · Ganancia: <span className={totalGanancias >= 0 ? 'text-success' : 'text-error'}>{formatCurrency(totalGanancias)}</span></>}
           </p>
         </div>
         <Link href="/ventas/nueva">
@@ -39,7 +43,7 @@ export default async function VentasPage({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
-                {['Vehículo', 'Cliente', 'Vendedor', 'P. Compra', 'P. Venta', 'Ganancia', 'Fecha'].map(h => (
+                {['Vehículo', 'Cliente', 'Vendedor', ...(admin ? ['P. Compra'] : []), 'P. Venta', ...(admin ? ['Ganancia'] : []), 'Fecha'].map(h => (
                   <th key={h} className="text-left py-3 px-4 text-xs font-medium text-textsec uppercase tracking-wide whitespace-nowrap">
                     {h}
                   </th>
@@ -49,7 +53,7 @@ export default async function VentasPage({
             <tbody>
               {sales.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-textsec">Sin ventas en el período</td>
+                  <td colSpan={admin ? 7 : 5} className="py-12 text-center text-textsec">Sin ventas en el período</td>
                 </tr>
               ) : sales.map(s => (
                 <tr key={s.id} className="border-b border-border/50 hover:bg-white/[0.02] transition-colors">
@@ -59,13 +63,15 @@ export default async function VentasPage({
                   </td>
                   <td className="py-3 px-4 text-textsec">{s.client_nombre}</td>
                   <td className="py-3 px-4 text-textsec text-xs">{s.vendedor_nombre ?? '—'}</td>
-                  <td className="py-3 px-4 text-textsec">{formatCurrency(s.precio_compra)}</td>
+                  {admin && <td className="py-3 px-4 text-textsec">{formatCurrency(s.precio_compra)}</td>}
                   <td className="py-3 px-4 font-medium text-textprim">{formatCurrency(s.precio_final)}</td>
-                  <td className="py-3 px-4">
-                    <span className={`font-semibold text-sm ${(s.ganancia ?? 0) >= 0 ? 'text-success' : 'text-error'}`}>
-                      {(s.ganancia ?? 0) >= 0 ? '+' : ''}{formatCurrency(s.ganancia ?? 0)}
-                    </span>
-                  </td>
+                  {admin && (
+                    <td className="py-3 px-4">
+                      <span className={`font-semibold text-sm ${(s.ganancia ?? 0) >= 0 ? 'text-success' : 'text-error'}`}>
+                        {(s.ganancia ?? 0) >= 0 ? '+' : ''}{formatCurrency(s.ganancia ?? 0)}
+                      </span>
+                    </td>
+                  )}
                   <td className="py-3 px-4 text-textsec text-xs">{formatDate(s.fecha_venta)}</td>
                 </tr>
               ))}

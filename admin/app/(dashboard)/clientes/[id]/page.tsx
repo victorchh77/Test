@@ -87,7 +87,7 @@ export default async function ClienteDetailPage({ params }: { params: { id: stri
                 <tr className="border-b border-border">
                   <th className="text-left py-2 px-1 text-xs text-textsec font-medium">Vehículo</th>
                   <th className="text-right py-2 px-1 text-xs text-textsec font-medium">Precio</th>
-                  <th className="text-right py-2 px-1 text-xs text-textsec font-medium">Ganancia</th>
+                  {admin && <th className="text-right py-2 px-1 text-xs text-textsec font-medium">Ganancia</th>}
                   <th className="text-right py-2 px-1 text-xs text-textsec font-medium">Fecha</th>
                 </tr>
               </thead>
@@ -98,9 +98,11 @@ export default async function ClienteDetailPage({ params }: { params: { id: stri
                       {s.marca} {s.modelo} {s.anio}
                     </td>
                     <td className="py-2.5 px-1 text-right text-textprim">{formatCurrency(s.precio_final)}</td>
-                    <td className={`py-2.5 px-1 text-right font-medium ${s.ganancia >= 0 ? 'text-success' : 'text-error'}`}>
-                      {s.ganancia >= 0 ? '+' : ''}{formatCurrency(s.ganancia)}
-                    </td>
+                    {admin && (
+                      <td className={`py-2.5 px-1 text-right font-medium ${s.ganancia >= 0 ? 'text-success' : 'text-error'}`}>
+                        {s.ganancia >= 0 ? '+' : ''}{formatCurrency(s.ganancia)}
+                      </td>
+                    )}
                     <td className="py-2.5 px-1 text-right text-textsec text-xs">{formatDate(s.fecha_venta)}</td>
                   </tr>
                 ))}
