@@ -17,8 +17,12 @@ export interface UserWithEmail {
 export async function getUsersWithEmail(): Promise<UserWithEmail[]> {
   if (!(await isAdmin())) return []
   const supabase = createClient()
-  const { data, error } = await supabase.rpc('get_profiles_with_email')
-  if (error) { console.error(error); return [] }
+  // Query profiles + join email via the auth schema using service-level access
+  const { data, error } = await supabase.rpc('get_all_profiles_with_email')
+  if (error) {
+    console.error('get_all_profiles_with_email error:', error)
+    return []
+  }
   return (data ?? []) as UserWithEmail[]
 }
 

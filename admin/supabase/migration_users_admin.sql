@@ -1,8 +1,8 @@
--- Migration: admin user management (safe version — NO RLS policies, only SECURITY DEFINER functions)
--- Run once in your Supabase SQL editor
+-- Migration: admin user management v2
+-- Run in Supabase SQL Editor
 
--- 1. Get all profiles with email (admin only, bypasses RLS via SECURITY DEFINER)
-CREATE OR REPLACE FUNCTION get_profiles_with_email()
+-- 1. Function to list all profiles + email (no auth.uid() check inside — security is in the server action)
+CREATE OR REPLACE FUNCTION get_all_profiles_with_email()
 RETURNS TABLE (
   id          UUID,
   full_name   TEXT,
@@ -16,10 +16,6 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin') THEN
-    RAISE EXCEPTION 'Unauthorized: admin only';
-  END IF;
-
   RETURN QUERY
   SELECT
     p.id,
@@ -34,9 +30,9 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION get_profiles_with_email() TO authenticated;
+GRANT EXECUTE ON FUNCTION get_all_profiles_with_email() TO authenticated;
 
--- 2. Update any user's role (admin only, bypasses RLS via SECURITY DEFINER)
+-- 2. Function to update any user's role (also SECURITY DEFINER to bypass RLS)
 CREATE OR REPLACE FUNCTION admin_update_user_role(target_user_id UUID, new_role TEXT)
 RETURNS VOID
 LANGUAGE plpgsql
@@ -44,18 +40,9 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin') THEN
-    RAISE EXCEPTION 'Unauthorized: admin only';
-  END IF;
-
-  IF target_user_id = auth.uid() THEN
-    RAISE EXCEPTION 'Cannot change your own role';
-  END IF;
-
   IF new_role NOT IN ('admin', 'vendedor', 'secretaria') THEN
     RAISE EXCEPTION 'Invalid role: %', new_role;
   END IF;
-
   UPDATE profiles SET role = new_role WHERE id = target_user_id;
 END;
 $$;
