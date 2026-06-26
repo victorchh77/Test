@@ -9,12 +9,25 @@ export async function getTransfers(): Promise<(Transfer & { creator_name: string
   const supabase = createClient()
   const { data, error } = await supabase
     .from('transfers')
-    .select('*, profiles!created_by(full_name)')
+    .select('*')
     .order('created_at', { ascending: false })
   if (error) { console.error(error); return [] }
-  return (data ?? []).map((t: any) => ({
+  const transfers = (data ?? []) as Transfer[]
+
+  // Fetch creator names separately
+  const creatorIds = Array.from(new Set(transfers.map(t => t.created_by).filter(Boolean)))
+  let nameMap: Record<string, string> = {}
+  if (creatorIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .in('id', creatorIds)
+    ;(profiles ?? []).forEach((p: any) => { nameMap[p.id] = p.full_name })
+  }
+
+  return transfers.map(t => ({
     ...t,
-    creator_name: t.profiles?.full_name ?? null,
+    creator_name: nameMap[t.created_by] ?? null,
   }))
 }
 
