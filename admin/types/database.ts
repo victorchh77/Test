@@ -86,6 +86,7 @@ export interface SaleWithDetails extends Sale {
 export interface Transfer {
   id: string
   monto: number
+  remitente: string | null
   comprobante_url: string | null
   notas: string | null
   verified: boolean
