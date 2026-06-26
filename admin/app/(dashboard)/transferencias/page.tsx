@@ -62,7 +62,7 @@ export default async function TransferenciasPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr>
-                  {['Fecha', 'Monto', 'Notas', 'Comprobante', 'Estado', ...(admin ? ['Acción'] : [])].map((h, i) => (
+                  {['Fecha', 'Registrado por', 'Monto', 'Notas', 'Comprobante', 'Estado', ...(admin ? ['Acción'] : [])].map((h, i) => (
                     <th key={i} className="table-header-cell">{h}</th>
                   ))}
                 </tr>
@@ -71,6 +71,9 @@ export default async function TransferenciasPage() {
                 {transfers.map(t => (
                   <tr key={t.id} className="table-row-hover">
                     <td className="table-cell text-textsec text-xs whitespace-nowrap">{formatDate(t.created_at)}</td>
+                    <td className="table-cell">
+                      <span className="text-xs text-textprim font-medium">{(t as any).creator_name ?? '—'}</span>
+                    </td>
                     <td className="table-cell font-bold text-orange">{formatCurrency(t.monto)}</td>
                     <td className="table-cell text-textsec text-xs max-w-[200px] truncate">{t.notas || '—'}</td>
                     <td className="table-cell">

@@ -5,14 +5,17 @@ import { revalidatePath } from 'next/cache'
 import { isAdmin } from '@/lib/auth/roles'
 import type { Transfer, ActionResult } from '@/types'
 
-export async function getTransfers(): Promise<Transfer[]> {
+export async function getTransfers(): Promise<(Transfer & { creator_name: string | null })[]> {
   const supabase = createClient()
   const { data, error } = await supabase
     .from('transfers')
-    .select('*')
+    .select('*, profiles!created_by(full_name)')
     .order('created_at', { ascending: false })
   if (error) { console.error(error); return [] }
-  return (data ?? []) as Transfer[]
+  return (data ?? []).map((t: any) => ({
+    ...t,
+    creator_name: t.profiles?.full_name ?? null,
+  }))
 }
 
 export async function createTransfer(data: {

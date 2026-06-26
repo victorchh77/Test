@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Car, Receipt, Users, ShoppingBag,
   X, UserCog, ListOrdered, ChevronRight, Settings,
-  ArrowDownCircle, FileText,
+  ArrowDownCircle, FileText, ShieldCheck,
 } from 'lucide-react'
 import type { Profile } from '@/types'
 
@@ -20,6 +20,7 @@ const adminNav = [
   { href: '/lista-precios',     label: 'Lista de Precios',    icon: ListOrdered },
   { href: '/transferencias',    label: 'Transferencias',      icon: ArrowDownCircle },
   { href: '/planilla-pagares',  label: 'Planilla de Pagarés', icon: FileText },
+  { href: '/usuarios',          label: 'Usuarios',            icon: ShieldCheck },
   { href: '/settings',          label: 'Configuración',       icon: Settings },
 ]
 
