@@ -1,0 +1,47 @@
+{
+  "name": "VH Group Dev",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-20-bookworm",
+
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+
+  "postCreateCommand": "npm install -g @anthropic-ai/claude-code @modelcontextprotocol/server-github && cd admin && npm install",
+
+  "secrets": {
+    "ANTHROPIC_API_KEY": {
+      "description": "API key de Anthropic para Claude Code. Obtenerla en https://console.anthropic.com"
+    },
+    "GITHUB_TOKEN": {
+      "description": "Token de GitHub con permisos repo, read:org, read:user. Se usa para el MCP de GitHub en Claude Code."
+    }
+  },
+
+  "remoteEnv": {
+    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}",
+    "GITHUB_TOKEN": "${localEnv:GITHUB_TOKEN}"
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "GitHub.copilot"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+      }
+    }
+  },
+
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "Next.js Dev Server",
+      "onAutoForward": "openPreview"
+    }
+  }
+}
