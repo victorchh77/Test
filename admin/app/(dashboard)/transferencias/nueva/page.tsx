@@ -16,6 +16,7 @@ export default function NuevaTransferenciaPage() {
   const fileRef = useRef<HTMLInputElement>(null)
 
   const [monto, setMonto]           = useState('')
+  const [remitente, setRemitente]   = useState('')
   const [notas, setNotas]           = useState('')
   const [file, setFile]             = useState<File | null>(null)
   const [preview, setPreview]       = useState<string | null>(null)
@@ -56,7 +57,7 @@ export default function NuevaTransferenciaPage() {
       comprobante_url = publicUrl
     }
 
-    const res = await createTransfer({ monto: montoNum, comprobante_url, notas: notas.trim() || null })
+    const res = await createTransfer({ monto: montoNum, remitente: remitente.trim() || null, comprobante_url, notas: notas.trim() || null })
     setSubmitting(false)
     if (res.error) { setError(res.error); return }
     router.push('/transferencias')
@@ -84,6 +85,13 @@ export default function NuevaTransferenciaPage() {
             value={monto}
             onChange={e => setMonto(e.target.value)}
             placeholder="1.500.000"
+          />
+
+          <Input
+            label="¿Quién realizó la transferencia?"
+            value={remitente}
+            onChange={e => setRemitente(e.target.value)}
+            placeholder="Nombre del remitente"
           />
 
           {/* File upload */}

@@ -5,34 +5,19 @@ import { revalidatePath } from 'next/cache'
 import { isAdmin } from '@/lib/auth/roles'
 import type { Transfer, ActionResult } from '@/types'
 
-export async function getTransfers(): Promise<(Transfer & { creator_name: string | null })[]> {
+export async function getTransfers(): Promise<Transfer[]> {
   const supabase = createClient()
   const { data, error } = await supabase
     .from('transfers')
     .select('*')
     .order('created_at', { ascending: false })
   if (error) { console.error(error); return [] }
-  const transfers = (data ?? []) as Transfer[]
-
-  // Fetch creator names separately
-  const creatorIds = Array.from(new Set(transfers.map(t => t.created_by).filter(Boolean)))
-  let nameMap: Record<string, string> = {}
-  if (creatorIds.length > 0) {
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, full_name')
-      .in('id', creatorIds)
-    ;(profiles ?? []).forEach((p: any) => { nameMap[p.id] = p.full_name })
-  }
-
-  return transfers.map(t => ({
-    ...t,
-    creator_name: nameMap[t.created_by] ?? null,
-  }))
+  return (data ?? []) as Transfer[]
 }
 
 export async function createTransfer(data: {
   monto: number
+  remitente: string | null
   comprobante_url: string | null
   notas: string | null
 }): Promise<ActionResult> {
@@ -43,6 +28,7 @@ export async function createTransfer(data: {
 
   const { error } = await supabase.from('transfers').insert({
     monto: data.monto,
+    remitente: data.remitente,
     comprobante_url: data.comprobante_url,
     notas: data.notas,
     created_by: user.id,
