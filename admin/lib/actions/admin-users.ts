@@ -49,9 +49,10 @@ export async function createUser(data: {
   })
   if (authError) return { error: authError.message }
 
+  // Explicitly set username + role — don't rely solely on the trigger
   await adminClient
     .from('profiles')
-    .update({ username: username.trim() })
+    .update({ username: username.trim(), role })
     .eq('id', authData.user.id)
 
   revalidatePath('/usuarios')

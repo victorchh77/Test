@@ -21,10 +21,11 @@ export function AddVehicleToPriceListForm({ priceListId, vehicles }: Props) {
   const [vehicleId, setVehicleId] = useState('')
   const [p1, setP1] = useState('')
   const [p2, setP2] = useState('')
-  const [p3, setP3] = useState('')
+  const [pLista, setPLista] = useState('')
   const [f12, setF12] = useState('')
   const [f18, setF18] = useState('')
   const [f24, setF24] = useState('')
+  const [entrega, setEntrega] = useState('')
   const [notas, setNotas] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -32,24 +33,28 @@ export function AddVehicleToPriceListForm({ priceListId, vehicles }: Props) {
   const selected = vehicles.find(v => v.id === vehicleId)
 
   async function handleAdd() {
-    if (!vehicleId || !p1) { setError('Seleccioná un vehículo e ingresá al menos el Precio lista 1'); return }
+    if (!vehicleId || !pLista) { setError('Seleccioná un vehículo e ingresá el Precio lista'); return }
     setLoading(true); setError('')
     const result = await addVehicleToPriceList(
       priceListId,
       vehicleId,
       {
-        precio_lista: parseInt(p1),
-        precio_lista_2: numOrNull(p2),
-        precio_lista_3: numOrNull(p3),
+        precio_1: numOrNull(p1),
+        precio_2: numOrNull(p2),
+        precio_lista: parseInt(pLista),
         precio_financiado_12: numOrNull(f12),
         precio_financiado_18: numOrNull(f18),
         precio_financiado_24: numOrNull(f24),
+        entrega: numOrNull(entrega),
       },
       notas || undefined,
     )
     setLoading(false)
     if (result.error) setError(result.error)
-    else { setVehicleId(''); setP1(''); setP2(''); setP3(''); setF12(''); setF18(''); setF24(''); setNotas('') }
+    else {
+      setVehicleId(''); setP1(''); setP2(''); setPLista('')
+      setF12(''); setF18(''); setF24(''); setEntrega(''); setNotas('')
+    }
   }
 
   return (
@@ -57,14 +62,14 @@ export function AddVehicleToPriceListForm({ priceListId, vehicles }: Props) {
       <h3 className="font-semibold text-textprim mb-4">Agregar vehículo a la lista</h3>
 
       {/* Vehicle selector */}
-      <div className="mb-3">
+      <div className="mb-4">
         <Select
           label="Vehículo disponible *"
           value={vehicleId}
           onChange={e => {
             setVehicleId(e.target.value)
             const v = vehicles.find(x => x.id === e.target.value)
-            if (v) setP1(String(v.precio_venta))
+            if (v) setPLista(String(v.precio_venta))
           }}
           options={vehicles.map(v => ({
             value: v.id,
@@ -79,20 +84,21 @@ export function AddVehicleToPriceListForm({ priceListId, vehicles }: Props) {
         )}
       </div>
 
-      {/* List prices */}
+      {/* List prices: 1, 2, lista */}
       <p className="text-xs font-semibold text-textsec uppercase tracking-wider mb-2">Precios de lista</p>
       <div className="grid grid-cols-3 gap-3 mb-4">
-        <Input label="Precio lista 1 (Gs.) *" type="number" value={p1} onChange={e => setP1(e.target.value)} placeholder="0" />
-        <Input label="Precio lista 2 (Gs.)"  type="number" value={p2} onChange={e => setP2(e.target.value)} placeholder="0" />
-        <Input label="Precio lista 3 (Gs.)"  type="number" value={p3} onChange={e => setP3(e.target.value)} placeholder="0" />
+        <Input label="Precio 1 (Gs.)"     type="number" value={p1}     onChange={e => setP1(e.target.value)}     placeholder="0" />
+        <Input label="Precio 2 (Gs.)"     type="number" value={p2}     onChange={e => setP2(e.target.value)}     placeholder="0" />
+        <Input label="Precio lista (Gs.) *" type="number" value={pLista} onChange={e => setPLista(e.target.value)} placeholder="0" />
       </div>
 
-      {/* Financed prices */}
-      <p className="text-xs font-semibold text-textsec uppercase tracking-wider mb-2">Precios financiados</p>
-      <div className="grid grid-cols-3 gap-3 mb-4">
-        <Input label="12 cuotas (Gs./mes)" type="number" value={f12} onChange={e => setF12(e.target.value)} placeholder="0" />
-        <Input label="18 cuotas (Gs./mes)" type="number" value={f18} onChange={e => setF18(e.target.value)} placeholder="0" />
-        <Input label="24 cuotas (Gs./mes)" type="number" value={f24} onChange={e => setF24(e.target.value)} placeholder="0" />
+      {/* Financed prices (total cost) + Entrega */}
+      <p className="text-xs font-semibold text-textsec uppercase tracking-wider mb-2">Financiado (costo total)</p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+        <Input label="Entrega (Gs.)"        type="number" value={entrega} onChange={e => setEntrega(e.target.value)} placeholder="0" />
+        <Input label="12 cuotas (Gs. total)" type="number" value={f12}    onChange={e => setF12(e.target.value)}    placeholder="0" />
+        <Input label="18 cuotas (Gs. total)" type="number" value={f18}    onChange={e => setF18(e.target.value)}    placeholder="0" />
+        <Input label="24 cuotas (Gs. total)" type="number" value={f24}    onChange={e => setF24(e.target.value)}    placeholder="0" />
       </div>
 
       <Input label="Notas (opcional)" value={notas} onChange={e => setNotas(e.target.value)} placeholder="Condición, etc." />

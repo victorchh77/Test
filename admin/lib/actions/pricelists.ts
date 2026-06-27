@@ -44,12 +44,13 @@ export async function addVehicleToPriceList(
   priceListId: string,
   vehicleId: string,
   prices: {
+    precio_1?: number | null
+    precio_2?: number | null
     precio_lista: number
-    precio_lista_2?: number | null
-    precio_lista_3?: number | null
     precio_financiado_12?: number | null
     precio_financiado_18?: number | null
     precio_financiado_24?: number | null
+    entrega?: number | null
   },
   notas?: string,
 ): Promise<ActionResult> {
@@ -58,12 +59,13 @@ export async function addVehicleToPriceList(
   const { error } = await supabase.from('price_list_items').insert({
     price_list_id: priceListId,
     vehicle_id: vehicleId,
+    precio_1: prices.precio_1 ?? null,
+    precio_2: prices.precio_2 ?? null,
     precio_lista: prices.precio_lista,
-    precio_lista_2: prices.precio_lista_2 ?? null,
-    precio_lista_3: prices.precio_lista_3 ?? null,
     precio_financiado_12: prices.precio_financiado_12 ?? null,
     precio_financiado_18: prices.precio_financiado_18 ?? null,
     precio_financiado_24: prices.precio_financiado_24 ?? null,
+    entrega: prices.entrega ?? null,
     notas: notas ?? null,
   })
   if (error) return { error: error.message }
