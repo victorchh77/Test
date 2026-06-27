@@ -67,6 +67,7 @@ export default function FlyersPage() {
   const [fmt, setFmt]                 = useState<Format>(FORMATS[0])
   const [photoImg, setPhotoImg]       = useState<HTMLImageElement | null>(null)
   const [photoLoaded, setPhotoLoaded] = useState(false)
+  const [logoImg, setLogoImg]         = useState<HTMLImageElement | null>(null)
   const [activeTab, setActiveTab]     = useState('vehiculo')
   const [newFeat, setNewFeat]         = useState('')
 
@@ -90,6 +91,12 @@ export default function FlyersPage() {
   const updFeatures = (v: string[])            => setData(d => ({ ...d, features: v }))
   const addFeat     = () => { if (newFeat.trim()) { updFeatures([...data.features, newFeat.trim()]); setNewFeat('') } }
   const removeFeat  = (i: number) => updFeatures(data.features.filter((_, idx) => idx !== i))
+
+  useEffect(() => {
+    const img = new Image()
+    img.onload = () => setLogoImg(img)
+    img.src = '/logo.png'
+  }, [])
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current
@@ -132,19 +139,15 @@ export default function FlyersPage() {
       ctx.fillText('[  foto  ]', W / 2, photoH / 2 - 8)
     }
 
-    /* VH watermark (bottom-right of photo) */
-    {
-      const lW = W * 0.26, lH = W * 0.12
-      const lX = W - lW - 10, lY = photoH - lH - 10
+    /* VH watermark (bottom-right of photo) — logo.png */
+    if (logoImg) {
+      const lW = W * 0.28
+      const lH = lW * (logoImg.naturalHeight / logoImg.naturalWidth)
+      const lX = W - lW - 10
+      const lY = photoH - lH - 10
       ctx.save()
-      roundRect(ctx, lX, lY, lW, lH, 7)
-      ctx.fillStyle = 'rgba(0,0,0,0.62)'; ctx.fill()
-      ctx.fillStyle = ORANGE
-      ctx.font = `900 ${lH * 0.56}px Arial`; ctx.textAlign = 'left'
-      ctx.fillText('VH', lX + lW * 0.09, lY + lH * 0.68)
-      ctx.fillStyle = 'rgba(255,255,255,0.88)'
-      ctx.font = `700 ${lH * 0.24}px Arial`
-      ctx.fillText('GROUP  S.R.L.', lX + lW * 0.09, lY + lH * 0.93)
+      ctx.globalAlpha = 0.82
+      ctx.drawImage(logoImg, lX, lY, lW, lH)
       ctx.restore()
     }
 
@@ -174,15 +177,18 @@ export default function FlyersPage() {
     ctx.fillText(data.version ? `${data.anio}  |  ${data.version}` : data.anio, PAD, y)
     y += Math.floor(W * 0.078)
 
-    // "Precio contado:"
-    ctx.fillStyle = 'rgba(255,255,255,0.58)'
-    ctx.font = `400 ${Math.floor(W * 0.027)}px Arial`
+    // "Precio contado:" label
+    const labelFont = Math.floor(W * 0.027)
+    const priceFont = Math.floor(W * 0.076)
+    ctx.fillStyle = 'rgba(255,255,255,0.62)'
+    ctx.font = `400 ${labelFont}px Arial`
     ctx.fillText('Precio contado:', PAD, y)
-    y += Math.floor(W * 0.038)
+    // advance past the label AND enough for price ascender not to overlap
+    y += Math.floor(labelFont * 1.3) + priceFont
 
     // Price
     ctx.fillStyle = 'white'
-    ctx.font = `900 ${Math.floor(W * 0.076)}px Arial`
+    ctx.font = `900 ${priceFont}px Arial`
     ctx.fillText(`${data.precio} ${data.moneda}`, PAD, y)
     y += Math.floor(W * 0.086)
 
@@ -244,7 +250,7 @@ export default function FlyersPage() {
 
     // Orange bottom bar
     ctx.fillStyle = ORANGE; ctx.fillRect(0, H - 3, W, 3)
-  }, [fmt, photoImg, photoLoaded, data])
+  }, [fmt, photoImg, photoLoaded, logoImg, data])
 
   useEffect(() => { draw() }, [draw])
 
