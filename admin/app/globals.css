@@ -51,22 +51,22 @@ h1, h2, h3, .font-display {
   will-change: transform;
 }
 .orb-1 {
-  width: 600px; height: 600px;
-  top: -15%; left: -8%;
-  background: radial-gradient(circle, rgba(255,140,0,0.18), transparent 65%);
-  animation: orbFloat1 22s ease-in-out infinite;
+  width: 640px; height: 640px;
+  top: -18%; left: -10%;
+  background: radial-gradient(circle, rgba(255,140,0,0.38), transparent 62%);
+  animation: orbFloat1 20s ease-in-out infinite;
 }
 .orb-2 {
-  width: 480px; height: 480px;
-  bottom: -12%; right: -5%;
-  background: radial-gradient(circle, rgba(59,130,246,0.12), transparent 65%);
-  animation: orbFloat2 28s ease-in-out infinite;
+  width: 520px; height: 520px;
+  bottom: -15%; right: -6%;
+  background: radial-gradient(circle, rgba(59,130,246,0.30), transparent 62%);
+  animation: orbFloat2 26s ease-in-out infinite;
 }
 .orb-3 {
-  width: 320px; height: 320px;
-  top: 45%; right: 18%;
-  background: radial-gradient(circle, rgba(255,140,0,0.09), transparent 65%);
-  animation: orbFloat3 18s ease-in-out infinite;
+  width: 380px; height: 380px;
+  top: 42%; right: 16%;
+  background: radial-gradient(circle, rgba(168,85,247,0.22), transparent 62%);
+  animation: orbFloat3 16s ease-in-out infinite;
 }
 
 @keyframes orbFloat1 {
