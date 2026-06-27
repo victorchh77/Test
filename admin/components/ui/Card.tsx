@@ -1,7 +1,3 @@
-'use client'
-
-import { motion } from 'framer-motion'
-
 interface Props {
   children: React.ReactNode
   className?: string
