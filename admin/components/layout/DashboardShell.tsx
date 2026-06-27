@@ -17,6 +17,7 @@ const pageTitles: Record<string, string> = {
   '/transferencias':   'Transferencias',
   '/planilla-pagares': 'Planilla de Pagarés',
   '/usuarios':         'Usuarios',
+  '/flyers':           'Generador de Flyers',
   '/settings':         'Configuración',
 }
 

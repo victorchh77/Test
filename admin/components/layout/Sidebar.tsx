@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Car, Receipt, Users, ShoppingBag,
   X, UserCog, ListOrdered, ChevronRight, Settings,
-  ArrowDownCircle, FileText, ShieldCheck,
+  ArrowDownCircle, FileText, ShieldCheck, Wand2,
 } from 'lucide-react'
 import type { Profile } from '@/types'
 
@@ -21,6 +21,7 @@ const adminNav = [
   { href: '/transferencias',    label: 'Transferencias',      icon: ArrowDownCircle },
   { href: '/planilla-pagares',  label: 'Planilla de Pagarés', icon: FileText },
   { href: '/usuarios',          label: 'Usuarios',            icon: ShieldCheck },
+  { href: '/flyers',            label: 'Generador de Flyers', icon: Wand2 },
   { href: '/settings',          label: 'Configuración',       icon: Settings },
 ]
 
@@ -29,8 +30,9 @@ const vendedorNav = [
   { href: '/vehiculos',     label: 'Vehículos',        icon: Car },
   { href: '/clientes',      label: 'Clientes',         icon: Users },
   { href: '/ventas',        label: 'Mis Ventas',       icon: ShoppingBag },
-  { href: '/lista-precios', label: 'Lista de Precios', icon: ListOrdered },
-  { href: '/settings',      label: 'Configuración',    icon: Settings },
+  { href: '/lista-precios', label: 'Lista de Precios',    icon: ListOrdered },
+  { href: '/flyers',        label: 'Generador de Flyers', icon: Wand2 },
+  { href: '/settings',      label: 'Configuración',       icon: Settings },
 ]
 
 const secretariaNav = [
