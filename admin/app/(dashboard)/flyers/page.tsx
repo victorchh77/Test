@@ -178,7 +178,7 @@ export default function FlyersPage() {
     y += Math.floor(W * 0.078)
 
     // "Precio contado:" label
-    const labelFont = Math.floor(W * 0.027)
+    const labelFont = Math.floor(W * 0.046)
     const priceFont = Math.floor(W * 0.076)
     ctx.fillStyle = 'rgba(255,255,255,0.62)'
     ctx.font = `400 ${labelFont}px Arial`
