@@ -1,8 +1,10 @@
 import { redirect } from 'next/navigation'
-import { Users, Mail, AtSign, Calendar } from 'lucide-react'
+import { Users, Mail, AtSign, Calendar, ShieldCheck, UserRound, FileText } from 'lucide-react'
 import { getUsersWithEmail } from '@/lib/actions/admin-users'
 import { getSessionProfile } from '@/lib/auth/roles'
 import { Card } from '@/components/ui/Card'
+import { StatCard } from '@/components/shared/StatCard'
+import { EmptyState } from '@/components/shared/EmptyState'
 import { formatDate } from '@/lib/utils/format'
 import { RoleSelect, RoleBadge } from './RoleSelect'
 import type { Role } from '@/types'
@@ -26,18 +28,10 @@ export default async function UsuariosPage() {
         <p className="text-sm text-textsec mt-0.5">{users.length} cuenta{users.length !== 1 ? 's' : ''} registrada{users.length !== 1 ? 's' : ''}</p>
       </div>
 
-      {/* Role summary */}
-      <div className="grid grid-cols-3 gap-4">
-        {([
-          { role: 'admin'      as Role, label: 'Administradores', color: 'text-orange'     },
-          { role: 'secretaria' as Role, label: 'Secretarías',     color: 'text-purple-400' },
-          { role: 'vendedor'   as Role, label: 'Vendedores',      color: 'text-blue-400'   },
-        ]).map(({ role, label, color }) => (
-          <div key={role} className="bg-card border border-border rounded-2xl p-4 text-center">
-            <p className={`font-display font-bold text-3xl ${color}`}>{counts[role]}</p>
-            <p className="text-xs text-textsec mt-0.5">{label}</p>
-          </div>
-        ))}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <StatCard title="Administradores" value={counts.admin}      icon={ShieldCheck} color="orange"  />
+        <StatCard title="Secretarías"     value={counts.secretaria} icon={FileText}    color="default" />
+        <StatCard title="Vendedores"      value={counts.vendedor}   icon={UserRound}   color="success" />
       </div>
 
       <Card padding={false}>
@@ -49,10 +43,11 @@ export default async function UsuariosPage() {
         </div>
 
         {users.length === 0 ? (
-          <div className="text-center py-16">
-            <Users className="w-10 h-10 text-textmuted mx-auto mb-3" />
-            <p className="text-sm text-textsec">Sin usuarios registrados</p>
-          </div>
+          <EmptyState
+            icon={Users}
+            title="Sin usuarios"
+            description="No hay cuentas registradas en el sistema."
+          />
         ) : (
           <div className="overflow-x-auto scrollbar-thin">
             <table className="w-full text-sm">

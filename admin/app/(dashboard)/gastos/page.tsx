@@ -1,8 +1,10 @@
 import Link from 'next/link'
 import { getAllExpenses } from '@/lib/actions/expenses'
-import { Card, CardHeader } from '@/components/ui/Card'
+import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { StatCard } from '@/components/shared/StatCard'
+import { EmptyState } from '@/components/shared/EmptyState'
 import { formatCurrency, formatDate } from '@/lib/utils/format'
 import { EXPENSE_TYPES } from '@/lib/utils/constants'
 import { Receipt } from 'lucide-react'
@@ -27,13 +29,14 @@ export default async function GastosPage() {
         <div>
           <h1 className="font-display text-2xl font-bold text-textprim tracking-tight">Gastos</h1>
           <p className="text-sm text-textsec mt-0.5">
-            {expenses.length} gasto{expenses.length !== 1 ? 's' : ''} ·{' '}
-            Total: <span className="text-error font-medium">{formatCurrency(total)}</span>
+            {expenses.length} gasto{expenses.length !== 1 ? 's' : ''} registrado{expenses.length !== 1 ? 's' : ''}
           </p>
         </div>
       </div>
 
-      {/* Summary cards */}
+      <StatCard title="Total gastos" value={formatCurrency(total)} icon={Receipt} color="error" />
+
+      {/* Breakdown by type */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {byType.map(t => (
           <div key={t.value} className="
@@ -47,52 +50,56 @@ export default async function GastosPage() {
         ))}
       </div>
 
-      <Card padding={false}>
-        <div className="px-5 py-4 border-b border-border flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-error/10 flex items-center justify-center">
-            <Receipt className="w-4 h-4 text-error" />
+      {expenses.length === 0 ? (
+        <EmptyState
+          icon={Receipt}
+          title="Sin gastos"
+          description="No hay gastos registrados todavía. Los gastos se agregan desde la ficha de cada vehículo."
+        />
+      ) : (
+        <Card padding={false}>
+          <div className="px-5 py-4 border-b border-border flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-error/10 flex items-center justify-center">
+              <Receipt className="w-4 h-4 text-error" />
+            </div>
+            <h2 className="font-display text-sm font-semibold text-textprim">Todos los gastos</h2>
           </div>
-          <h2 className="font-display text-sm font-semibold text-textprim">Todos los gastos</h2>
-        </div>
-        <div className="overflow-x-auto scrollbar-thin">
-          <table className="w-full text-sm">
-            <thead>
-              <tr>
-                {['Vehículo', 'Tipo', 'Descripción', 'Fecha', 'Monto', 'Detalle'].map(h => (
-                  <th key={h} className="table-header-cell">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {expenses.length === 0 ? (
+          <div className="overflow-x-auto scrollbar-thin">
+            <table className="w-full text-sm">
+              <thead>
                 <tr>
-                  <td colSpan={6} className="py-16 text-center text-textsec">Sin gastos registrados</td>
+                  {['Vehículo', 'Tipo', 'Descripción', 'Fecha', 'Monto', 'Detalle'].map(h => (
+                    <th key={h} className="table-header-cell">{h}</th>
+                  ))}
                 </tr>
-              ) : expenses.map(e => (
-                <tr key={e.id} className="table-row-hover">
-                  <td className="table-cell">
-                    {e.vehicles
-                      ? <span className="font-semibold text-textprim">{e.vehicles.marca} {e.vehicles.modelo} {e.vehicles.anio}</span>
-                      : <span className="text-textsec">—</span>
-                    }
-                  </td>
-                  <td className="table-cell">
-                    <Badge color="orange">{EXPENSE_TYPES.find(t => t.value === e.tipo)?.label ?? e.tipo}</Badge>
-                  </td>
-                  <td className="table-cell text-textsec">{e.descripcion || '—'}</td>
-                  <td className="table-cell text-textsec text-xs whitespace-nowrap">{formatDate(e.fecha)}</td>
-                  <td className="table-cell font-bold text-error">{formatCurrency(e.monto)}</td>
-                  <td className="table-cell">
-                    <Link href={`/vehiculos/${e.vehicle_id}`}>
-                      <Button variant="ghost" size="sm">Ver auto</Button>
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+              </thead>
+              <tbody>
+                {expenses.map(e => (
+                  <tr key={e.id} className="table-row-hover">
+                    <td className="table-cell">
+                      {e.vehicles
+                        ? <span className="font-semibold text-textprim">{e.vehicles.marca} {e.vehicles.modelo} {e.vehicles.anio}</span>
+                        : <span className="text-textsec">—</span>
+                      }
+                    </td>
+                    <td className="table-cell">
+                      <Badge color="orange">{EXPENSE_TYPES.find(t => t.value === e.tipo)?.label ?? e.tipo}</Badge>
+                    </td>
+                    <td className="table-cell text-textsec">{e.descripcion || '—'}</td>
+                    <td className="table-cell text-textsec text-xs whitespace-nowrap">{formatDate(e.fecha)}</td>
+                    <td className="table-cell font-bold text-error">{formatCurrency(e.monto)}</td>
+                    <td className="table-cell">
+                      <Link href={`/vehiculos/${e.vehicle_id}`}>
+                        <Button variant="ghost" size="sm">Ver auto</Button>
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
     </div>
   )
 }

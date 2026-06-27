@@ -144,6 +144,7 @@ export function Sidebar({ open, onClose, role }: Props) {
                     className={`
                       relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
                       transition-all duration-200 group overflow-hidden
+                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange/60
                       ${active
                         ? 'bg-orange/12 text-orange'
                         : 'text-textsec hover:text-textprim hover:bg-white/[0.04]'
@@ -181,9 +182,6 @@ export function Sidebar({ open, onClose, role }: Props) {
 
         {/* Footer */}
         <div className="px-5 py-4 border-t border-border">
-          <div className="flex items-center gap-2 mb-1">
-            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-          </div>
           <p className="text-[10px] text-textmuted text-center font-medium tracking-wider uppercase">
             Encarnación, Paraguay
           </p>

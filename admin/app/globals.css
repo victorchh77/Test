@@ -142,7 +142,7 @@ h1, h2, h3, .font-display {
   }
 
   .table-header-cell {
-    @apply text-left py-3.5 px-4 text-[11px] font-semibold text-textmuted uppercase tracking-widest
+    @apply text-left py-3.5 px-4 text-[11px] font-semibold text-textsec uppercase tracking-widest
            whitespace-nowrap border-b border-border;
   }
 
@@ -158,7 +158,7 @@ h1, h2, h3, .font-display {
 
   /* Section headings */
   .section-label {
-    @apply text-[10px] font-semibold uppercase tracking-[0.15em] text-textmuted;
+    @apply text-[10px] font-semibold uppercase tracking-[0.15em] text-textsec;
   }
 
   /* Stat value */

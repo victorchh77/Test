@@ -16,9 +16,15 @@ const sizes = { sm: 'max-w-md', md: 'max-w-lg', lg: 'max-w-2xl' }
 
 export function Modal({ open, onClose, title, children, size = 'md', subtitle }: Props) {
   useEffect(() => {
-    if (open) document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = '' }
-  }, [open])
+    if (!open) return
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = ''
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open, onClose])
 
   if (!open) return null
 

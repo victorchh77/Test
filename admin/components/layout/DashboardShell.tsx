@@ -7,13 +7,17 @@ import { usePathname } from 'next/navigation'
 import type { Profile } from '@/types'
 
 const pageTitles: Record<string, string> = {
-  '/dashboard':     'Dashboard',
-  '/vehiculos':     'Vehículos',
-  '/gastos':        'Gastos',
-  '/clientes':      'Clientes',
-  '/ventas':        'Ventas',
-  '/empleados':     'Empleados',
-  '/lista-precios': 'Lista de Precios',
+  '/dashboard':        'Dashboard',
+  '/vehiculos':        'Vehículos',
+  '/gastos':           'Gastos',
+  '/clientes':         'Clientes',
+  '/ventas':           'Ventas',
+  '/empleados':        'Empleados',
+  '/lista-precios':    'Lista de Precios',
+  '/transferencias':   'Transferencias',
+  '/planilla-pagares': 'Planilla de Pagarés',
+  '/usuarios':         'Usuarios',
+  '/settings':         'Configuración',
 }
 
 function getTitle(pathname: string) {

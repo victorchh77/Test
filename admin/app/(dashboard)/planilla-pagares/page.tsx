@@ -1,9 +1,11 @@
 import Link from 'next/link'
-import { Plus, FileText, CheckCircle, Clock, XCircle } from 'lucide-react'
+import { Plus, FileText, CheckCircle, Clock, DollarSign, TrendingUp } from 'lucide-react'
 import { getParesContracts, getParesPaymentsForMonth, toggleParesContract } from '@/lib/actions/pares'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
+import { StatCard } from '@/components/shared/StatCard'
+import { EmptyState } from '@/components/shared/EmptyState'
 import { formatCurrency } from '@/lib/utils/format'
 import { PagoRow } from './PagoRow'
 import { MonthNav } from './MonthNav'
@@ -49,31 +51,23 @@ export default async function PlanillaPagaresPage({
         </Link>
       </div>
 
-      {/* Month nav + stats */}
-      <div className="bg-card border border-border rounded-2xl p-5 flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <MonthNav anio={anio} mes={mes} />
-          <Link
-            href={`/planilla-pagares?mes=${mes}&anio=${anio}&ver=${verTodos ? 'activos' : 'todos'}`}
-            className="text-xs text-textsec hover:text-textprim border border-border hover:border-border-bright px-3 py-1.5 rounded-lg transition-colors"
-          >
-            {verTodos ? 'Ver solo activos' : 'Ver todos'}
-          </Link>
-        </div>
+      {/* Month nav */}
+      <div className="bg-card border border-border rounded-2xl px-5 py-4 flex items-center justify-between">
+        <MonthNav anio={anio} mes={mes} />
+        <Link
+          href={`/planilla-pagares?mes=${mes}&anio=${anio}&ver=${verTodos ? 'activos' : 'todos'}`}
+          className="text-xs text-textsec hover:text-textprim border border-border hover:border-border-bright px-3 py-1.5 rounded-lg transition-colors"
+        >
+          {verTodos ? 'Ver solo activos' : 'Ver todos'}
+        </Link>
+      </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {[
-            { label: 'Total a cobrar',  value: formatCurrency(totalMes),   color: 'text-orange' },
-            { label: 'Cobrado',         value: formatCurrency(cobradoMes), color: 'text-success' },
-            { label: 'Pagaron',         value: String(pagados),            color: 'text-success' },
-            { label: 'Pendientes',      value: String(pendientes),         color: 'text-warning' },
-          ].map(({ label, value, color }) => (
-            <div key={label} className="bg-card-elevated rounded-xl p-3 text-center">
-              <p className="text-xs text-textsec">{label}</p>
-              <p className={`font-display font-bold text-lg leading-tight ${color}`}>{value}</p>
-            </div>
-          ))}
-        </div>
+      {/* Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <StatCard title="Total a cobrar" value={formatCurrency(totalMes)}   icon={DollarSign}  color="orange"  />
+        <StatCard title="Cobrado"        value={formatCurrency(cobradoMes)} icon={TrendingUp}  color="success" />
+        <StatCard title="Pagaron"        value={pagados}                    icon={CheckCircle} color="success" />
+        <StatCard title="Pendientes"     value={pendientes}                 icon={Clock}       color="default" />
       </div>
 
       {/* Contract table */}
@@ -88,10 +82,12 @@ export default async function PlanillaPagaresPage({
         </div>
 
         {activeContracts.length === 0 ? (
-          <div className="text-center py-16">
-            <FileText className="w-10 h-10 text-textmuted mx-auto mb-3" />
-            <p className="text-sm text-textsec">Sin contratos. Agregá el primero.</p>
-          </div>
+          <EmptyState
+            icon={FileText}
+            title="Sin contratos"
+            description="No hay pagarés registrados. Agregá el primero."
+            action={{ label: 'Agregar pagaré', href: '/planilla-pagares/nueva' }}
+          />
         ) : (
           <div className="overflow-x-auto scrollbar-thin">
             <table className="w-full text-sm">

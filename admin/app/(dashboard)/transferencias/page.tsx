@@ -5,6 +5,8 @@ import { isAdmin } from '@/lib/auth/roles'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
+import { StatCard } from '@/components/shared/StatCard'
+import { EmptyState } from '@/components/shared/EmptyState'
 import { formatCurrency, formatDate } from '@/lib/utils/format'
 
 export default async function TransferenciasPage() {
@@ -27,23 +29,10 @@ export default async function TransferenciasPage() {
         </Link>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
-        {[
-          { label: 'Total registrado', value: formatCurrency(total), icon: ArrowDownCircle, color: 'text-orange' },
-          { label: 'Pendientes',       value: String(pendientes),    icon: Clock,           color: 'text-warning' },
-          { label: 'Verificadas',      value: String(verificadas),   icon: CheckCircle,     color: 'text-success' },
-        ].map(({ label, value, icon: Icon, color }) => (
-          <div key={label} className="bg-card border border-border rounded-2xl p-4 flex items-center gap-3">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center bg-white/5 ${color}`}>
-              <Icon className="w-4.5 h-4.5" />
-            </div>
-            <div>
-              <p className="text-xs text-textsec">{label}</p>
-              <p className="font-display font-bold text-textprim text-lg leading-tight">{value}</p>
-            </div>
-          </div>
-        ))}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <StatCard title="Total registrado" value={formatCurrency(total)} icon={ArrowDownCircle} color="orange" />
+        <StatCard title="Pendientes"       value={pendientes}            icon={Clock}           color="default" />
+        <StatCard title="Verificadas"      value={verificadas}           icon={CheckCircle}     color="success" />
       </div>
 
       {/* List */}
@@ -53,10 +42,12 @@ export default async function TransferenciasPage() {
         </div>
 
         {transfers.length === 0 ? (
-          <div className="text-center py-16">
-            <ArrowDownCircle className="w-10 h-10 text-textmuted mx-auto mb-3" />
-            <p className="text-sm text-textsec">Sin transferencias registradas</p>
-          </div>
+          <EmptyState
+            icon={ArrowDownCircle}
+            title="Sin transferencias"
+            description="No hay transferencias registradas todavía."
+            action={{ label: 'Nueva transferencia', href: '/transferencias/nueva' }}
+          />
         ) : (
           <div className="overflow-x-auto scrollbar-thin">
             <table className="w-full text-sm">
