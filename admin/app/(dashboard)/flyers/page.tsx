@@ -13,7 +13,6 @@ interface FlyerData {
   precio: string; moneda: string; financiado: boolean; partePago: boolean
   whatsapp: string; ciudad: string; features: string[]
 }
-
 type StrKey  = 'marca' | 'modelo' | 'version' | 'anio' | 'km' | 'precio' | 'moneda' | 'whatsapp' | 'ciudad'
 type BoolKey = 'financiado' | 'partePago'
 
@@ -23,7 +22,7 @@ const FORMATS: Format[] = [
   { id: 'landscape', label: 'Post',  sub: '4:5',  w: 500, h: 625 },
 ]
 
-const TABS: Array<{ id: string; label: string }> = [
+const TABS = [
   { id: 'vehiculo', label: 'Vehículo' },
   { id: 'precio',   label: 'Precio'   },
   { id: 'extras',   label: 'Extras'   },
@@ -48,18 +47,31 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.closePath()
 }
 
+function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+  const words = text.split(' ')
+  const lines: string[] = []
+  let cur = ''
+  for (const word of words) {
+    const test = cur ? `${cur} ${word}` : word
+    if (ctx.measureText(test).width > maxWidth) { if (cur) lines.push(cur); cur = word }
+    else cur = test
+  }
+  if (cur) lines.push(cur)
+  return lines
+}
+
 export default function FlyersPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const fileRef   = useRef<HTMLInputElement>(null)
 
-  const [fmt, setFmt]                     = useState<Format>(FORMATS[0])
-  const [photoImg, setPhotoImg]           = useState<HTMLImageElement | null>(null)
-  const [photoLoaded, setPhotoLoaded]     = useState(false)
-  const [activeTab, setActiveTab]         = useState('vehiculo')
-  const [newFeat, setNewFeat]             = useState('')
+  const [fmt, setFmt]                 = useState<Format>(FORMATS[0])
+  const [photoImg, setPhotoImg]       = useState<HTMLImageElement | null>(null)
+  const [photoLoaded, setPhotoLoaded] = useState(false)
+  const [activeTab, setActiveTab]     = useState('vehiculo')
+  const [newFeat, setNewFeat]         = useState('')
 
   const [data, setData] = useState<FlyerData>({
-    marca: 'TOYOTA', modelo: 'HILUX', version: 'SRV',
+    marca: 'TOYOTA', modelo: 'HILUX', version: 'SRV 4x4',
     anio: '2014', km: '154.000', precio: '185.000.000',
     moneda: 'Gs', financiado: true, partePago: true,
     whatsapp: '+595 971 XXX XXX', ciudad: 'Encarnación',
@@ -68,7 +80,7 @@ export default function FlyersPage() {
       'Mecánico Full',
       'Tapizado en cuero',
       'Protector de carrocería y carpa',
-      'Alerón • Cubiertas nuevas',
+      'Alerón — Cubiertas nuevas',
       'Chapa Mercosur',
     ],
   })
@@ -76,34 +88,27 @@ export default function FlyersPage() {
   const updStr      = (k: StrKey,  v: string)  => setData(d => ({ ...d, [k]: v }))
   const updBool     = (k: BoolKey, v: boolean) => setData(d => ({ ...d, [k]: v }))
   const updFeatures = (v: string[])            => setData(d => ({ ...d, features: v }))
+  const addFeat     = () => { if (newFeat.trim()) { updFeatures([...data.features, newFeat.trim()]); setNewFeat('') } }
+  const removeFeat  = (i: number) => updFeatures(data.features.filter((_, idx) => idx !== i))
 
-  const addFeat    = () => { if (newFeat.trim()) { updFeatures([...data.features, newFeat.trim()]); setNewFeat('') } }
-  const removeFeat = (i: number) => updFeatures(data.features.filter((_, idx) => idx !== i))
-
-  /* ── Canvas draw ── */
   const draw = useCallback(() => {
     const canvas = canvasRef.current
     if (!canvas) return
     const W = fmt.w, H = fmt.h
-    canvas.width  = W * 2; canvas.height = H * 2
+    canvas.width = W * 2; canvas.height = H * 2
     canvas.style.width = W + 'px'; canvas.style.height = H + 'px'
     const ctx = canvas.getContext('2d')
     if (!ctx) return
     ctx.scale(2, 2)
 
-    // Background
-    const bg = ctx.createLinearGradient(0, 0, W * 0.4, H)
-    bg.addColorStop(0, '#060d1f'); bg.addColorStop(1, '#0d1a30')
-    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H)
+    const isStory = fmt.id === 'story'
+    const isFeed  = fmt.id === 'feed'
+    const photoRatio = isStory ? 0.46 : isFeed ? 0.43 : 0.46
+    const photoH = Math.floor(H * photoRatio)
+    const PAD    = Math.floor(W * 0.048)
+    const maxFeats = isStory ? 5 : isFeed ? 3 : 4
 
-    // Diagonal grid lines
-    ctx.strokeStyle = 'rgba(255,255,255,0.018)'; ctx.lineWidth = 1
-    for (let i = -H; i < W + H; i += 28) {
-      ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + H, H); ctx.stroke()
-    }
-
-    const photoH = fmt.id === 'landscape' ? H * 0.5 : H * 0.46
-
+    /* ── PHOTO ─────────────────────────────────────────────── */
     if (photoImg && photoLoaded) {
       ctx.save()
       ctx.beginPath(); ctx.rect(0, 0, W, photoH); ctx.clip()
@@ -112,130 +117,133 @@ export default function FlyersPage() {
       const dy = (photoH - photoImg.naturalHeight * sc) / 2
       ctx.drawImage(photoImg, dx, dy, photoImg.naturalWidth * sc, photoImg.naturalHeight * sc)
       ctx.restore()
-      const photoFade = ctx.createLinearGradient(0, photoH * 0.55, 0, photoH)
-      photoFade.addColorStop(0, 'rgba(6,13,31,0)'); photoFade.addColorStop(1, 'rgba(6,13,31,1)')
-      ctx.fillStyle = photoFade; ctx.fillRect(0, 0, W, photoH)
-      const leftFade = ctx.createLinearGradient(0, 0, W * 0.35, 0)
-      leftFade.addColorStop(0, 'rgba(6,13,31,0.55)'); leftFade.addColorStop(1, 'rgba(6,13,31,0)')
-      ctx.fillStyle = leftFade; ctx.fillRect(0, 0, W * 0.35, photoH)
+      // Bottom fade into warm info section
+      const fade = ctx.createLinearGradient(0, photoH * 0.62, 0, photoH)
+      fade.addColorStop(0, 'rgba(28,10,2,0)')
+      fade.addColorStop(1, 'rgba(28,10,2,0.92)')
+      ctx.fillStyle = fade; ctx.fillRect(0, 0, W, photoH)
     } else {
-      ctx.fillStyle = 'rgba(255,255,255,0.04)'; ctx.fillRect(0, 0, W, photoH)
-      ctx.fillStyle = 'rgba(249,115,22,0.18)';  ctx.fillRect(0, 0, W, photoH)
-      ctx.fillStyle = 'rgba(255,255,255,0.25)'
-      ctx.font = `${W * 0.055}px sans-serif`; ctx.textAlign = 'center'
-      ctx.fillText('📷  Subí la foto del vehículo', W / 2, photoH / 2 + W * 0.02)
+      ctx.fillStyle = '#1a0a03'; ctx.fillRect(0, 0, W, photoH)
+      ctx.fillStyle = 'rgba(249,115,22,0.07)'; ctx.fillRect(0, 0, W, photoH)
+      ctx.fillStyle = 'rgba(255,255,255,0.22)'
+      ctx.font = `${W * 0.044}px sans-serif`; ctx.textAlign = 'center'
+      ctx.fillText('Subir foto del vehiculo', W / 2, photoH / 2 + 20)
+      ctx.font = `${W * 0.07}px sans-serif`
+      ctx.fillText('[  foto  ]', W / 2, photoH / 2 - 8)
     }
 
-    // Logo badge
-    const bx = 14, by = 14, bw = W * 0.26, bh = W * 0.085
-    roundRect(ctx, bx, by, bw, bh, 6)
-    ctx.fillStyle = ORANGE; ctx.fill()
+    /* VH watermark (bottom-right of photo) */
+    {
+      const lW = W * 0.26, lH = W * 0.12
+      const lX = W - lW - 10, lY = photoH - lH - 10
+      ctx.save()
+      roundRect(ctx, lX, lY, lW, lH, 7)
+      ctx.fillStyle = 'rgba(0,0,0,0.62)'; ctx.fill()
+      ctx.fillStyle = ORANGE
+      ctx.font = `900 ${lH * 0.56}px Arial`; ctx.textAlign = 'left'
+      ctx.fillText('VH', lX + lW * 0.09, lY + lH * 0.68)
+      ctx.fillStyle = 'rgba(255,255,255,0.88)'
+      ctx.font = `700 ${lH * 0.24}px Arial`
+      ctx.fillText('GROUP  S.R.L.', lX + lW * 0.09, lY + lH * 0.93)
+      ctx.restore()
+    }
+
+    /* ── INFO SECTION ─────────────────────────────────────── */
+    const infoGrad = ctx.createLinearGradient(0, photoH, 0, H)
+    infoGrad.addColorStop(0, '#1c0a02')
+    infoGrad.addColorStop(0.45, '#3b1706')
+    infoGrad.addColorStop(1, '#5c280d')
+    ctx.fillStyle = infoGrad; ctx.fillRect(0, photoH, W, H - photoH)
+
+    // Reserve space for WhatsApp CTA at bottom
+    const ctaH  = Math.floor(W * 0.1)
+    const ctaY  = H - ctaH - 12
+    const maxY  = ctaY - 8  // content must not exceed this
+
+    let y = photoH + PAD + Math.floor(W * 0.058)
+    ctx.textAlign = 'left'
+
+    // Marca + Modelo
     ctx.fillStyle = 'white'
-    ctx.font = `900 ${bh * 0.42}px Arial`; ctx.textAlign = 'left'
-    ctx.fillText('VH GROUP SRL', bx + bw * 0.08, by + bh * 0.68)
-    ctx.fillStyle = 'rgba(255,255,255,0.5)'
-    ctx.font = `${W * 0.028}px Arial`; ctx.textAlign = 'right'
-    ctx.fillText(`📍 ${data.ciudad}`, W - 14, by + bh * 0.68)
+    ctx.font = `900 ${Math.floor(W * 0.082)}px Arial`
+    ctx.fillText(`${data.marca} ${data.modelo}`.toUpperCase(), PAD, y)
+    y += Math.floor(W * 0.094)
 
-    let y = photoH + W * 0.04
-    const PAD = 18
+    // Año  |  Versión
+    ctx.font = `700 ${Math.floor(W * 0.062)}px Arial`
+    ctx.fillText(data.version ? `${data.anio}  |  ${data.version}` : data.anio, PAD, y)
+    y += Math.floor(W * 0.078)
 
-    // Marca
-    ctx.fillStyle = 'rgba(255,255,255,0.38)'; ctx.font = `700 ${W * 0.045}px Arial`
-    ctx.textAlign = 'left'; ctx.fillText(data.marca.toUpperCase(), PAD, y); y += W * 0.058
+    // "Precio contado:"
+    ctx.fillStyle = 'rgba(255,255,255,0.58)'
+    ctx.font = `400 ${Math.floor(W * 0.027)}px Arial`
+    ctx.fillText('Precio contado:', PAD, y)
+    y += Math.floor(W * 0.038)
 
-    // Modelo
-    ctx.fillStyle = ORANGE; ctx.font = `900 ${W * 0.1}px Arial`
-    ctx.fillText(data.modelo.toUpperCase(), PAD, y); y += W * 0.03
+    // Price
+    ctx.fillStyle = 'white'
+    ctx.font = `900 ${Math.floor(W * 0.076)}px Arial`
+    ctx.fillText(`${data.precio} ${data.moneda}`, PAD, y)
+    y += Math.floor(W * 0.086)
 
-    // Versión
-    if (data.version) {
-      ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = `400 ${W * 0.035}px Arial`
-      ctx.fillText(data.version, PAD, y)
+    // Financing prose
+    if (data.financiado || data.partePago) {
+      const sentence = data.financiado && data.partePago
+        ? 'Financiamos y aceptamos vehiculos de nuestra preferencia por parte de pago.'
+        : data.financiado
+        ? 'Financiamos tu vehiculo a tu medida.'
+        : 'Aceptamos vehiculos por parte de pago.'
+      const fFont = Math.floor(W * 0.029)
+      ctx.fillStyle = 'rgba(255,255,255,0.78)'
+      ctx.font = `400 ${fFont}px Arial`
+      const lines = wrapText(ctx, sentence, W - PAD * 2)
+      lines.forEach(line => {
+        if (y < maxY) { ctx.fillText(line, PAD, y); y += Math.floor(fFont * 1.55) }
+      })
+      y += 4
     }
-    y += W * 0.065
-
-    // Año / Km chips
-    const chips = [`🗓 ${data.anio}`, `🛣 ${data.km} km`]
-    let cx = PAD
-    chips.forEach(chip => {
-      ctx.font = `${W * 0.03}px Arial`
-      const tw = ctx.measureText(chip).width + 22
-      roundRect(ctx, cx, y - W * 0.04, tw, W * 0.055, W * 0.028)
-      ctx.fillStyle = 'rgba(255,255,255,0.08)'; ctx.fill()
-      ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1; ctx.stroke()
-      ctx.fillStyle = 'rgba(255,255,255,0.75)'; ctx.textAlign = 'left'
-      ctx.fillText(chip, cx + 11, y + W * 0.008); cx += tw + 8
-    })
-    y += W * 0.04
 
     // Divider
-    const divGrad = ctx.createLinearGradient(PAD, 0, W - PAD, 0)
-    divGrad.addColorStop(0, ORANGE); divGrad.addColorStop(0.4, ORANGE)
-    divGrad.addColorStop(1, 'rgba(249,115,22,0)')
-    ctx.strokeStyle = divGrad; ctx.lineWidth = 1.5
-    ctx.beginPath(); ctx.moveTo(PAD, y); ctx.lineTo(W - PAD, y); ctx.stroke()
-    y += W * 0.045
-
-    // Precio
-    ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = `400 ${W * 0.03}px Arial`
-    ctx.textAlign = 'left'; ctx.fillText('PRECIO CONTADO', PAD, y); y += W * 0.055
-    ctx.fillStyle = 'white'; ctx.font = `900 ${W * 0.082}px Arial`
-    ctx.fillText(`${data.precio} ${data.moneda}`, PAD, y); y += W * 0.04
-
-    // Financiado / parte de pago tags
-    if (data.financiado || data.partePago) {
-      const tags: string[] = []
-      if (data.financiado) tags.push('✓ Financiamos')
-      if (data.partePago)  tags.push('✓ Parte de pago')
-      let tx = PAD
-      tags.forEach(tag => {
-        ctx.font = `600 ${W * 0.028}px Arial`
-        const tw = ctx.measureText(tag).width + 20
-        const th = W * 0.05
-        roundRect(ctx, tx, y, tw, th, th / 2)
-        ctx.fillStyle = 'rgba(249,115,22,0.18)'; ctx.fill()
-        ctx.strokeStyle = 'rgba(249,115,22,0.6)'; ctx.lineWidth = 1; ctx.stroke()
-        ctx.fillStyle = ORANGE; ctx.textAlign = 'left'
-        ctx.fillText(tag, tx + 10, y + th * 0.68); tx += tw + 8
-      })
-      y += W * 0.065
+    if (y < maxY - 40) {
+      ctx.strokeStyle = 'rgba(255,255,255,0.18)'
+      ctx.lineWidth = 1
+      ctx.beginPath(); ctx.moveTo(PAD, y); ctx.lineTo(W - PAD, y); ctx.stroke()
+      y += Math.floor(W * 0.046)
     }
 
-    // Features
-    if (data.features.length > 0) {
-      const maxFeats = fmt.id === 'story' ? 5 : 4
-      const visible = data.features.slice(0, maxFeats)
-      const rowH = W * 0.052
-      const featAreaH = visible.length * rowH + W * 0.01
-      roundRect(ctx, PAD, y, W - PAD * 2, featAreaH, 8)
-      ctx.fillStyle = 'rgba(255,255,255,0.04)'; ctx.fill()
-      ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 1; ctx.stroke()
-      y += W * 0.03
-      visible.forEach((feat, i) => {
-        if (i % 2 === 0) {
-          ctx.fillStyle = 'rgba(255,255,255,0.03)'
-          ctx.fillRect(PAD, y - rowH * 0.6, W - PAD * 2, rowH)
-        }
-        ctx.fillStyle = ORANGE; ctx.font = `bold ${W * 0.03}px Arial`; ctx.textAlign = 'left'
-        ctx.fillText('▸', PAD + 8, y)
-        ctx.fillStyle = 'rgba(255,255,255,0.82)'; ctx.font = `${W * 0.03}px Arial`
-        ctx.fillText(feat, PAD + 22, y); y += rowH
-      })
-      y += W * 0.015
-    }
+    // Features as bullet points
+    const fSize   = Math.floor(W * (isStory ? 0.034 : 0.033))
+    const fLineH  = Math.floor(fSize * 1.48)
+    const bulletX = PAD
+    const textX   = PAD + Math.floor(fSize * 1.3)
 
-    // WhatsApp CTA
-    const ctaH = W * 0.1, ctaY = H - ctaH - 14
+    data.features.slice(0, maxFeats).forEach(feat => {
+      if (y + fLineH > maxY) return
+      // Orange bullet
+      ctx.fillStyle = ORANGE
+      ctx.font = `900 ${fSize + 2}px Arial`
+      ctx.fillText('•', bulletX, y)
+      // Feature text (wrap if needed)
+      ctx.fillStyle = 'white'
+      ctx.font = `400 ${fSize}px Arial`
+      const wrapped = wrapText(ctx, feat, W - textX - PAD)
+      wrapped.forEach((line, li) => {
+        if (y + li * fLineH < maxY) ctx.fillText(line, textX, y + li * fLineH)
+      })
+      y += fLineH * wrapped.length + Math.floor(fSize * 0.32)
+    })
+
+    /* WhatsApp CTA */
     roundRect(ctx, PAD, ctaY, W - PAD * 2, ctaH, 10)
     const ctaGrad = ctx.createLinearGradient(PAD, ctaY, W - PAD, ctaY)
     ctaGrad.addColorStop(0, '#16a34a'); ctaGrad.addColorStop(1, '#15803d')
     ctx.fillStyle = ctaGrad; ctx.fill()
-    ctx.fillStyle = 'white'; ctx.font = `bold ${W * 0.038}px Arial`; ctx.textAlign = 'center'
-    ctx.fillText(`💬 WhatsApp  ${data.whatsapp}`, W / 2, ctaY + ctaH * 0.63)
+    ctx.fillStyle = 'white'
+    ctx.font = `bold ${Math.floor(W * 0.034)}px Arial`; ctx.textAlign = 'center'
+    ctx.fillText(`WhatsApp  ${data.whatsapp}`, W / 2, ctaY + ctaH * 0.62)
 
-    // Bottom orange bar
-    ctx.fillStyle = ORANGE; ctx.fillRect(0, H - 4, W, 4)
+    // Orange bottom bar
+    ctx.fillStyle = ORANGE; ctx.fillRect(0, H - 3, W, 3)
   }, [fmt, photoImg, photoLoaded, data])
 
   useEffect(() => { draw() }, [draw])
@@ -258,37 +266,37 @@ export default function FlyersPage() {
   }
 
   const vehicleFields: Array<[string, StrKey]> = [
-    ['MARCA', 'marca'], ['MODELO', 'modelo'], ['VERSIÓN', 'version'], ['CIUDAD', 'ciudad'],
+    ['MARCA', 'marca'], ['MODELO', 'modelo'], ['VERSION', 'version'], ['CIUDAD', 'ciudad'],
   ]
-  const anioKmFields: Array<[string, StrKey]> = [['AÑO', 'anio'], ['KM', 'km']]
+  const anioKmFields: Array<[string, StrKey]> = [['ANO', 'anio'], ['KM', 'km']]
 
   return (
     <div className="-m-4 sm:-m-6 flex overflow-hidden" style={{ height: 'calc(100vh - 3.5rem)' }}>
 
       {/* ── Left panel ── */}
       <div style={{
-        width: 300, minWidth: 300, background: '#1e293b',
+        width: 296, minWidth: 296, background: '#0f172a',
         overflowY: 'auto', display: 'flex', flexDirection: 'column',
         borderRight: `1px solid ${BORDER}`,
       }}>
 
         {/* Header */}
-        <div style={{ padding: '14px 16px', borderBottom: `1px solid ${BORDER}`, background: '#161f31', flexShrink: 0 }}>
+        <div style={{ padding: '13px 15px', borderBottom: `1px solid ${BORDER}`, background: '#0a0f1e', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ background: ORANGE, color: 'white', fontWeight: 900, fontSize: 11, padding: '3px 8px', borderRadius: 4 }}>VH GROUP</span>
+            <span style={{ background: ORANGE, color: 'white', fontWeight: 900, fontSize: 11, padding: '3px 8px', borderRadius: 4, letterSpacing: 0.5 }}>VH GROUP</span>
             <span style={{ color: MUTED, fontSize: 12 }}>Generador de Flyers</span>
           </div>
         </div>
 
         {/* Format */}
-        <div style={{ padding: '12px 14px', borderBottom: `1px solid ${BORDER}`, flexShrink: 0 }}>
+        <div style={{ padding: '11px 14px', borderBottom: `1px solid ${BORDER}`, flexShrink: 0 }}>
           <div style={{ fontSize: 10, color: MUTED, marginBottom: 6, letterSpacing: 1 }}>FORMATO</div>
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 5 }}>
             {FORMATS.map(f => (
               <button key={f.id} onClick={() => setFmt(f)} style={{
                 flex: 1, padding: '7px 4px', borderRadius: 6,
                 border: `1px solid ${fmt.id === f.id ? ORANGE : BORDER}`,
-                background: fmt.id === f.id ? 'rgba(249,115,22,0.15)' : 'transparent',
+                background: fmt.id === f.id ? 'rgba(249,115,22,0.15)' : 'rgba(255,255,255,0.02)',
                 color: fmt.id === f.id ? ORANGE : MUTED,
                 cursor: 'pointer', fontSize: 11, fontWeight: fmt.id === f.id ? 700 : 400,
               }}>
@@ -299,22 +307,22 @@ export default function FlyersPage() {
           </div>
         </div>
 
-        {/* Photo upload */}
-        <div style={{ padding: '12px 14px', borderBottom: `1px solid ${BORDER}`, flexShrink: 0 }}>
+        {/* Photo */}
+        <div style={{ padding: '11px 14px', borderBottom: `1px solid ${BORDER}`, flexShrink: 0 }}>
           <div style={{ fontSize: 10, color: MUTED, marginBottom: 6, letterSpacing: 1 }}>FOTO</div>
           <button onClick={() => fileRef.current?.click()} style={{
-            width: '100%', padding: '10px', borderRadius: 8,
+            width: '100%', padding: '11px', borderRadius: 8,
             border: `2px dashed ${photoLoaded ? ORANGE : '#374151'}`,
-            background: photoLoaded ? 'rgba(249,115,22,0.07)' : 'transparent',
-            color: photoLoaded ? ORANGE : MUTED, cursor: 'pointer', fontSize: 12,
+            background: photoLoaded ? 'rgba(249,115,22,0.07)' : 'rgba(255,255,255,0.01)',
+            color: photoLoaded ? ORANGE : MUTED, cursor: 'pointer', fontSize: 12, textAlign: 'center',
           }}>
-            {photoLoaded ? '✅ Foto cargada — click para cambiar' : '📷  Subir foto del vehículo'}
+            {photoLoaded ? '✓ Foto cargada — click para cambiar' : '+ Subir foto del vehiculo'}
           </button>
           <input ref={fileRef} type="file" accept="image/*" onChange={handlePhoto} style={{ display: 'none' }} />
         </div>
 
-        {/* Tabs header */}
-        <div style={{ display: 'flex', borderBottom: `1px solid ${BORDER}`, flexShrink: 0 }}>
+        {/* Tabs */}
+        <div style={{ display: 'flex', borderBottom: `1px solid ${BORDER}`, flexShrink: 0, background: '#0a0f1e' }}>
           {TABS.map(t => (
             <button key={t.id} onClick={() => setActiveTab(t.id)} style={{
               flex: 1, padding: '9px 4px', border: 'none',
@@ -358,22 +366,26 @@ export default function FlyersPage() {
               <div>
                 <div style={{ fontSize: 10, color: MUTED, marginBottom: 4 }}>MONEDA</div>
                 <select value={data.moneda} onChange={e => updStr('moneda', e.target.value)} style={INP}>
-                  <option value="Gs">Gs (Guaraníes)</option>
-                  <option value="USD">USD (Dólares)</option>
+                  <option value="Gs">Gs (Guaranies)</option>
+                  <option value="USD">USD (Dolares)</option>
                   <option value="R$">R$ (Reales)</option>
                 </select>
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ display: 'flex', gap: 7 }}>
                 {(['financiado', 'partePago'] as BoolKey[]).map(key => (
                   <button key={key} onClick={() => updBool(key, !data[key])} style={{
-                    flex: 1, padding: '8px 4px', borderRadius: 6,
+                    flex: 1, padding: '9px 4px', borderRadius: 6,
                     border: `1px solid ${data[key] ? ORANGE : BORDER}`,
-                    background: data[key] ? 'rgba(249,115,22,0.15)' : 'transparent',
+                    background: data[key] ? 'rgba(249,115,22,0.14)' : 'rgba(255,255,255,0.02)',
                     color: data[key] ? ORANGE : MUTED, fontSize: 11, cursor: 'pointer',
                   }}>
                     {data[key] ? '✓' : '○'} {key === 'financiado' ? 'Financiamos' : 'Parte de pago'}
                   </button>
                 ))}
+              </div>
+              <div>
+                <div style={{ fontSize: 10, color: MUTED, marginBottom: 4 }}>WHATSAPP</div>
+                <input value={data.whatsapp} onChange={e => updStr('whatsapp', e.target.value)} style={INP} />
               </div>
             </div>
           )}
@@ -381,21 +393,18 @@ export default function FlyersPage() {
           {activeTab === 'extras' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <div>
-                <div style={{ fontSize: 10, color: MUTED, marginBottom: 4 }}>WHATSAPP</div>
-                <input value={data.whatsapp} onChange={e => updStr('whatsapp', e.target.value)} style={INP} />
-              </div>
-              <div>
-                <div style={{ fontSize: 10, color: MUTED, marginBottom: 6 }}>CARACTERÍSTICAS</div>
+                <div style={{ fontSize: 10, color: MUTED, marginBottom: 6 }}>CARACTERISTICAS</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 8 }}>
                   {data.features.map((f, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
                       <span style={{
-                        flex: 1, background: '#0a0f1e', padding: '5px 8px',
-                        borderRadius: 4, fontSize: 11, color: 'rgba(255,255,255,0.75)',
-                      }}>▸ {f}</span>
+                        flex: 1, background: '#0a0f1e', padding: '6px 8px',
+                        borderRadius: 5, fontSize: 11, color: 'rgba(255,255,255,0.78)',
+                        lineHeight: '1.4',
+                      }}>• {f}</span>
                       <button onClick={() => removeFeat(i)} style={{
-                        background: 'rgba(239,68,68,0.15)', border: 'none', color: '#f87171',
-                        borderRadius: 4, padding: '4px 7px', cursor: 'pointer',
+                        background: 'rgba(239,68,68,0.12)', border: 'none', color: '#f87171',
+                        borderRadius: 5, padding: '5px 8px', cursor: 'pointer', flexShrink: 0,
                       }}>✕</button>
                     </div>
                   ))}
@@ -405,12 +414,12 @@ export default function FlyersPage() {
                     value={newFeat}
                     onChange={e => setNewFeat(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && addFeat()}
-                    placeholder="Nueva característica..."
+                    placeholder="Nueva caracteristica..."
                     style={{ ...INP, flex: 1 }}
                   />
                   <button onClick={addFeat} style={{
                     background: ORANGE, border: 'none', color: 'white',
-                    borderRadius: 6, padding: '6px 12px', cursor: 'pointer', fontWeight: 700,
+                    borderRadius: 6, padding: '6px 13px', cursor: 'pointer', fontWeight: 700, fontSize: 15,
                   }}>+</button>
                 </div>
               </div>
@@ -423,31 +432,31 @@ export default function FlyersPage() {
           <button onClick={download} style={{
             width: '100%', padding: '12px', borderRadius: 8, border: 'none',
             background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE2})`,
-            color: 'white', fontSize: 14, fontWeight: 700, cursor: 'pointer',
+            color: 'white', fontSize: 13, fontWeight: 700, cursor: 'pointer', letterSpacing: 0.3,
           }}>
-            ⬇️ Descargar PNG
+            Descargar PNG
           </button>
         </div>
       </div>
 
-      {/* ── Right panel: canvas preview ── */}
+      {/* ── Canvas preview ── */}
       <div style={{
         flex: 1, display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
-        gap: 12, padding: 24, overflow: 'auto',
-        background: 'radial-gradient(ellipse at center, #0d1a30 0%, #060d1f 100%)',
+        gap: 10, padding: 24, overflow: 'auto',
+        background: '#070b14',
       }}>
-        <div style={{ fontSize: 10, color: '#4b5563', letterSpacing: 2, textTransform: 'uppercase' }}>
+        <div style={{ fontSize: 9, color: '#2d3748', letterSpacing: 3, textTransform: 'uppercase' }}>
           Vista previa en tiempo real
         </div>
-        <div style={{ boxShadow: '0 30px 80px rgba(0,0,0,0.7)', borderRadius: 14, overflow: 'hidden' }}>
+        <div style={{ boxShadow: '0 24px 64px rgba(0,0,0,0.8)', borderRadius: 12, overflow: 'hidden' }}>
           <canvas
             ref={canvasRef}
-            style={{ display: 'block', maxHeight: '78vh', maxWidth: '100%', borderRadius: 14 }}
+            style={{ display: 'block', maxHeight: '80vh', maxWidth: '100%', borderRadius: 12 }}
           />
         </div>
-        <div style={{ fontSize: 10, color: '#4b5563' }}>
-          {fmt.w} × {fmt.h} px · PNG listo para publicar
+        <div style={{ fontSize: 9, color: '#2d3748', letterSpacing: 1 }}>
+          {fmt.w} x {fmt.h} px
         </div>
       </div>
     </div>
