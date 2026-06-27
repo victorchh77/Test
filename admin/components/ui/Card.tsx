@@ -1,18 +1,30 @@
+'use client'
+
+import { motion } from 'framer-motion'
+
 interface Props {
   children: React.ReactNode
   className?: string
   padding?: boolean
   hover?: boolean
+  glow?: boolean
 }
 
-export function Card({ children, className = '', padding = true, hover = false }: Props) {
+export function Card({ children, className = '', padding = true, hover = false, glow = false }: Props) {
   return (
     <div className={`
+      relative overflow-hidden
       bg-card border border-border rounded-2xl shadow-card
-      ${hover ? 'hover:border-border-bright hover:-translate-y-px transition-all duration-300' : ''}
+      ${hover ? 'hover:border-border-bright transition-all duration-300 hover:-translate-y-px hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)]' : ''}
+      ${glow ? 'hover:shadow-[0_0_32px_rgba(255,140,0,0.1)] hover:border-orange/20' : ''}
       ${padding ? 'p-5' : ''}
       ${className}
     `}>
+      {/* Inner top shine */}
+      <div
+        className="absolute top-0 left-0 right-0 h-px pointer-events-none"
+        style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent)' }}
+      />
       {children}
     </div>
   )

@@ -3,6 +3,7 @@ import { getDashboardStats } from '@/lib/actions/vehicles'
 import { StatCard } from '@/components/shared/StatCard'
 import { Card, CardHeader } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
+import { StaggerContainer, StaggerItem } from '@/components/ui/Motion'
 import { formatCurrency, formatDate } from '@/lib/utils/format'
 import { isAdmin } from '@/lib/auth/roles'
 import type { VehicleStatus } from '@/types'
@@ -94,34 +95,27 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats grid */}
-      <div className={`grid grid-cols-2 gap-4 ${admin ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}>
-        <StatCard
-          title="Vehículos en stock"
-          value={enStock}
-          icon={Car}
-          color="orange"
-        />
-        <StatCard
-          title="Ventas del mes"
-          value={ventasMes}
-          icon={ShoppingBag}
-          color="success"
-        />
+      <StaggerContainer className={`grid grid-cols-2 gap-4 ${admin ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}>
+        <StaggerItem>
+          <StatCard title="Vehículos en stock" value={enStock} icon={Car} color="orange" />
+        </StaggerItem>
+        <StaggerItem>
+          <StatCard title="Ventas del mes" value={ventasMes} icon={ShoppingBag} color="success" />
+        </StaggerItem>
         {admin && (
-          <StatCard
-            title="Ganancia del mes"
-            value={formatCurrency(gananciaMes)}
-            icon={TrendingUp}
-            color={gananciaMes >= 0 ? 'success' : 'error'}
-          />
+          <StaggerItem>
+            <StatCard
+              title="Ganancia del mes"
+              value={formatCurrency(gananciaMes)}
+              icon={TrendingUp}
+              color={gananciaMes >= 0 ? 'success' : 'error'}
+            />
+          </StaggerItem>
         )}
-        <StatCard
-          title="Clientes totales"
-          value={totalClients}
-          icon={Users}
-          color="default"
-        />
-      </div>
+        <StaggerItem>
+          <StatCard title="Clientes totales" value={totalClients} icon={Users} color="default" />
+        </StaggerItem>
+      </StaggerContainer>
 
       {/* Content row */}
       <div className="grid lg:grid-cols-5 gap-4">
