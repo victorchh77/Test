@@ -1,0 +1,13 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "connect-apps-plugin",
+  "version": "0.1.0",
+  "description": "Connect to external apps (Gmail, Google Drive, Canva, Shopify, Strava, Microsoft 365)",
+  "author": {
+    "name": "victorchh77",
+    "email": "chavezvic10157p@gmail.com"
+  },
+  "skills": [
+    "./"
+  ]
+}

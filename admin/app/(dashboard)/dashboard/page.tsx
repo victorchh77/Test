@@ -177,7 +177,7 @@ export default async function DashboardPage() {
           <MiniChart sales={sales} />
           <div className="mt-5 pt-4 border-t border-border">
             <p className="section-label mb-1">Total acumulado</p>
-            <p className="font-display text-2xl font-bold text-gradient-orange">
+            <p className="font-display text-2xl font-bold text-orange">
               {formatCurrency(totalIngresos)}
             </p>
           </div>
