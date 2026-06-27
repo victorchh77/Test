@@ -3,10 +3,6 @@
 import { useRef } from 'react'
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
 
-/**
- * Wrapper que inclina su contenido en 3D siguiendo el cursor.
- * Recibe children ya renderizados (sirve para envolver Server Components).
- */
 export function TiltCard({
   children,
   className = '',
@@ -20,10 +16,9 @@ export function TiltCard({
   const mx = useMotionValue(0.5)
   const my = useMotionValue(0.5)
 
-  const rx = useSpring(useTransform(my, [0, 1], [max, -max]), { stiffness: 200, damping: 18 })
-  const ry = useSpring(useTransform(mx, [0, 1], [-max, max]), { stiffness: 200, damping: 18 })
+  const rx = useSpring(useTransform(my, [0, 1], [max, -max]), { stiffness: 220, damping: 20 })
+  const ry = useSpring(useTransform(mx, [0, 1], [-max, max]), { stiffness: 220, damping: 20 })
 
-  // Glare position
   const glareX = useTransform(mx, [0, 1], ['0%', '100%'])
   const glareY = useTransform(my, [0, 1], ['0%', '100%'])
 
@@ -44,19 +39,19 @@ export function TiltCard({
       ref={ref}
       onMouseMove={onMove}
       onMouseLeave={onLeave}
-      style={{ rotateX: rx, rotateY: ry, transformStyle: 'preserve-3d', transformPerspective: 900 }}
-      whileHover={{ scale: 1.02 }}
-      transition={{ scale: { duration: 0.2 } }}
+      style={{ rotateX: rx, rotateY: ry, transformStyle: 'preserve-3d', transformPerspective: 1000 }}
+      whileHover={{ scale: 1.025 }}
+      transition={{ scale: { duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] } }}
       className={`relative ${className}`}
     >
       {children}
-      {/* Glare */}
+      {/* Warm glare */}
       <motion.div
-        className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 hover:opacity-100 transition-opacity"
+        className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 hover:opacity-100 transition-opacity duration-300"
         style={{
           background: useTransform(
             [glareX, glareY],
-            ([x, y]) => `radial-gradient(circle 120px at ${x} ${y}, rgba(255,255,255,0.12), transparent 70%)`,
+            ([x, y]) => `radial-gradient(circle 140px at ${x} ${y}, rgba(255,200,100,0.14), transparent 70%)`,
           ),
         }}
       />

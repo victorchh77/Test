@@ -1,8 +1,9 @@
 'use client'
 
-import { Menu, LogOut, User, Bell } from 'lucide-react'
+import { Menu, LogOut, Bell } from 'lucide-react'
 import { logout } from '@/lib/actions/auth'
 import { useTransition } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import type { Profile } from '@/types'
 
 interface Props {
@@ -20,13 +21,15 @@ export function Header({ profile, onMenuClick, title }: Props) {
 
   return (
     <header className="
-      h-14 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-10
-      bg-sidebar/90 backdrop-blur-md
-      border-b border-border
+      relative h-14 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-10
+      bg-sidebar/85 backdrop-blur-xl
+      border-b border-border/80
     ">
-      {/* Bottom orange gradient line */}
-      <div className="absolute bottom-0 left-0 right-0 h-px"
-           style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,140,0,0.3) 30%, rgba(255,140,0,0.5) 50%, rgba(255,140,0,0.3) 70%, transparent 100%)' }} />
+      {/* Bottom gradient line */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-px pointer-events-none"
+        style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,140,0,0.35) 25%, rgba(255,140,0,0.6) 50%, rgba(255,140,0,0.35) 75%, transparent 100%)' }}
+      />
 
       <div className="flex items-center gap-3">
         <button
@@ -36,25 +39,43 @@ export function Header({ profile, onMenuClick, title }: Props) {
           <Menu className="w-5 h-5" />
         </button>
 
-        <div className="flex items-center gap-2">
-          <div className="hidden sm:block w-1 h-4 bg-orange/60 rounded-full" />
-          <h1 className="font-display text-sm font-semibold text-textprim tracking-tight">{title}</h1>
+        <div className="flex items-center gap-2.5">
+          {/* Orange accent bar */}
+          <div className="hidden sm:block w-[3px] h-5 bg-orange rounded-full shadow-orange-sm" />
+
+          {/* Animated title on route change */}
+          <AnimatePresence mode="wait">
+            <motion.h1
+              key={title}
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 6 }}
+              transition={{ duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="font-display text-sm font-semibold text-textprim tracking-tight"
+            >
+              {title}
+            </motion.h1>
+          </AnimatePresence>
         </div>
       </div>
 
       <div className="flex items-center gap-2">
         {/* Notification bell */}
-        <button className="p-2 rounded-xl text-textsec hover:text-textprim hover:bg-white/5 transition-colors">
+        <button className="p-2 rounded-xl text-textsec hover:text-textprim hover:bg-white/5 transition-colors relative">
           <Bell className="w-4 h-4" />
         </button>
 
-        <div className="w-px h-5 bg-border mx-1" />
+        <div className="w-px h-5 bg-border/80 mx-1" />
 
         {/* User info */}
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold text-white
-                          bg-gradient-to-br from-orange to-orange-hover shadow-orange-sm flex-shrink-0">
-            {initials}
+          {/* Avatar with breathing glow ring */}
+          <div className="relative flex-shrink-0">
+            <div className="absolute inset-0 rounded-xl bg-orange/30 blur-md ring-glow-breath pointer-events-none" />
+            <div className="relative w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold text-white
+                            bg-gradient-to-br from-orange to-orange-hover shadow-orange-sm">
+              {initials}
+            </div>
           </div>
           <div className="hidden sm:block">
             <p className="text-xs font-semibold text-textprim leading-none">
@@ -66,7 +87,7 @@ export function Header({ profile, onMenuClick, title }: Props) {
           </div>
         </div>
 
-        <div className="w-px h-5 bg-border mx-1" />
+        <div className="w-px h-5 bg-border/80 mx-1" />
 
         <button
           onClick={() => startTransition(() => logout())}

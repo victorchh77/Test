@@ -6,6 +6,11 @@
 
 * { box-sizing: border-box; }
 
+/* ── Fuente con ligaduras opcionales ────────────────────── */
+@supports (font-variant-numeric: tabular-nums) {
+  .tabular { font-variant-numeric: tabular-nums; }
+}
+
 :root {
   --orange: #FF8C00;
   --orange-glow: rgba(255, 140, 0, 0.35);
@@ -68,6 +73,12 @@ h1, h2, h3, .font-display {
   background: radial-gradient(circle, rgba(168,85,247,0.22), transparent 62%);
   animation: orbFloat3 16s ease-in-out infinite;
 }
+.orb-4 {
+  width: 260px; height: 260px;
+  top: 55%; left: 40%;
+  background: radial-gradient(circle, rgba(0,201,132,0.15), transparent 62%);
+  animation: orbFloat2 22s ease-in-out infinite reverse;
+}
 
 @keyframes orbFloat1 {
   0%, 100% { transform: translate(0, 0) scale(1); }
@@ -98,6 +109,33 @@ h1, h2, h3, .font-display {
   animation: fadeSlideUp 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 
+/* ── Animated gradient border ───────────────────────────── */
+@keyframes borderSpin {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ── Scan line sweep ────────────────────────────────────── */
+@keyframes scanDown {
+  0%   { transform: translateY(-2px); opacity: 0.7; }
+  80%  { opacity: 0.4; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+
+/* ── Breathing glow ─────────────────────────────────────── */
+@keyframes glowBreath {
+  0%, 100% { opacity: 0.25; transform: scale(1); }
+  50%       { opacity: 0.65; transform: scale(1.1); }
+}
+
+/* ── Count-up glow pulse ────────────────────────────────── */
+@keyframes valuePop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
 /* Premium scrollbar */
 ::-webkit-scrollbar              { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track        { background: transparent; }
@@ -111,33 +149,48 @@ h1, h2, h3, .font-display {
   /* Grid background pattern */
   .bg-grid {
     background-image:
-      linear-gradient(rgba(255, 140, 0, 0.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 140, 0, 0.025) 1px, transparent 1px);
+      linear-gradient(rgba(255, 140, 0, 0.022) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 140, 0, 0.022) 1px, transparent 1px);
     background-size: 48px 48px;
   }
 
   /* Dot pattern */
   .bg-dots {
-    background-image: radial-gradient(circle, rgba(255, 140, 0, 0.07) 1px, transparent 1px);
+    background-image: radial-gradient(circle, rgba(255, 140, 0, 0.08) 1px, transparent 1px);
     background-size: 24px 24px;
+  }
+
+  /* Combined grid + dots */
+  .bg-mesh {
+    background-image:
+      radial-gradient(circle, rgba(255,140,0,0.06) 1px, transparent 1px),
+      linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+    background-size: 24px 24px, 48px 48px, 48px 48px;
   }
 
   /* Glass morphism */
   .glass {
-    background: rgba(15, 21, 32, 0.7);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: rgba(11, 15, 24, 0.75);
+    backdrop-filter: blur(20px) saturate(1.3);
+    -webkit-backdrop-filter: blur(20px) saturate(1.3);
   }
 
   .glass-light {
-    background: rgba(28, 42, 61, 0.4);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(28, 42, 61, 0.45);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
   }
 
   /* Orange glow */
   .glow-orange    { box-shadow: 0 0 24px rgba(255, 140, 0, 0.3); }
   .glow-orange-sm { box-shadow: 0 0 12px rgba(255, 140, 0, 0.2); }
+  .glow-orange-lg { box-shadow: 0 0 48px rgba(255, 140, 0, 0.4); }
+
+  /* Text glow */
+  .glow-text-orange {
+    text-shadow: 0 0 18px rgba(255,140,0,0.65), 0 0 36px rgba(255,140,0,0.25);
+  }
 
   /* Shimmer effect for loading states */
   .shimmer {
@@ -149,6 +202,43 @@ h1, h2, h3, .font-display {
     );
     background-size: 200% 100%;
     animation: shimmer 2s linear infinite;
+  }
+
+  /* Gradient border (animated) */
+  .gradient-border-animated {
+    position: relative;
+    isolation: isolate;
+  }
+  .gradient-border-animated::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: linear-gradient(
+      135deg,
+      rgba(255,140,0,0.55) 0%,
+      rgba(59,130,246,0.35) 35%,
+      rgba(168,85,247,0.35) 65%,
+      rgba(255,140,0,0.55) 100%
+    );
+    background-size: 300% 300%;
+    animation: borderSpin 5s ease infinite;
+    z-index: -1;
+  }
+
+  /* Breathing ring used on avatar */
+  .ring-glow-breath {
+    animation: glowBreath 3s ease-in-out infinite;
+  }
+
+  /* Scan line sweep — used on shell */
+  .scan-line {
+    position: absolute;
+    left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(255,140,0,0.25), transparent);
+    pointer-events: none;
+    animation: scanDown 12s linear infinite;
   }
 }
 
@@ -183,7 +273,8 @@ h1, h2, h3, .font-display {
   /* Cards */
   .card-base {
     @apply bg-card border border-border rounded-2xl p-5
-           shadow-card hover:border-border-bright transition-all duration-300;
+           shadow-card hover:border-border-bright transition-all duration-300
+           hover:shadow-[0_8px_40px_rgba(0,0,0,0.4)] hover:-translate-y-px;
   }
 
   .card-elevated {
@@ -193,7 +284,10 @@ h1, h2, h3, .font-display {
 
   /* Table */
   .table-row-hover {
-    @apply hover:bg-white/[0.025] transition-colors duration-150;
+    @apply hover:bg-white/[0.03] transition-colors duration-150 cursor-default;
+  }
+  .table-row-hover:hover td {
+    @apply border-border/60;
   }
 
   .table-header-cell {

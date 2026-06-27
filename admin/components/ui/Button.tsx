@@ -11,9 +11,10 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const classes: Record<Variant, string> = {
   primary: `
+    relative overflow-hidden
     bg-orange hover:bg-orange-hover text-white font-semibold
     shadow-orange-sm hover:shadow-orange
-    border border-orange/0 hover:border-orange/20
+    border border-orange/10 hover:border-orange/30
   `,
   secondary: `
     bg-card-elevated hover:bg-border text-textprim font-medium
@@ -40,7 +41,7 @@ export const Button = forwardRef<HTMLButtonElement, Props>(
       ref={ref}
       disabled={disabled || loading}
       className={`
-        inline-flex items-center justify-center
+        inline-flex items-center justify-center group
         transition-all duration-200 active:scale-95
         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange/60 focus-visible:ring-offset-2 focus-visible:ring-offset-bg
         disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none
@@ -50,6 +51,17 @@ export const Button = forwardRef<HTMLButtonElement, Props>(
     >
       {loading && <Loader2 className="w-3.5 h-3.5 animate-spin flex-shrink-0" />}
       {children}
+      {/* Shimmer sweep — only visible on primary */}
+      {variant === 'primary' && !loading && (
+        <span
+          aria-hidden="true"
+          className="
+            absolute inset-0 -translate-x-full group-hover:translate-x-full
+            bg-gradient-to-r from-transparent via-white/25 to-transparent
+            transition-transform duration-500 ease-in-out pointer-events-none
+          "
+        />
+      )}
     </button>
   )
 )

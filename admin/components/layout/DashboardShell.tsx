@@ -40,6 +40,9 @@ export function DashboardShell({ children, profile }: { children: React.ReactNod
         <div className="orb orb-1" />
         <div className="orb orb-2" />
         <div className="orb orb-3" />
+        <div className="orb orb-4" />
+        {/* Slow scan line sweep */}
+        <div className="scan-line" />
       </div>
 
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} role={profile?.role} />
@@ -52,10 +55,10 @@ export function DashboardShell({ children, profile }: { children: React.ReactNod
         />
         <motion.main
           key={pathname}
-          initial={{ opacity: 0, y: 14 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="flex-1 overflow-y-auto scrollbar-thin p-4 sm:p-6 bg-grid"
+          transition={{ duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="flex-1 overflow-y-auto scrollbar-thin p-4 sm:p-6 bg-mesh"
         >
           {children}
         </motion.main>
