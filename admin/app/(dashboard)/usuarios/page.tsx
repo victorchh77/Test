@@ -7,6 +7,7 @@ import { StatCard } from '@/components/shared/StatCard'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { formatDate } from '@/lib/utils/format'
 import { RoleSelect, RoleBadge } from './RoleSelect'
+import { CreateUserForm } from './CreateUserForm'
 import type { Role } from '@/types'
 
 export default async function UsuariosPage() {
@@ -27,6 +28,8 @@ export default async function UsuariosPage() {
         <h1 className="font-display text-2xl font-bold text-textprim tracking-tight">Usuarios</h1>
         <p className="text-sm text-textsec mt-0.5">{users.length} cuenta{users.length !== 1 ? 's' : ''} registrada{users.length !== 1 ? 's' : ''}</p>
       </div>
+
+      <CreateUserForm />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard title="Administradores" value={counts.admin}      icon={ShieldCheck} color="orange"  />

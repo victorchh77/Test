@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { isAdmin } from '@/lib/auth/roles'
 import type { ActionResult, Role } from '@/types'
@@ -24,6 +25,37 @@ export async function getUsersWithEmail(): Promise<UserWithEmail[]> {
     return []
   }
   return (data ?? []) as UserWithEmail[]
+}
+
+export async function createUser(data: {
+  username: string
+  password: string
+  full_name: string
+  role: Role
+}): Promise<ActionResult<{ id: string }>> {
+  if (!(await isAdmin())) return { error: 'No autorizado' }
+  const { username, password, full_name, role } = data
+  if (!username.trim() || !password) return { error: 'Usuario y contraseña son requeridos' }
+  if (password.length < 6) return { error: 'La contraseña debe tener al menos 6 caracteres' }
+
+  const adminClient = createAdminClient()
+  const email = `${username.toLowerCase().trim().replace(/\s+/g, '_')}@vhgroup.internal`
+
+  const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { full_name: full_name.trim() || username.trim(), role },
+  })
+  if (authError) return { error: authError.message }
+
+  await adminClient
+    .from('profiles')
+    .update({ username: username.trim() })
+    .eq('id', authData.user.id)
+
+  revalidatePath('/usuarios')
+  return { data: { id: authData.user.id } }
 }
 
 export async function updateUserRole(userId: string, role: Role): Promise<ActionResult> {

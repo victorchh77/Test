@@ -80,6 +80,11 @@ export interface PriceListItem {
   price_list_id: string
   vehicle_id: string
   precio_lista: number
+  precio_lista_2: number | null
+  precio_lista_3: number | null
+  precio_financiado_12: number | null
+  precio_financiado_18: number | null
+  precio_financiado_24: number | null
   notas: string | null
   created_at: string
   vehicles?: {

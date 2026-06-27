@@ -40,13 +40,30 @@ export async function createPriceList(titulo: string, descripcion?: string): Pro
   return { data: { id: data.id } }
 }
 
-export async function addVehicleToPriceList(priceListId: string, vehicleId: string, precioLista: number, notas?: string): Promise<ActionResult> {
+export async function addVehicleToPriceList(
+  priceListId: string,
+  vehicleId: string,
+  prices: {
+    precio_lista: number
+    precio_lista_2?: number | null
+    precio_lista_3?: number | null
+    precio_financiado_12?: number | null
+    precio_financiado_18?: number | null
+    precio_financiado_24?: number | null
+  },
+  notas?: string,
+): Promise<ActionResult> {
   if (!(await isAdmin())) return NO_AUTH
   const supabase = createClient()
   const { error } = await supabase.from('price_list_items').insert({
     price_list_id: priceListId,
     vehicle_id: vehicleId,
-    precio_lista: precioLista,
+    precio_lista: prices.precio_lista,
+    precio_lista_2: prices.precio_lista_2 ?? null,
+    precio_lista_3: prices.precio_lista_3 ?? null,
+    precio_financiado_12: prices.precio_financiado_12 ?? null,
+    precio_financiado_18: prices.precio_financiado_18 ?? null,
+    precio_financiado_24: prices.precio_financiado_24 ?? null,
     notas: notas ?? null,
   })
   if (error) return { error: error.message }

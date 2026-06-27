@@ -88,7 +88,7 @@ export default async function PriceListDetailPage({ params }: { params: { id: st
             <table className="w-full text-sm">
               <thead>
                 <tr>
-                  {['Foto', 'Vehículo', 'Km', 'Color', 'Estado', 'Precio lista', 'Notas', ...(admin ? [''] : [])].map((h, i) => (
+                  {['Foto', 'Vehículo', 'Km', 'Color', 'Estado', 'P. Lista 1', 'P. Lista 2', 'P. Lista 3', '12 cuotas', '18 cuotas', '24 cuotas', 'Notas', ...(admin ? [''] : [])].map((h, i) => (
                     <th key={i} className="table-header-cell">{h}</th>
                   ))}
                 </tr>
@@ -130,7 +130,12 @@ export default async function PriceListDetailPage({ params }: { params: { id: st
                           {item.vehicles?.estado}
                         </Badge>
                       </td>
-                      <td className="table-cell font-bold text-orange">{formatCurrency(item.precio_lista)}</td>
+                      <td className="table-cell font-bold text-orange whitespace-nowrap">{formatCurrency(item.precio_lista)}</td>
+                      <td className="table-cell text-textsec whitespace-nowrap">{item.precio_lista_2 ? formatCurrency(item.precio_lista_2) : '—'}</td>
+                      <td className="table-cell text-textsec whitespace-nowrap">{item.precio_lista_3 ? formatCurrency(item.precio_lista_3) : '—'}</td>
+                      <td className="table-cell text-textsec whitespace-nowrap">{item.precio_financiado_12 ? formatCurrency(item.precio_financiado_12) : '—'}</td>
+                      <td className="table-cell text-textsec whitespace-nowrap">{item.precio_financiado_18 ? formatCurrency(item.precio_financiado_18) : '—'}</td>
+                      <td className="table-cell text-textsec whitespace-nowrap">{item.precio_financiado_24 ? formatCurrency(item.precio_financiado_24) : '—'}</td>
                       <td className="table-cell text-textsec text-xs">{item.notas ?? '—'}</td>
                       {admin && (
                         <td className="table-cell">
