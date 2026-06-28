@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft, Plus, Car, Trash2, CheckCircle, XCircle } from 'lucide-react'
 import { getPriceList, togglePriceListActive, removeFromPriceList } from '@/lib/actions/pricelists'
-import { getVehicles, getMainPhotosForVehicles } from '@/lib/actions/vehicles'
+import { getVehicles } from '@/lib/actions/vehicles'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -21,8 +21,13 @@ export default async function PriceListDetailPage({ params }: { params: { id: st
   if (!list) notFound()
 
   const items = (list as any).price_list_items ?? []
-  const vehicleIds = items.map((i: any) => i.vehicle_id).filter(Boolean)
-  const photos = await getMainPhotosForVehicles(vehicleIds)
+
+  const photoMap: Record<string, string> = {}
+  items.forEach((item: any) => {
+    const vPhotos: { url: string; is_main: boolean }[] = item.vehicles?.vehicle_photos ?? []
+    const main = vPhotos.find((p) => p.is_main) ?? vPhotos[0] ?? null
+    if (main) photoMap[item.vehicle_id] = main.url
+  })
 
   return (
     <div className="flex flex-col gap-5 animate-fade-in">
@@ -88,7 +93,7 @@ export default async function PriceListDetailPage({ params }: { params: { id: st
           {/* Vista móvil: tarjetas */}
           <div className="md:hidden flex flex-col gap-3 p-4">
             {items.map((item: any) => {
-              const photoUrl = photos[item.vehicle_id]
+              const photoUrl = photoMap[item.vehicle_id]
               const rows = ([
                 ['Contado', item.precio_1],
                 ['Contado mín.', item.precio_2],
@@ -156,7 +161,7 @@ export default async function PriceListDetailPage({ params }: { params: { id: st
               </thead>
               <tbody>
                 {items.map((item: any) => {
-                  const photoUrl = photos[item.vehicle_id]
+                  const photoUrl = photoMap[item.vehicle_id]
                   return (
                     <tr key={item.id} className="table-row-hover">
                       {/* Photo thumbnail */}

@@ -5,7 +5,7 @@ import { Send, MessageCircle } from 'lucide-react'
 
 // Número de WhatsApp del concesionario (formato internacional sin signos).
 // Configurable con NEXT_PUBLIC_WHATSAPP; fallback a un placeholder.
-const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP || '595000000000'
+const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP || '5950995368724'
 
 export function ContactForm() {
   const [nombre, setNombre] = useState('')

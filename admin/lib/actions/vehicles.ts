@@ -206,6 +206,28 @@ export async function getMainPhotosForVehicles(vehicleIds: string[]): Promise<Re
   return map
 }
 
+export async function getVehiclesWithMainPhoto(filters?: { marca?: string; estado?: string; search?: string }) {
+  const supabase = createClient()
+  let query = supabase
+    .from('vehicles')
+    .select('*, vehicle_photos(url, is_main)')
+    .order('created_at', { ascending: false })
+  if (filters?.marca)  query = query.eq('marca', filters.marca)
+  if (filters?.estado) query = query.eq('estado', filters.estado)
+  if (filters?.search) {
+    const term = filters.search.replace(/[%,()*:\\]/g, ' ').trim().slice(0, 60)
+    if (term) query = query.or(`marca.ilike.%${term}%,modelo.ilike.%${term}%`)
+  }
+  const { data, error } = await query
+  if (error) { console.error(error); return [] }
+  return (data ?? []).map((v: any) => {
+    const photos: { url: string; is_main: boolean }[] = v.vehicle_photos ?? []
+    const main = photos.find((p) => p.is_main) ?? photos[0] ?? null
+    const { vehicle_photos: _photos, ...rest } = v
+    return { ...rest, mainPhotoUrl: main?.url ?? null } as Vehicle & { mainPhotoUrl: string | null }
+  })
+}
+
 export async function getDashboardStats() {
   const supabase = createClient()
   const now = new Date()
@@ -213,7 +235,10 @@ export async function getDashboardStats() {
 
   const [vehiclesRes, salesRes, clientsRes] = await Promise.all([
     supabase.from('vehicles').select('estado'),
-    supabase.from('sales_with_details').select('*').gte('fecha_venta', firstDay).order('fecha_venta', { ascending: false }),
+    supabase.from('sales_with_details')
+      .select('id, fecha_venta, precio_final, ganancia, marca, modelo, anio, client_nombre')
+      .gte('fecha_venta', firstDay)
+      .order('fecha_venta', { ascending: false }),
     supabase.from('clients').select('id', { count: 'exact', head: true }),
   ])
 

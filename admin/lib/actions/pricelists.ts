@@ -20,7 +20,7 @@ export async function getPriceList(id: string) {
   const supabase = createClient()
   const { data } = await supabase
     .from('price_lists')
-    .select('*, price_list_items(*, vehicles(marca, modelo, anio, km, color, estado))')
+    .select('*, price_list_items(*, vehicles(marca, modelo, anio, km, color, estado, vehicle_photos(url, is_main)))')
     .eq('id', id)
     .single()
   return data

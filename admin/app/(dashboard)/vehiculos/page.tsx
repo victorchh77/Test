@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Plus, Car, CheckCircle, Clock, Tag } from 'lucide-react'
-import { getVehicles, getMainPhotosForVehicles } from '@/lib/actions/vehicles'
+import { getVehiclesWithMainPhoto } from '@/lib/actions/vehicles'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -19,8 +19,7 @@ const statusBadge: Record<VehicleStatus, 'success' | 'warning' | 'error'> = {
 }
 
 export default async function VehiculosPage({ searchParams }: { searchParams: VehicleFilters }) {
-  const [vehicles, admin] = await Promise.all([getVehicles(searchParams), isAdmin()])
-  const photos = await getMainPhotosForVehicles(vehicles.map(v => v.id))
+  const [vehicles, admin] = await Promise.all([getVehiclesWithMainPhoto(searchParams), isAdmin()])
 
   const disponibles = vehicles.filter(v => v.estado === 'Disponible').length
   const reservados  = vehicles.filter(v => v.estado === 'Reservado').length
@@ -63,7 +62,7 @@ export default async function VehiculosPage({ searchParams }: { searchParams: Ve
         {/* Vista móvil: tarjetas */}
         <div className="md:hidden flex flex-col gap-3">
           {vehicles.map(v => {
-            const photoUrl = photos[v.id]
+            const photoUrl = v.mainPhotoUrl
             return (
               <div key={v.id} className="bg-card border border-border rounded-2xl p-3 shadow-card">
                 <div className="flex gap-3">
@@ -114,7 +113,7 @@ export default async function VehiculosPage({ searchParams }: { searchParams: Ve
               </thead>
               <tbody>
                 {vehicles.map(v => {
-                  const photoUrl = photos[v.id]
+                  const photoUrl = v.mainPhotoUrl
                   return (
                     <tr key={v.id} className="table-row-hover group">
                       <td className="table-cell w-16">
