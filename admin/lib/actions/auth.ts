@@ -2,6 +2,8 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
+import { rateLimit } from '@/lib/rate-limit'
 
 function isConfigured() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -9,10 +11,24 @@ function isConfigured() {
   return !!url && !!key && !url.includes('placeholder') && !key.includes('placeholder')
 }
 
+function clientIp() {
+  const h = headers()
+  const fwd = h.get('x-forwarded-for')
+  return (fwd?.split(',')[0] ?? h.get('x-real-ip') ?? 'unknown').trim()
+}
+
 export async function login(usernameOrEmail: string, password: string) {
   if (!isConfigured()) {
     return { error: 'El servidor no está conectado a la base de datos. Falta configurar Supabase en Vercel.' }
   }
+
+  // Anti fuerza bruta: máx. 8 intentos por minuto por IP + usuario.
+  const ip = clientIp()
+  const limited = rateLimit(`login:${ip}:${usernameOrEmail.trim().toLowerCase()}`, 8, 60_000)
+  if (!limited.ok) {
+    return { error: `Demasiados intentos. Esperá ${limited.retryAfter}s e intentá de nuevo.` }
+  }
+
   try {
     const supabase = createClient()
     let email = usernameOrEmail.trim()

@@ -69,7 +69,13 @@ export async function getVehicles(filters?: { marca?: string; estado?: string; s
   let query = supabase.from('vehicles').select('*').order('created_at', { ascending: false })
   if (filters?.marca)  query = query.eq('marca', filters.marca)
   if (filters?.estado) query = query.eq('estado', filters.estado)
-  if (filters?.search) query = query.or(`marca.ilike.%${filters.search}%,modelo.ilike.%${filters.search}%`)
+  if (filters?.search) {
+    // Sanitizar: el término se interpola en un filtro PostgREST `or`, así que
+    // removemos los caracteres con significado especial (, ( ) * : % \) y
+    // limitamos la longitud para evitar inyección de filtros.
+    const term = filters.search.replace(/[%,()*:\\]/g, ' ').trim().slice(0, 60)
+    if (term) query = query.or(`marca.ilike.%${term}%,modelo.ilike.%${term}%`)
+  }
   const { data, error } = await query
   if (error) { console.error(error); return [] }
   return (data ?? []) as Vehicle[]

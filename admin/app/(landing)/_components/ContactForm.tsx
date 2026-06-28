@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { Send, MessageCircle } from 'lucide-react'
 
 // Número de WhatsApp del concesionario (formato internacional sin signos).
-// Reemplazar por el número real de VH Group.
-const WHATSAPP = '595000000000'
+// Configurable con NEXT_PUBLIC_WHATSAPP; fallback a un placeholder.
+const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP || '595000000000'
 
 export function ContactForm() {
   const [nombre, setNombre] = useState('')
