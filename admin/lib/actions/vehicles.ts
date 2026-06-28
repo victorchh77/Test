@@ -14,6 +14,7 @@ export interface FeaturedVehicle {
   modelo: string
   anio: number
   km: number
+  km_publico: string | null
   color: string | null
   precio_venta: number
   estado: VehicleStatus
@@ -32,7 +33,7 @@ export async function getFeaturedVehicles(limit = 6): Promise<FeaturedVehicle[]>
 
   const { data: vehicles, error } = await supabase
     .from('vehiculos_publicos')
-    .select('id, marca, modelo, anio, km, color, precio_venta, estado')
+    .select('id, marca, modelo, anio, km, km_publico, color, precio_venta, estado')
     .order('created_at', { ascending: false })
     .limit(limit)
 
@@ -55,6 +56,7 @@ export async function getFeaturedVehicles(limit = 6): Promise<FeaturedVehicle[]>
     modelo: v.modelo as string,
     anio: v.anio as number,
     km: v.km as number,
+    km_publico: (v.km_publico as string | null) ?? null,
     color: (v.color as string | null) ?? null,
     precio_venta: v.precio_venta as number,
     estado: v.estado as VehicleStatus,
@@ -84,9 +86,10 @@ export async function createVehicle(formData: VehicleFormData): Promise<ActionRe
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const { motivo_precio: _omit, ...vehicleData } = formData
+  const payload = { ...vehicleData, km_publico: (vehicleData.km_publico ?? '').trim() || null }
   const { data, error } = await supabase
     .from('vehicles')
-    .insert({ ...vehicleData, created_by: user?.id })
+    .insert({ ...payload, created_by: user?.id })
     .select()
     .single()
   if (error) return { error: error.message }
@@ -98,6 +101,7 @@ export async function updateVehicle(id: string, formData: VehicleFormData): Prom
   if (!(await isAdmin())) return { error: 'No autorizado: solo administradores pueden modificar vehículos.' }
   const supabase = createClient()
   const { motivo_precio, ...vehicleData } = formData
+  const payload = { ...vehicleData, km_publico: (vehicleData.km_publico ?? '').trim() || null }
 
   // Capture old price to record history with the reason.
   const { data: old } = await supabase
@@ -108,7 +112,7 @@ export async function updateVehicle(id: string, formData: VehicleFormData): Prom
 
   const { data, error } = await supabase
     .from('vehicles')
-    .update(vehicleData)
+    .update(payload)
     .eq('id', id)
     .select()
     .single()

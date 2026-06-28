@@ -40,7 +40,7 @@ export function VehicleCard({ v }: { v: FeaturedVehicle }) {
 
         <div className="mt-4 grid grid-cols-3 gap-2 text-center">
           <Spec icon={Calendar} label={String(v.anio)} />
-          <Spec icon={Gauge}    label={formatKm(v.km)} />
+          <Spec icon={Gauge}    label={v.km_publico?.trim() ? v.km_publico : formatKm(v.km)} />
           <Spec icon={Palette}  label={v.color ?? '—'} />
         </div>
 
