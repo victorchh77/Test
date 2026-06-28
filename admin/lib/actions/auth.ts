@@ -52,7 +52,6 @@ export async function login(usernameOrEmail: string, password: string) {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     // Mensaje genérico: no revelar si el usuario existe ni el detalle del error.
     if (error) {
-      console.error('[login-debug] signInWithPassword failed:', error.status, error.message, '| email used:', email)
       return { error: 'Usuario o contraseña incorrectos' }
     }
     return { error: null }

@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { formatDate } from '@/lib/utils/format'
-import { isAdmin } from '@/lib/auth/roles'
+import { isAdminOrSecretary } from '@/lib/auth/roles'
 
 export default async function ListaPreciosPage() {
-  const [lists, admin] = await Promise.all([getPriceLists(), isAdmin()])
+  const [lists, admin] = await Promise.all([getPriceLists(), isAdminOrSecretary()])
   const activas = lists.filter((l: any) => l.activa).length
 
   return (

@@ -8,14 +8,14 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardHeader } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { formatCurrency, formatDate, formatKm } from '@/lib/utils/format'
-import { isAdmin } from '@/lib/auth/roles'
+import { isAdminOrSecretary } from '@/lib/auth/roles'
 import { AddVehicleToPriceListForm } from './AddVehicleToPriceListForm'
 
 export default async function PriceListDetailPage({ params }: { params: { id: string } }) {
   const [list, vehicles, admin] = await Promise.all([
     getPriceList(params.id),
     getVehicles({ estado: 'Disponible' }),
-    isAdmin(),
+    isAdminOrSecretary(),
   ])
 
   if (!list) notFound()

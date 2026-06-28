@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { isAdmin } from '@/lib/auth/roles'
+import { isAdminOrSecretary } from '@/lib/auth/roles'
 import type { EmployeeFormData } from '@/lib/validations/employee'
 import type { ActionResult, Employee } from '@/types'
 
@@ -24,7 +24,7 @@ export async function getEmployee(id: string) {
 }
 
 export async function createEmployee(formData: EmployeeFormData): Promise<ActionResult<Employee>> {
-  if (!(await isAdmin())) return { error: 'No autorizado.' }
+  if (!(await isAdminOrSecretary())) return { error: 'No autorizado.' }
   const supabase = createClient()
   const { data, error } = await supabase
     .from('employees')
@@ -37,7 +37,7 @@ export async function createEmployee(formData: EmployeeFormData): Promise<Action
 }
 
 export async function updateEmployee(id: string, formData: EmployeeFormData): Promise<ActionResult<Employee>> {
-  if (!(await isAdmin())) return { error: 'No autorizado.' }
+  if (!(await isAdminOrSecretary())) return { error: 'No autorizado.' }
   const supabase = createClient()
 
   // Capture old salary to record raises/changes in history.
@@ -94,7 +94,7 @@ export async function registerPayment(
   employeeId: string,
   payment: { monto: number; tipo: string; fecha: string; notas?: string }
 ): Promise<ActionResult> {
-  if (!(await isAdmin())) return { error: 'No autorizado.' }
+  if (!(await isAdminOrSecretary())) return { error: 'No autorizado.' }
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const { error } = await supabase.from('employee_payments').insert({
@@ -111,7 +111,7 @@ export async function registerPayment(
 }
 
 export async function deletePayment(paymentId: string, employeeId: string): Promise<ActionResult> {
-  if (!(await isAdmin())) return { error: 'No autorizado.' }
+  if (!(await isAdminOrSecretary())) return { error: 'No autorizado.' }
   const supabase = createClient()
   const { error } = await supabase.from('employee_payments').delete().eq('id', paymentId)
   if (error) return { error: error.message }
@@ -120,7 +120,7 @@ export async function deletePayment(paymentId: string, employeeId: string): Prom
 }
 
 export async function deleteEmployee(id: string): Promise<ActionResult> {
-  if (!(await isAdmin())) return { error: 'No autorizado.' }
+  if (!(await isAdminOrSecretary())) return { error: 'No autorizado.' }
   const supabase = createClient()
   const { error } = await supabase.from('employees').delete().eq('id', id)
   if (error) return { error: error.message }

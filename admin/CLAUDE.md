@@ -74,7 +74,7 @@ Authentication uses Supabase Auth. On sign-up, a trigger auto-creates a `profile
 Three roles control access:
 - **admin** — full access, can create/edit/delete vehicles, users, etc.
 - **vendedor** — read-only on vehicles; can register sales and view clients/price lists.
-- **secretaria** — limited to transferencias and planilla-pagarés.
+- **secretaria** — full access to clientes, empleados, and lista de precios (create/edit/delete); also transferencias and planilla-pagarés. Cannot access vehículos, gastos, ventas, usuarios, or flyers.
 
 Role checks live in `lib/auth/roles.ts`. Server components and Server Actions call `isAdmin()`, `getRole()`, or `requireAdmin()` from there. The sidebar shows role-specific nav items via `components/layout/Sidebar.tsx`.
 

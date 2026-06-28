@@ -1,6 +1,6 @@
-import { requireAdmin } from '@/lib/auth/roles'
+import { requireAdminOrSecretary } from '@/lib/auth/roles'
 
 export default async function EmpleadosLayout({ children }: { children: React.ReactNode }) {
-  await requireAdmin()
+  await requireAdminOrSecretary()
   return <>{children}</>
 }

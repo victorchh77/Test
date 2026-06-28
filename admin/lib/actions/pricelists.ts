@@ -2,10 +2,10 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { isAdmin } from '@/lib/auth/roles'
+import { isAdminOrSecretary } from '@/lib/auth/roles'
 import type { ActionResult } from '@/types'
 
-const NO_AUTH = { error: 'No autorizado: solo administradores pueden modificar la lista de precios.' }
+const NO_AUTH = { error: 'No autorizado: solo administradores y secretaría pueden modificar la lista de precios.' }
 
 export async function getPriceLists() {
   const supabase = createClient()
@@ -27,7 +27,7 @@ export async function getPriceList(id: string) {
 }
 
 export async function createPriceList(titulo: string, descripcion?: string): Promise<ActionResult<{ id: string }>> {
-  if (!(await isAdmin())) return NO_AUTH
+  if (!(await isAdminOrSecretary())) return NO_AUTH
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const { data, error } = await supabase
@@ -54,7 +54,7 @@ export async function addVehicleToPriceList(
   },
   notas?: string,
 ): Promise<ActionResult> {
-  if (!(await isAdmin())) return NO_AUTH
+  if (!(await isAdminOrSecretary())) return NO_AUTH
   const supabase = createClient()
   const { error } = await supabase.from('price_list_items').insert({
     price_list_id: priceListId,
@@ -74,7 +74,7 @@ export async function addVehicleToPriceList(
 }
 
 export async function removeFromPriceList(itemId: string, priceListId: string): Promise<ActionResult> {
-  if (!(await isAdmin())) return NO_AUTH
+  if (!(await isAdminOrSecretary())) return NO_AUTH
   const supabase = createClient()
   const { error } = await supabase.from('price_list_items').delete().eq('id', itemId)
   if (error) return { error: error.message }
@@ -83,7 +83,7 @@ export async function removeFromPriceList(itemId: string, priceListId: string): 
 }
 
 export async function togglePriceListActive(id: string, activa: boolean): Promise<ActionResult> {
-  if (!(await isAdmin())) return NO_AUTH
+  if (!(await isAdminOrSecretary())) return NO_AUTH
   const supabase = createClient()
   const { error } = await supabase.from('price_lists').update({ activa }).eq('id', id)
   if (error) return { error: error.message }
@@ -92,7 +92,7 @@ export async function togglePriceListActive(id: string, activa: boolean): Promis
 }
 
 export async function deletePriceList(id: string): Promise<ActionResult> {
-  if (!(await isAdmin())) return NO_AUTH
+  if (!(await isAdminOrSecretary())) return NO_AUTH
   const supabase = createClient()
   const { error } = await supabase.from('price_lists').delete().eq('id', id)
   if (error) return { error: error.message }

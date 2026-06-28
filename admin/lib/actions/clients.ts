@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { isAdmin } from '@/lib/auth/roles'
+import { isAdminOrSecretary } from '@/lib/auth/roles'
 import type { ClientFormData } from '@/lib/validations/client'
 import type { ActionResult, Client } from '@/types'
 
@@ -32,7 +32,7 @@ export async function createClient_(formData: ClientFormData): Promise<ActionRes
 }
 
 export async function updateClient(id: string, formData: ClientFormData): Promise<ActionResult<Client>> {
-  if (!(await isAdmin())) return { error: 'No autorizado: solo administradores pueden modificar clientes.' }
+  if (!(await isAdminOrSecretary())) return { error: 'No autorizado: solo administradores pueden modificar clientes.' }
   const supabase = createClient()
   const { data, error } = await supabase
     .from('clients')
@@ -47,7 +47,7 @@ export async function updateClient(id: string, formData: ClientFormData): Promis
 }
 
 export async function deleteClient(id: string): Promise<ActionResult> {
-  if (!(await isAdmin())) return { error: 'No autorizado: solo administradores pueden eliminar clientes.' }
+  if (!(await isAdminOrSecretary())) return { error: 'No autorizado: solo administradores pueden eliminar clientes.' }
   const supabase = createClient()
   const { error } = await supabase.from('clients').delete().eq('id', id)
   if (error) return { error: error.message }

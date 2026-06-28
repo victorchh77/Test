@@ -38,6 +38,9 @@ const vendedorNav = [
 
 const secretariaNav = [
   { href: '/dashboard',        label: 'Dashboard',           icon: LayoutDashboard },
+  { href: '/clientes',         label: 'Clientes',            icon: Users },
+  { href: '/empleados',        label: 'Empleados',           icon: UserCog },
+  { href: '/lista-precios',    label: 'Lista de Precios',    icon: ListOrdered },
   { href: '/transferencias',   label: 'Transferencias',      icon: ArrowDownCircle },
   { href: '/planilla-pagares', label: 'Planilla de Pagarés', icon: FileText },
   { href: '/settings',         label: 'Configuración',       icon: Settings },

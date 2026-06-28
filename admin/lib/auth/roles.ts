@@ -50,3 +50,14 @@ export async function requireAdmin(): Promise<Profile> {
   if (profile.role !== 'admin') redirect('/dashboard')
   return profile
 }
+
+/**
+ * Use in page/layout server components that both admin and secretaria can access.
+ * Redirects vendedores to dashboard and anonymous users to login.
+ */
+export async function requireAdminOrSecretary(): Promise<Profile> {
+  const profile = await getSessionProfile()
+  if (!profile) redirect('/login')
+  if (profile.role !== 'admin' && profile.role !== 'secretaria') redirect('/dashboard')
+  return profile
+}
