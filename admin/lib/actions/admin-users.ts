@@ -49,11 +49,20 @@ export async function createUser(data: {
   })
   if (authError) return { error: authError.message }
 
-  // Explicitly set username + role — don't rely solely on the trigger
+  // Crear/actualizar el perfil explícitamente (upsert): no depende de que el
+  // trigger handle_new_user lo haya creado, así la creación de usuarios desde
+  // el panel siempre deja un perfil correcto.
   await adminClient
     .from('profiles')
-    .update({ username: username.trim(), role })
-    .eq('id', authData.user.id)
+    .upsert(
+      {
+        id: authData.user.id,
+        full_name: full_name.trim() || username.trim(),
+        username: username.trim(),
+        role,
+      },
+      { onConflict: 'id' },
+    )
 
   revalidatePath('/usuarios')
   return { data: { id: authData.user.id } }
