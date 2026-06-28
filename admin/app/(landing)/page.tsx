@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
-  Car, Gauge, Fuel, Settings, Wallet, FileText, RefreshCw, KeyRound,
+  Car, Gauge, Calendar, Palette, Wallet, FileText, RefreshCw, KeyRound,
   ShieldCheck, BadgeCheck, MapPin, Phone, Clock, Star, ArrowRight,
   CheckCircle2, ChevronRight, MessageCircle, Mail,
 } from 'lucide-react'
@@ -10,6 +10,8 @@ import { LandingNav } from './_components/LandingNav'
 import { Hero } from './_components/Hero'
 import { ContactForm } from './_components/ContactForm'
 import { Reveal, RevealGroup, RevealItem } from './_components/Reveal'
+import { getFeaturedVehicles, type FeaturedVehicle } from '@/lib/actions/vehicles'
+import { formatCurrency, formatKm } from '@/lib/utils/format'
 
 export const metadata: Metadata = {
   title: 'VH Group S.R.L. — Concesionaria en Encarnación',
@@ -17,15 +19,18 @@ export const metadata: Metadata = {
     'Compra de vehículos seleccionados con garantía, financiación a medida y transferencia sin complicaciones. VH Group, tu concesionaria de confianza en Encarnación, Paraguay.',
 }
 
-/* ── Mock data (editar/conectar al panel cuando haya stock real) ──────── */
+// Refresca el stock público cada 10 minutos (ISR).
+export const revalidate = 600
 
-const vehicles = [
-  { marca: 'Toyota',      modelo: 'Hilux SRV 4x4', anio: 2021, tipo: 'Pick-up',   km: '48.000', caja: 'Automática', combustible: 'Diésel',  precio: 34900, estado: 'Disponible' },
-  { marca: 'Volkswagen',  modelo: 'T-Cross Comfort', anio: 2022, tipo: 'SUV',     km: '22.000', caja: 'Automática', combustible: 'Nafta',   precio: 26500, estado: 'Disponible' },
-  { marca: 'Hyundai',     modelo: 'Tucson Limited', anio: 2021, tipo: 'SUV',      km: '38.000', caja: 'Automática', combustible: 'Nafta',   precio: 28900, estado: 'Disponible' },
-  { marca: 'Nissan',      modelo: 'Frontier XE',    anio: 2020, tipo: 'Pick-up',  km: '65.000', caja: 'Manual',     combustible: 'Diésel',  precio: 31000, estado: 'Reservado' },
-  { marca: 'Kia',         modelo: 'Cerato EX',      anio: 2019, tipo: 'Sedán',    km: '55.000', caja: 'Automática', combustible: 'Nafta',   precio: 17500, estado: 'Disponible' },
-  { marca: 'Chevrolet',   modelo: 'Onix Premier',   anio: 2022, tipo: 'Hatchback', km: '18.000', caja: 'Automática', combustible: 'Nafta',  precio: 16900, estado: 'Disponible' },
+/* ── Fallback: solo se usa si no hay stock real disponible todavía ────── */
+
+const fallbackVehicles: FeaturedVehicle[] = [
+  { id: 'demo-1', marca: 'Toyota',     modelo: 'Hilux SRV 4x4',  anio: 2021, km: 48000, color: 'Gris',   precio_venta: 245000000, estado: 'Disponible', fotoUrl: null },
+  { id: 'demo-2', marca: 'Volkswagen', modelo: 'T-Cross Comfort', anio: 2022, km: 22000, color: 'Blanco', precio_venta: 185000000, estado: 'Disponible', fotoUrl: null },
+  { id: 'demo-3', marca: 'Hyundai',    modelo: 'Tucson Limited',  anio: 2021, km: 38000, color: 'Negro',  precio_venta: 205000000, estado: 'Disponible', fotoUrl: null },
+  { id: 'demo-4', marca: 'Nissan',     modelo: 'Frontier XE',     anio: 2020, km: 65000, color: 'Plata',  precio_venta: 218000000, estado: 'Reservado',  fotoUrl: null },
+  { id: 'demo-5', marca: 'Kia',        modelo: 'Cerato EX',       anio: 2019, km: 55000, color: 'Rojo',    precio_venta: 122000000, estado: 'Disponible', fotoUrl: null },
+  { id: 'demo-6', marca: 'Chevrolet',  modelo: 'Onix Premier',    anio: 2022, km: 18000, color: 'Azul',   precio_venta: 118000000, estado: 'Disponible', fotoUrl: null },
 ]
 
 const stats = [
@@ -58,13 +63,15 @@ const testimonials = [
 
 const brands = ['Toyota', 'Volkswagen', 'Nissan', 'Hyundai', 'Kia', 'Chevrolet', 'Ford', 'Honda']
 
-function usd(n: number) {
-  return '$' + n.toLocaleString('es-PY')
-}
-
 /* ── Page ─────────────────────────────────────────────────────────────── */
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  // Stock real desde Supabase (vista pública). Si todavía no hay stock o no se
+  // aplicó la migración, mostramos unidades de ejemplo para no dejar la sección vacía.
+  const featured = await getFeaturedVehicles(6)
+  const vehicles = featured.length ? featured : fallbackVehicles
+  const usingFallback = featured.length === 0
+
   return (
     <div className="relative min-h-screen bg-bg text-textprim overflow-x-hidden">
       {/* Ambient background */}
@@ -108,11 +115,19 @@ export default function LandingPage() {
 
           <RevealGroup className="mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {vehicles.map((v) => (
-              <RevealItem key={`${v.marca}-${v.modelo}`}>
+              <RevealItem key={v.id}>
                 <VehicleCard v={v} />
               </RevealItem>
             ))}
           </RevealGroup>
+
+          {usingFallback && (
+            <Reveal delay={0.05} className="mt-6 text-center">
+              <p className="text-xs text-textmuted">
+                Mostrando unidades de ejemplo. El stock real aparece automáticamente al cargar vehículos en el panel.
+              </p>
+            </Reveal>
+          )}
 
           <Reveal delay={0.1} className="mt-10 text-center">
             <Link
@@ -372,25 +387,33 @@ function SectionHeading({
   )
 }
 
-function VehicleCard({ v }: { v: typeof vehicles[number] }) {
+function VehicleCard({ v }: { v: FeaturedVehicle }) {
   const available = v.estado === 'Disponible'
   return (
     <article className="group relative h-full bg-card border border-border rounded-2xl overflow-hidden
                         shadow-card hover:border-orange/30 hover:shadow-[0_0_40px_rgba(255,140,0,0.12)]
                         hover:-translate-y-1 transition-all duration-300">
-      {/* Visual header (gradient + car silhouette, no photo asset available) */}
+      {/* Visual header: foto real si existe, si no degradado + ícono */}
       <div className="relative h-44 bg-gradient-to-br from-card-elevated to-bg flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-dots opacity-40" aria-hidden />
-        <Car className="w-20 h-20 text-orange/30 transition-transform duration-500 group-hover:scale-110" />
-        <span className={`absolute top-3 right-3 px-2.5 py-1 rounded-full text-[11px] font-semibold border
+        {v.fotoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={v.fotoUrl}
+            alt={`${v.marca} ${v.modelo} ${v.anio}`}
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
+          />
+        ) : (
+          <>
+            <div className="absolute inset-0 bg-dots opacity-40" aria-hidden />
+            <Car className="w-20 h-20 text-orange/30 transition-transform duration-500 group-hover:scale-110" />
+          </>
+        )}
+        <span className={`absolute top-3 right-3 px-2.5 py-1 rounded-full text-[11px] font-semibold border z-10
           ${available
             ? 'bg-success/10 text-success border-success/30'
             : 'bg-warning/10 text-warning border-warning/30'}`}>
           {v.estado}
-        </span>
-        <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[11px] font-semibold
-                         bg-bg/70 text-textsec border border-border">
-          {v.tipo}
         </span>
       </div>
 
@@ -401,15 +424,17 @@ function VehicleCard({ v }: { v: typeof vehicles[number] }) {
         </h3>
 
         <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-          <Spec icon={Gauge}    label={`${v.km} km`} />
-          <Spec icon={Settings} label={v.caja} />
-          <Spec icon={Fuel}     label={v.combustible} />
+          <Spec icon={Calendar} label={String(v.anio)} />
+          <Spec icon={Gauge}    label={formatKm(v.km)} />
+          <Spec icon={Palette}  label={v.color ?? '—'} />
         </div>
 
         <div className="mt-5 pt-4 border-t border-border/60 flex items-end justify-between">
           <div>
             <p className="text-[10px] uppercase tracking-widest text-textmuted">Precio</p>
-            <p className="font-display text-xl font-bold text-orange glow-text-orange tabular">{usd(v.precio)}</p>
+            <p className="font-display text-lg font-bold text-orange glow-text-orange tabular">
+              {formatCurrency(v.precio_venta)}
+            </p>
           </div>
           <a
             href="#contacto"
@@ -429,7 +454,7 @@ function Spec({ icon: Icon, label }: { icon: typeof Gauge; label: string }) {
   return (
     <div className="flex flex-col items-center gap-1 bg-bg/40 rounded-lg py-2 px-1">
       <Icon className="w-4 h-4 text-textsec" />
-      <span className="text-[11px] text-textsec leading-tight">{label}</span>
+      <span className="text-[11px] text-textsec leading-tight truncate w-full">{label}</span>
     </div>
   )
 }

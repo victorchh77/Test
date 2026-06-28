@@ -94,7 +94,7 @@ export function Hero() {
               <div className="hidden md:block w-px bg-border my-2" aria-hidden />
               <SelectField label="Tipo" options={['Todos los tipos', 'SUV', 'Sedán', 'Pick-up', 'Hatchback']} />
               <div className="hidden md:block w-px bg-border my-2" aria-hidden />
-              <SelectField label="Presupuesto" options={['Sin límite', 'Hasta $15.000', '$15.000 – $30.000', 'Más de $30.000']} />
+              <SelectField label="Presupuesto" options={['Sin límite', 'Hasta Gs. 100M', 'Gs. 100M – 200M', 'Más de Gs. 200M']} />
               <button
                 type="submit"
                 className="group inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold

@@ -1,11 +1,66 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createPublicClient, isPublicSupabaseConfigured } from '@/lib/supabase/public'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { isAdmin } from '@/lib/auth/roles'
 import type { VehicleFormData } from '@/lib/validations/vehicle'
-import type { ActionResult, Vehicle, SaleWithDetails } from '@/types'
+import type { ActionResult, Vehicle, SaleWithDetails, VehicleStatus } from '@/types'
+
+export interface FeaturedVehicle {
+  id: string
+  marca: string
+  modelo: string
+  anio: number
+  km: number
+  color: string | null
+  precio_venta: number
+  estado: VehicleStatus
+  fotoUrl: string | null
+}
+
+/**
+ * Stock para la landing PÚBLICA. Lee de las vistas `vehiculos_publicos` /
+ * `vehiculo_fotos_publicas` (rol anon) — ver supabase/migration_landing_public.sql.
+ * Devuelve [] de forma segura si Supabase no está configurado o la migración
+ * aún no se aplicó, para que la landing pueda mostrar un fallback.
+ */
+export async function getFeaturedVehicles(limit = 6): Promise<FeaturedVehicle[]> {
+  if (!isPublicSupabaseConfigured()) return []
+  const supabase = createPublicClient()
+
+  const { data: vehicles, error } = await supabase
+    .from('vehiculos_publicos')
+    .select('id, marca, modelo, anio, km, color, precio_venta, estado')
+    .order('created_at', { ascending: false })
+    .limit(limit)
+
+  if (error || !vehicles?.length) return []
+
+  const ids = vehicles.map((v) => v.id as string)
+  const { data: photos } = await supabase
+    .from('vehiculo_fotos_publicas')
+    .select('vehicle_id, url, is_main')
+    .in('vehicle_id', ids)
+
+  const photoMap: Record<string, string> = {}
+  ;(photos ?? []).forEach((p: { vehicle_id: string; url: string; is_main: boolean }) => {
+    if (!photoMap[p.vehicle_id] || p.is_main) photoMap[p.vehicle_id] = p.url
+  })
+
+  return vehicles.map((v) => ({
+    id: v.id as string,
+    marca: v.marca as string,
+    modelo: v.modelo as string,
+    anio: v.anio as number,
+    km: v.km as number,
+    color: (v.color as string | null) ?? null,
+    precio_venta: v.precio_venta as number,
+    estado: v.estado as VehicleStatus,
+    fotoUrl: photoMap[v.id as string] ?? null,
+  }))
+}
 
 export async function getVehicles(filters?: { marca?: string; estado?: string; search?: string }) {
   const supabase = createClient()
