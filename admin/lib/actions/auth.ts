@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { rateLimit } from '@/lib/rate-limit'
@@ -33,9 +34,13 @@ export async function login(usernameOrEmail: string, password: string) {
     const supabase = createClient()
     let email = usernameOrEmail.trim()
 
-    // If input has no '@', treat it as a username and look up the email
+    // If input has no '@', treat it as a username and look up the email.
+    // Preferimos el cliente service-role para resolver usuario->email del lado
+    // servidor: así se puede revocar el acceso anónimo a get_email_by_username
+    // (cierra la enumeración de usuarios). Con fallback al cliente normal.
     if (!email.includes('@')) {
-      const { data: foundEmail, error: rpcErr } = await supabase.rpc('get_email_by_username', {
+      const lookup = process.env.SUPABASE_SERVICE_ROLE_KEY ? createAdminClient() : supabase
+      const { data: foundEmail, error: rpcErr } = await lookup.rpc('get_email_by_username', {
         p_username: email,
       })
       if (rpcErr || !foundEmail) {
@@ -45,7 +50,8 @@ export async function login(usernameOrEmail: string, password: string) {
     }
 
     const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) return { error: error.message }
+    // Mensaje genérico: no revelar si el usuario existe ni el detalle del error.
+    if (error) return { error: 'Usuario o contraseña incorrectos' }
     return { error: null }
   } catch {
     return { error: 'No se pudo conectar con el servidor de autenticación.' }

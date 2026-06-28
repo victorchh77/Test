@@ -36,7 +36,7 @@ export async function createUser(data: {
   if (!(await isAdmin())) return { error: 'No autorizado' }
   const { username, password, full_name, role } = data
   if (!username.trim() || !password) return { error: 'Usuario y contraseña son requeridos' }
-  if (password.length < 6) return { error: 'La contraseña debe tener al menos 6 caracteres' }
+  if (password.length < 8) return { error: 'La contraseña debe tener al menos 8 caracteres' }
 
   const adminClient = createAdminClient()
   const email = `${username.toLowerCase().trim().replace(/\s+/g, '_')}@vhgroup.internal`

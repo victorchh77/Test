@@ -19,6 +19,7 @@ const securityHeaders = [
 ]
 
 const nextConfig = {
+  poweredByHeader: false, // ocultar "X-Powered-By: Next.js"
   images: {
     remotePatterns: [
       {
