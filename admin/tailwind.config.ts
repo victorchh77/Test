@@ -9,12 +9,19 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        bg:       '#080C11',
-        sidebar:  '#0B0F18',
-        card:     '#0F1520',
-        'card-elevated': '#141C2A',
-        border:   '#1C2A3D',
-        'border-bright': '#2A3F58',
+        // Tokens semánticos: manejados por variables CSS (ver globals.css)
+        // para soportar tema claro/oscuro. Formato de canales RGB para que
+        // funcionen los modificadores de opacidad (bg-card/50, etc).
+        bg:       'rgb(var(--c-bg) / <alpha-value>)',
+        sidebar:  'rgb(var(--c-sidebar) / <alpha-value>)',
+        card:     'rgb(var(--c-card) / <alpha-value>)',
+        'card-elevated': 'rgb(var(--c-card-elevated) / <alpha-value>)',
+        border:   'rgb(var(--c-border) / <alpha-value>)',
+        'border-bright': 'rgb(var(--c-border-bright) / <alpha-value>)',
+        textprim: 'rgb(var(--c-textprim) / <alpha-value>)',
+        textsec:  'rgb(var(--c-textsec) / <alpha-value>)',
+        textmuted: 'rgb(var(--c-textmuted) / <alpha-value>)',
+        // El naranja y los estados se mantienen fijos en ambos temas.
         orange: {
           DEFAULT: '#FF8C00',
           hover:   '#E67E00',
@@ -22,9 +29,6 @@ const config: Config = {
           dim:     'rgba(255, 140, 0, 0.15)',
           glow:    'rgba(255, 140, 0, 0.4)',
         },
-        textprim: '#EEF4FF',
-        textsec:  '#7A8FA8',
-        textmuted: '#3D5068',
         success:  '#00C984',
         error:    '#FF4D6A',
         warning:  '#FFB800',

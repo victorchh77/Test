@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Menu, X, ArrowRight } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 
 const links = [
   { href: '#vehiculos', label: 'Vehículos' },
@@ -68,6 +69,7 @@ export function LandingNav() {
 
         {/* CTA + mobile toggle */}
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <Link
             href="/login"
             className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold

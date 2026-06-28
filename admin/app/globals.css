@@ -11,7 +11,19 @@
   .tabular { font-variant-numeric: tabular-nums; }
 }
 
-:root {
+:root, .dark {
+  /* Canales RGB de los tokens semánticos (tema OSCURO, por defecto) */
+  --c-bg: 8 12 17;
+  --c-sidebar: 11 15 24;
+  --c-card: 15 21 32;
+  --c-card-elevated: 20 28 42;
+  --c-border: 28 42 61;
+  --c-border-bright: 42 63 88;
+  --c-textprim: 238 244 255;
+  --c-textsec: 122 143 168;
+  --c-textmuted: 61 80 104;
+
+  /* Acento + compat */
   --orange: #FF8C00;
   --orange-glow: rgba(255, 140, 0, 0.35);
   --bg: #080C11;
@@ -20,9 +32,27 @@
   --border: #1C2A3D;
 }
 
+.light {
+  /* Tema CLARO */
+  --c-bg: 244 246 250;
+  --c-sidebar: 255 255 255;
+  --c-card: 255 255 255;
+  --c-card-elevated: 241 244 249;
+  --c-border: 222 228 237;
+  --c-border-bright: 198 207 220;
+  --c-textprim: 15 21 32;
+  --c-textsec: 90 107 130;
+  --c-textmuted: 140 154 173;
+
+  --bg: #F4F6FA;
+  --sidebar: #FFFFFF;
+  --card: #FFFFFF;
+  --border: #DDE4ED;
+}
+
 body {
-  background-color: var(--bg);
-  color: #EEF4FF;
+  background-color: rgb(var(--c-bg));
+  color: rgb(var(--c-textprim));
   font-family: 'Inter', system-ui, sans-serif;
   font-size: 1rem;
   line-height: 1.65;
@@ -169,18 +199,21 @@ h1, h2, h3, .font-display {
     background-size: 24px 24px, 48px 48px, 48px 48px;
   }
 
-  /* Glass morphism */
+  /* Glass morphism — theme-aware (usa el color de sidebar de cada tema) */
   .glass {
-    background: rgba(11, 15, 24, 0.75);
+    background: rgb(var(--c-sidebar) / 0.78);
     backdrop-filter: blur(20px) saturate(1.3);
     -webkit-backdrop-filter: blur(20px) saturate(1.3);
   }
 
   .glass-light {
-    background: rgba(28, 42, 61, 0.45);
+    background: rgb(var(--c-card-elevated) / 0.55);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
   }
+
+  /* En tema claro, los orbes brillantes se atenúan para no recargar */
+  .light .orb { opacity: 0.4; }
 
   /* Orange glow */
   .glow-orange    { box-shadow: 0 0 24px rgba(255, 140, 0, 0.3); }
@@ -245,7 +278,7 @@ h1, h2, h3, .font-display {
 @layer components {
   /* Inputs */
   .input-base {
-    @apply w-full bg-[#0B1220] border border-border rounded-xl px-4 py-3 text-textprim text-sm
+    @apply w-full bg-bg border border-border rounded-xl px-4 py-3 text-textprim text-sm
            placeholder:text-textmuted focus:outline-none focus:border-orange focus:ring-1 focus:ring-orange/20
            transition-all duration-200;
   }

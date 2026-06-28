@@ -59,7 +59,50 @@ export default async function VehiculosPage({ searchParams }: { searchParams: Ve
           action={admin ? { label: 'Nuevo vehículo', href: '/vehiculos/nuevo' } : undefined}
         />
       ) : (
-        <Card padding={false}>
+        <>
+        {/* Vista móvil: tarjetas */}
+        <div className="md:hidden flex flex-col gap-3">
+          {vehicles.map(v => {
+            const photoUrl = photos[v.id]
+            return (
+              <div key={v.id} className="bg-card border border-border rounded-2xl p-3 shadow-card">
+                <div className="flex gap-3">
+                  <div className="w-20 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-card-elevated border border-border">
+                    {photoUrl ? (
+                      <Image src={photoUrl} alt={`${v.marca} ${v.modelo}`} width={80} height={64} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-textmuted text-[9px]">Sin foto</div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="font-semibold text-textprim leading-tight">{v.marca} {v.modelo}</p>
+                      <Badge color={statusBadge[v.estado]} dot>{v.estado}</Badge>
+                    </div>
+                    <p className="text-xs text-textsec mt-0.5">
+                      {v.anio} · {formatKm(v.km)}{v.color ? ` · ${v.color}` : ''}
+                    </p>
+                    <p className="font-bold text-orange mt-1 tabular">{formatCurrency(v.precio_venta)}</p>
+                    {admin && <p className="text-[11px] text-textsec tabular">Compra: {formatCurrency(v.precio_compra)}</p>}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/60">
+                  <Link href={`/vehiculos/${v.id}`} className="flex-1">
+                    <Button variant="secondary" size="sm" className="w-full">Ver detalle</Button>
+                  </Link>
+                  {admin && (
+                    <Link href={`/vehiculos/${v.id}/editar`} className="flex-1">
+                      <Button variant="ghost" size="sm" className="w-full">Editar</Button>
+                    </Link>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Vista escritorio: tabla */}
+        <Card padding={false} className="hidden md:block">
           <div className="overflow-x-auto scrollbar-thin">
             <table className="w-full text-sm">
               <thead>
@@ -123,6 +166,7 @@ export default async function VehiculosPage({ searchParams }: { searchParams: Ve
             </table>
           </div>
         </Card>
+        </>
       )}
     </div>
   )

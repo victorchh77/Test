@@ -84,7 +84,68 @@ export default async function PriceListDetailPage({ params }: { params: { id: st
             <p className="text-sm text-textsec">Sin vehículos agregados</p>
           </div>
         ) : (
-          <div className="overflow-x-auto scrollbar-thin">
+          <>
+          {/* Vista móvil: tarjetas */}
+          <div className="md:hidden flex flex-col gap-3 p-4">
+            {items.map((item: any) => {
+              const photoUrl = photos[item.vehicle_id]
+              const rows = ([
+                ['Contado', item.precio_1],
+                ['Contado mín.', item.precio_2],
+                ['Entrega', item.entrega],
+                ['12 cuotas', item.precio_financiado_12],
+                ['18 cuotas', item.precio_financiado_18],
+                ['24 cuotas', item.precio_financiado_24],
+              ] as [string, number | null][]).filter(([, v]) => v)
+              return (
+                <div key={item.id} className="bg-card-elevated/40 border border-border rounded-2xl p-4">
+                  <div className="flex gap-3 items-start">
+                    <div className="w-16 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-card-elevated border border-border">
+                      {photoUrl ? (
+                        <Image src={photoUrl} alt={`${item.vehicles?.marca} ${item.vehicles?.modelo}`} width={64} height={48} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-textmuted text-[9px]">Sin foto</div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-textprim leading-tight">{item.vehicles?.marca} {item.vehicles?.modelo}</p>
+                      <p className="text-xs text-textsec">{item.vehicles?.anio} · {formatKm(item.vehicles?.km ?? 0)}{item.vehicles?.color ? ` · ${item.vehicles.color}` : ''}</p>
+                    </div>
+                    <Badge color={item.vehicles?.estado === 'Disponible' ? 'success' : 'warning'} dot>{item.vehicles?.estado}</Badge>
+                  </div>
+
+                  <div className="mt-3 flex items-baseline justify-between border-t border-border/60 pt-3">
+                    <span className="text-xs text-textsec uppercase tracking-wide">Precio lista</span>
+                    <span className="font-bold text-orange tabular text-base">{formatCurrency(item.precio_lista)}</span>
+                  </div>
+
+                  {rows.length > 0 && (
+                    <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5">
+                      {rows.map(([label, value]) => (
+                        <div key={label} className="flex items-center justify-between text-sm">
+                          <span className="text-textsec text-xs">{label}</span>
+                          <span className="text-textprim tabular">{formatCurrency(value as number)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {item.notas && <p className="text-xs text-textsec mt-3 italic">{item.notas}</p>}
+
+                  {admin && (
+                    <form action={async () => { 'use server'; await removeFromPriceList(item.id, params.id) }} className="mt-3 pt-3 border-t border-border/60">
+                      <button type="submit" className="flex items-center gap-1.5 text-xs text-textsec hover:text-error transition-colors">
+                        <Trash2 className="w-3.5 h-3.5" /> Quitar de la lista
+                      </button>
+                    </form>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Vista escritorio: tabla */}
+          <div className="hidden md:block overflow-x-auto scrollbar-thin">
             <table className="w-full text-sm">
               <thead>
                 <tr>
@@ -159,6 +220,7 @@ export default async function PriceListDetailPage({ params }: { params: { id: st
               </tbody>
             </table>
           </div>
+          </>
         )}
       </Card>
     </div>

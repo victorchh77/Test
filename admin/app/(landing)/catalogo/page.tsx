@@ -5,6 +5,7 @@ import { ArrowLeft, MessageCircle, Car } from 'lucide-react'
 import { getFeaturedVehicles } from '@/lib/actions/vehicles'
 import { VehicleCard } from '../_components/VehicleCard'
 import { RevealGroup, RevealItem } from '../_components/Reveal'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 
 export const metadata: Metadata = {
   title: 'Catálogo de vehículos — VH Group',
@@ -35,14 +36,17 @@ export default async function CatalogoPage() {
               VH <span className="text-orange">Group</span>
             </span>
           </Link>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium
-                       text-textsec hover:text-textprim hover:bg-white/[0.04] transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Volver al inicio
-          </Link>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium
+                         text-textsec hover:text-textprim hover:bg-white/[0.04] transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Volver al inicio
+            </Link>
+          </div>
         </div>
       </header>
 

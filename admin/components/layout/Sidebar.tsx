@@ -99,12 +99,13 @@ export function Sidebar({ open, onClose, role }: Props) {
           />
 
           <div className="relative flex items-center justify-between">
-            <div className="flex items-center gap-3.5">
+            {/* El logo lleva a la landing page pública */}
+            <Link href="/" onClick={onClose} className="flex items-center gap-3.5 group" title="Ir a la página principal">
               <div className="relative flex-shrink-0">
                 {/* Breathing glow behind logo */}
                 <div className="absolute inset-0 rounded-xl bg-orange/25 blur-lg ring-glow-breath pointer-events-none" />
-                <div className="relative w-12 h-12 bg-[#0A1018] border border-orange/35 rounded-xl
-                                flex items-center justify-center shadow-orange">
+                <div className="relative w-12 h-12 bg-card-elevated border border-orange/35 rounded-xl
+                                flex items-center justify-center shadow-orange transition-transform group-hover:scale-105">
                   <Image src="/logo.png" alt="VH Group" width={38} height={38} className="object-contain" />
                 </div>
               </div>
@@ -117,7 +118,7 @@ export function Sidebar({ open, onClose, role }: Props) {
                   S.R.L.
                 </p>
               </div>
-            </div>
+            </Link>
 
             <button
               onClick={onClose}

@@ -4,6 +4,7 @@ import { Menu, LogOut, Bell } from 'lucide-react'
 import { logout } from '@/lib/actions/auth'
 import { useTransition } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import type { Profile } from '@/types'
 
 interface Props {
@@ -60,6 +61,8 @@ export function Header({ profile, onMenuClick, title }: Props) {
       </div>
 
       <div className="flex items-center gap-2">
+        <ThemeToggle />
+
         {/* Notification bell */}
         <button className="p-2 rounded-xl text-textsec hover:text-textprim hover:bg-white/5 transition-colors relative">
           <Bell className="w-4 h-4" />
