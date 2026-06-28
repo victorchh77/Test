@@ -14,6 +14,24 @@ export async function getParesContracts(): Promise<ParesContract[]> {
   return (data ?? []) as ParesContract[]
 }
 
+/**
+ * URLs firmadas (temporales) para los contratos guardados como path en el
+ * bucket privado `pagares-contracts`. Solo admin/secretaria pasan el RLS.
+ * Devuelve un mapa path -> signedUrl. Valores legacy http se ignoran.
+ */
+export async function getContratoSignedUrls(paths: string[]): Promise<Record<string, string>> {
+  const clean = paths.filter((p) => p && !p.startsWith('http'))
+  if (!clean.length) return {}
+  const supabase = createClient()
+  const { data, error } = await supabase.storage
+    .from('pagares-contracts')
+    .createSignedUrls(clean, 60 * 60) // 1 hora
+  if (error || !data) return {}
+  const map: Record<string, string> = {}
+  data.forEach((d) => { if (d.path && d.signedUrl) map[d.path] = d.signedUrl })
+  return map
+}
+
 export async function createParesContract(data: {
   client_name: string
   dia_pago: number

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Plus, CheckCircle, Clock, ArrowDownCircle, ExternalLink } from 'lucide-react'
-import { getTransfers, verifyTransfer, unverifyTransfer } from '@/lib/actions/transfers'
+import { getTransfers, verifyTransfer, unverifyTransfer, getComprobanteSignedUrls } from '@/lib/actions/transfers'
 import { isAdmin } from '@/lib/auth/roles'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -11,6 +11,11 @@ import { formatCurrency, formatDate } from '@/lib/utils/format'
 
 export default async function TransferenciasPage() {
   const [transfers, admin] = await Promise.all([getTransfers(), isAdmin()])
+  const signedUrls = await getComprobanteSignedUrls(
+    transfers.map((t) => t.comprobante_url).filter((u): u is string => !!u)
+  )
+  const comprobanteHref = (u: string | null) =>
+    !u ? null : u.startsWith('http') ? u : (signedUrls[u] ?? null)
 
   const total        = transfers.reduce((s, t) => s + t.monto, 0)
   const pendientes   = transfers.filter(t => !t.verified).length
@@ -68,9 +73,9 @@ export default async function TransferenciasPage() {
                     <td className="table-cell font-bold text-orange">{formatCurrency(t.monto)}</td>
                     <td className="table-cell text-textsec text-xs max-w-[200px] truncate">{t.notas || '—'}</td>
                     <td className="table-cell">
-                      {t.comprobante_url ? (
+                      {comprobanteHref(t.comprobante_url) ? (
                         <a
-                          href={t.comprobante_url}
+                          href={comprobanteHref(t.comprobante_url)!}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 text-xs text-orange hover:underline"

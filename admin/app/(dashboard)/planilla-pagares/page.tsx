@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Plus, FileText, CheckCircle, Clock, DollarSign, TrendingUp } from 'lucide-react'
-import { getParesContracts, getParesPaymentsForMonth, toggleParesContract } from '@/lib/actions/pares'
+import { getParesContracts, getParesPaymentsForMonth, toggleParesContract, getContratoSignedUrls } from '@/lib/actions/pares'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -30,6 +30,12 @@ export default async function PlanillaPagaresPage({
 
   const activeContracts = verTodos ? contracts : contracts.filter(c => c.activo)
   const paymentMap = new Map<string, ParesPayment>(payments.map(p => [p.contract_id, p]))
+
+  const contratoUrls = await getContratoSignedUrls(
+    activeContracts.map((c) => c.contract_file_url).filter((u): u is string => !!u)
+  )
+  const contratoHref = (u: string | null) =>
+    !u ? null : u.startsWith('http') ? u : (contratoUrls[u] ?? null)
 
   const pagados    = activeContracts.filter(c => paymentMap.get(c.id)?.pagado).length
   const pendientes = activeContracts.filter(c => !paymentMap.get(c.id)?.pagado).length
@@ -124,9 +130,9 @@ export default async function PlanillaPagaresPage({
                           <PagoRow contractId={c.id} anio={anio} mes={mes} payment={payment} />
                         </td>
                         <td className="table-cell">
-                          {c.contract_file_url ? (
+                          {contratoHref(c.contract_file_url) ? (
                             <a
-                              href={c.contract_file_url}
+                              href={contratoHref(c.contract_file_url)!}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-xs text-orange hover:underline"

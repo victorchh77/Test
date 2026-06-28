@@ -46,8 +46,9 @@ export default function NuevoPagarePage() {
         .upload(path, file, { upsert: false })
       setUploading(false)
       if (upErr) { setError('Error al subir el archivo: ' + upErr.message); setSubmitting(false); return }
-      const { data: { publicUrl } } = supabase.storage.from('pagares-contracts').getPublicUrl(data.path)
-      contract_file_url = publicUrl
+      // Bucket privado: guardamos el path interno, no una URL pública.
+      // La URL firmada se genera al mostrar (ver planilla-pagares/page.tsx).
+      contract_file_url = data.path
     }
 
     const res = await createParesContract({

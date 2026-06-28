@@ -53,8 +53,9 @@ export default function NuevaTransferenciaPage() {
         .upload(path, file, { upsert: false })
       setUploading(false)
       if (upErr) { setError('Error al subir el comprobante: ' + upErr.message); setSubmitting(false); return }
-      const { data: { publicUrl } } = supabase.storage.from('transfer-receipts').getPublicUrl(data.path)
-      comprobante_url = publicUrl
+      // Bucket privado: guardamos el path interno, no una URL pública.
+      // La URL firmada se genera al mostrar (ver transferencias/page.tsx).
+      comprobante_url = data.path
     }
 
     const res = await createTransfer({ monto: montoNum, remitente: remitente.trim() || null, comprobante_url, notas: notas.trim() || null })

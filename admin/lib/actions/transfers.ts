@@ -15,6 +15,25 @@ export async function getTransfers(): Promise<Transfer[]> {
   return (data ?? []) as Transfer[]
 }
 
+/**
+ * Genera URLs firmadas (temporales) para los comprobantes guardados como path
+ * en el bucket privado `transfer-receipts`. Solo admin/secretaria pasan el RLS.
+ * Devuelve un mapa path -> signedUrl. Valores legacy que ya son URL (http) se
+ * ignoran (se usan tal cual en la vista).
+ */
+export async function getComprobanteSignedUrls(paths: string[]): Promise<Record<string, string>> {
+  const clean = paths.filter((p) => p && !p.startsWith('http'))
+  if (!clean.length) return {}
+  const supabase = createClient()
+  const { data, error } = await supabase.storage
+    .from('transfer-receipts')
+    .createSignedUrls(clean, 60 * 60) // 1 hora
+  if (error || !data) return {}
+  const map: Record<string, string> = {}
+  data.forEach((d) => { if (d.path && d.signedUrl) map[d.path] = d.signedUrl })
+  return map
+}
+
 export async function createTransfer(data: {
   monto: number
   remitente: string | null
