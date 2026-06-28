@@ -9,6 +9,7 @@ export const vehicleSchema = z.object({
   precio_compra: z.coerce.number().int().min(1, 'El precio de compra es requerido'),
   precio_venta:  z.coerce.number().int().min(1, 'El precio de venta es requerido'),
   estado:        z.enum(['Disponible', 'Reservado', 'Vendido']),
+  oculto:        z.boolean().optional(),
   descripcion:   z.string().optional(),
   fecha_ingreso: z.string().min(1, 'La fecha de ingreso es requerida'),
   motivo_precio: z.string().optional(),

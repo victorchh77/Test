@@ -20,6 +20,7 @@ export interface Vehicle {
   precio_compra: number
   precio_venta: number
   estado: VehicleStatus
+  oculto: boolean
   descripcion: string | null
   fecha_ingreso: string
   created_by: string | null

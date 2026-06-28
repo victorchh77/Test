@@ -131,6 +131,16 @@ export async function updateVehicle(id: string, formData: VehicleFormData): Prom
   return { data: data as Vehicle }
 }
 
+export async function toggleVehicleVisibility(id: string, oculto: boolean): Promise<ActionResult> {
+  if (!(await isAdmin())) return { error: 'No autorizado: solo administradores pueden cambiar la visibilidad.' }
+  const supabase = createClient()
+  const { error } = await supabase.from('vehicles').update({ oculto }).eq('id', id)
+  if (error) return { error: error.message }
+  revalidatePath('/vehiculos')
+  revalidatePath(`/vehiculos/${id}`)
+  return {}
+}
+
 export async function deleteVehicle(id: string): Promise<ActionResult> {
   if (!(await isAdmin())) return { error: 'No autorizado: solo administradores pueden eliminar vehículos.' }
   const supabase = createClient()

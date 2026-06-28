@@ -30,6 +30,7 @@ export function VehicleForm({ onSubmit, defaultValues, isEdit, loading, error }:
       precio_compra: defaultValues?.precio_compra ?? 0,
       precio_venta:  defaultValues?.precio_venta ?? 0,
       estado:        defaultValues?.estado ?? 'Disponible',
+      oculto:        defaultValues?.oculto ?? false,
       descripcion:   defaultValues?.descripcion ?? '',
       fecha_ingreso: defaultValues?.fecha_ingreso ?? new Date().toISOString().split('T')[0],
     },
@@ -117,6 +118,23 @@ export function VehicleForm({ onSubmit, defaultValues, isEdit, loading, error }:
           placeholder="Ej: Actualización de mercado"
         />
       )}
+
+      {/* Visibilidad en el catálogo web (landing) */}
+      <label className="flex items-start gap-3 cursor-pointer rounded-xl border border-border bg-card-elevated/40 px-4 py-3
+                        hover:border-border-bright transition-colors">
+        <input
+          type="checkbox"
+          {...register('oculto')}
+          className="mt-0.5 w-4 h-4 rounded accent-orange cursor-pointer"
+        />
+        <span className="text-sm">
+          <span className="font-medium text-textprim">Ocultar del catálogo web</span>
+          <span className="block text-xs text-textsec mt-0.5">
+            No aparecerá en la landing page. Útil para vehículos que no están realmente a la venta.
+            (Los vehículos Reservados o Vendidos se ocultan solos del catálogo.)
+          </span>
+        </span>
+      </label>
 
       <Textarea
         {...register('descripcion')}

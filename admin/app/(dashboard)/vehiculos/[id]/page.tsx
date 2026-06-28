@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Edit, TrendingUp } from 'lucide-react'
-import { getVehicle, getVehicleExpenses, getVehiclePriceHistory, getVehiclePhotos } from '@/lib/actions/vehicles'
+import { ArrowLeft, Edit, TrendingUp, Eye, EyeOff } from 'lucide-react'
+import { getVehicle, getVehicleExpenses, getVehiclePriceHistory, getVehiclePhotos, toggleVehicleVisibility } from '@/lib/actions/vehicles'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader } from '@/components/ui/Card'
@@ -30,6 +30,7 @@ export default async function VehicleDetailPage({ params }: { params: { id: stri
 
   if (!vehicle) notFound()
 
+  const visibleEnWeb = vehicle.estado === 'Disponible' && !vehicle.oculto
   const totalGastos = expenses.reduce((a: number, e: any) => a + e.monto, 0)
   const rentabilidad = calcRentabilidad(vehicle.precio_venta, vehicle.precio_compra, totalGastos)
 
@@ -45,14 +46,30 @@ export default async function VehicleDetailPage({ params }: { params: { id: stri
             <h1 className="text-xl font-bold text-textprim">
               {vehicle.marca} {vehicle.modelo} {vehicle.anio}
             </h1>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
               <Badge color={statusBadge[vehicle.estado]}>{vehicle.estado}</Badge>
+              <Badge color={visibleEnWeb ? 'success' : 'default'}>
+                {visibleEnWeb ? 'Visible en web' : 'Oculto en web'}
+              </Badge>
               <span className="text-xs text-textsec">Ingresado el {formatDate(vehicle.fecha_ingreso)}</span>
             </div>
           </div>
         </div>
         {admin && (
           <div className="flex items-center gap-2">
+            {/* Toggle de visibilidad en el catálogo web (solo Disponible puede mostrarse) */}
+            {vehicle.estado === 'Disponible' && (
+              <form action={async () => {
+                'use server'
+                await toggleVehicleVisibility(vehicle.id, !vehicle.oculto)
+              }}>
+                <Button type="submit" variant="secondary" size="sm">
+                  {vehicle.oculto
+                    ? <><Eye className="w-3.5 h-3.5" />Mostrar en web</>
+                    : <><EyeOff className="w-3.5 h-3.5" />Ocultar de web</>}
+                </Button>
+              </form>
+            )}
             <Link href={`/vehiculos/${vehicle.id}/editar`}>
               <Button variant="secondary" size="sm"><Edit className="w-3.5 h-3.5" />Editar</Button>
             </Link>
