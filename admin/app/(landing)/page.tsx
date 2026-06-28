@@ -2,16 +2,16 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
-  Car, Gauge, Calendar, Palette, Wallet, FileText, RefreshCw, KeyRound,
+  Wallet, FileText, RefreshCw, KeyRound,
   ShieldCheck, BadgeCheck, MapPin, Phone, Clock, Star, ArrowRight,
-  CheckCircle2, ChevronRight, MessageCircle, Mail,
+  CheckCircle2, MessageCircle, Mail, Gauge,
 } from 'lucide-react'
 import { LandingNav } from './_components/LandingNav'
 import { Hero } from './_components/Hero'
 import { ContactForm } from './_components/ContactForm'
 import { Reveal, RevealGroup, RevealItem } from './_components/Reveal'
+import { VehicleCard } from './_components/VehicleCard'
 import { getFeaturedVehicles, type FeaturedVehicle } from '@/lib/actions/vehicles'
-import { formatCurrency, formatKm } from '@/lib/utils/format'
 
 export const metadata: Metadata = {
   title: 'VH Group S.R.L. — Concesionaria en Encarnación',
@@ -131,12 +131,12 @@ export default async function LandingPage() {
 
           <Reveal delay={0.1} className="mt-10 text-center">
             <Link
-              href="/login"
+              href="/catalogo"
               className="group inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold
                          bg-card-elevated hover:bg-border text-textprim border border-border hover:border-border-bright
                          transition-all duration-200 active:scale-95"
             >
-              Ver todo el stock
+              Ver todo el catálogo
               <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
             </Link>
           </Reveal>
@@ -383,78 +383,6 @@ function SectionHeading({
       <span className="section-label">{eyebrow}</span>
       <h2 className="mt-3 font-display text-3xl sm:text-4xl font-bold tracking-tight text-textprim">{title}</h2>
       {subtitle && <p className="mt-4 text-textsec leading-relaxed">{subtitle}</p>}
-    </div>
-  )
-}
-
-function VehicleCard({ v }: { v: FeaturedVehicle }) {
-  const available = v.estado === 'Disponible'
-  return (
-    <article className="group relative h-full bg-card border border-border rounded-2xl overflow-hidden
-                        shadow-card hover:border-orange/30 hover:shadow-[0_0_40px_rgba(255,140,0,0.12)]
-                        hover:-translate-y-1 transition-all duration-300">
-      {/* Visual header: foto real si existe, si no degradado + ícono */}
-      <div className="relative h-44 bg-gradient-to-br from-card-elevated to-bg flex items-center justify-center overflow-hidden">
-        {v.fotoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={v.fotoUrl}
-            alt={`${v.marca} ${v.modelo} ${v.anio}`}
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
-          />
-        ) : (
-          <>
-            <div className="absolute inset-0 bg-dots opacity-40" aria-hidden />
-            <Car className="w-20 h-20 text-orange/30 transition-transform duration-500 group-hover:scale-110" />
-          </>
-        )}
-        <span className={`absolute top-3 right-3 px-2.5 py-1 rounded-full text-[11px] font-semibold border z-10
-          ${available
-            ? 'bg-success/10 text-success border-success/30'
-            : 'bg-warning/10 text-warning border-warning/30'}`}>
-          {v.estado}
-        </span>
-      </div>
-
-      <div className="p-5">
-        <p className="text-xs text-textsec">{v.marca} · {v.anio}</p>
-        <h3 className="font-display text-lg font-semibold text-textprim group-hover:text-orange transition-colors">
-          {v.modelo}
-        </h3>
-
-        <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-          <Spec icon={Calendar} label={String(v.anio)} />
-          <Spec icon={Gauge}    label={formatKm(v.km)} />
-          <Spec icon={Palette}  label={v.color ?? '—'} />
-        </div>
-
-        <div className="mt-5 pt-4 border-t border-border/60 flex items-end justify-between">
-          <div>
-            <p className="text-[10px] uppercase tracking-widest text-textmuted">Precio</p>
-            <p className="font-display text-lg font-bold text-orange glow-text-orange tabular">
-              {formatCurrency(v.precio_venta)}
-            </p>
-          </div>
-          <a
-            href="#contacto"
-            className="inline-flex items-center gap-1 text-sm font-semibold text-textprim hover:text-orange
-                       transition-colors group/link"
-          >
-            Consultar
-            <ChevronRight className="w-4 h-4 transition-transform group-hover/link:translate-x-0.5" />
-          </a>
-        </div>
-      </div>
-    </article>
-  )
-}
-
-function Spec({ icon: Icon, label }: { icon: typeof Gauge; label: string }) {
-  return (
-    <div className="flex flex-col items-center gap-1 bg-bg/40 rounded-lg py-2 px-1">
-      <Icon className="w-4 h-4 text-textsec" />
-      <span className="text-[11px] text-textsec leading-tight truncate w-full">{label}</span>
     </div>
   )
 }

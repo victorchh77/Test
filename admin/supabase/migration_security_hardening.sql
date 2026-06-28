@@ -48,7 +48,10 @@ create or replace function public.get_all_profiles_with_email()
 returns table(id uuid, full_name text, username text, role text, email text, created_at timestamp with time zone)
 language plpgsql security definer set search_path to 'public' as $$
 begin
-  if not exists (select 1 from public.profiles where id = auth.uid() and role = 'admin') then
+  if not exists (
+    select 1 from public.profiles p
+    where p.id = auth.uid() and p.role = 'admin'   -- calificado: evita ambigüedad con columnas OUT
+  ) then
     raise exception 'Unauthorized: admin only';
   end if;
   return query
