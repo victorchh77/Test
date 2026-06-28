@@ -59,7 +59,7 @@ The app is **Spanish-language throughout**; all routes, labels, database column 
 
 ### Route Groups
 
-- `app/(landing)/` — Public landing page served at `/`. Loads its own CSS (`/public/landing-style.css`) and JS (`/public/landing-main.js`) via `useEffect` to avoid polluting the dashboard's Tailwind styles.
+- `app/(landing)/` — Public marketing landing page served at `/` (not auth-gated; middleware lets `/` through). Built with the dashboard's own Tailwind design system + Framer Motion. Composed in `page.tsx` (server component) with client islands in `app/(landing)/_components/`: `LandingNav` (sticky glass nav), `Hero` (animated hero + search bar), `ContactForm` (builds a WhatsApp prefill link), and `Reveal`/`RevealGroup`/`RevealItem` (scroll-triggered reveals). Vehicle/stats/services data is mock data inside `page.tsx` — wire it to the real stock when ready. Only asset is `/public/logo.png`; vehicle visuals use gradients + the lucide `Car` icon (no photo assets yet).
 - `app/(auth)/login/` — Login page, outside the dashboard layout.
 - `app/(dashboard)/` — Protected admin panel. All routes here require an authenticated `profiles` row.
 
