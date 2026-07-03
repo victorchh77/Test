@@ -26,9 +26,10 @@ export function VehicleForm({ onSubmit, defaultValues, isEdit, loading, error }:
       modelo:        defaultValues?.modelo ?? '',
       anio:          defaultValues?.anio ?? new Date().getFullYear(),
       km:            defaultValues?.km ?? 0,
-      km_publico:    defaultValues?.km_publico ?? '',
-      color:         defaultValues?.color ?? '',
-      precio_compra: defaultValues?.precio_compra ?? 0,
+      km_publico:     defaultValues?.km_publico ?? '',
+      color:          defaultValues?.color ?? '',
+      numero_chassis: defaultValues?.numero_chassis ?? '',
+      precio_compra:  defaultValues?.precio_compra ?? 0,
       precio_venta:  defaultValues?.precio_venta ?? 0,
       estado:        defaultValues?.estado ?? 'Disponible',
       oculto:        defaultValues?.oculto ?? false,
@@ -85,6 +86,12 @@ export function VehicleForm({ onSubmit, defaultValues, isEdit, loading, error }:
         label="Kilometraje a mostrar en el catálogo web (opcional)"
         placeholder="Ej: Recién importado · Consultar · A confirmar"
         hint="Si lo dejás vacío, el catálogo muestra el km real. Si lo completás, se muestra este texto en su lugar (el km real se mantiene interno en el panel)."
+      />
+
+      <Input
+        {...register('numero_chassis')}
+        label="Número de chasis (opcional)"
+        placeholder="Ej: 9BWZZZ377VT004251"
       />
 
       <div className="grid grid-cols-2 gap-4">

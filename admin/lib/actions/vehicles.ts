@@ -92,7 +92,11 @@ export async function createVehicle(formData: VehicleFormData): Promise<ActionRe
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const { motivo_precio: _omit, ...vehicleData } = formData
-  const payload = { ...vehicleData, km_publico: (vehicleData.km_publico ?? '').trim() || null }
+  const payload = {
+    ...vehicleData,
+    km_publico:     (vehicleData.km_publico     ?? '').trim() || null,
+    numero_chassis: (vehicleData.numero_chassis ?? '').trim() || null,
+  }
   const { data, error } = await supabase
     .from('vehicles')
     .insert({ ...payload, created_by: user?.id })
@@ -107,7 +111,11 @@ export async function updateVehicle(id: string, formData: VehicleFormData): Prom
   if (!(await isAdmin())) return { error: 'No autorizado: solo administradores pueden modificar vehículos.' }
   const supabase = createClient()
   const { motivo_precio, ...vehicleData } = formData
-  const payload = { ...vehicleData, km_publico: (vehicleData.km_publico ?? '').trim() || null }
+  const payload = {
+    ...vehicleData,
+    km_publico:     (vehicleData.km_publico     ?? '').trim() || null,
+    numero_chassis: (vehicleData.numero_chassis ?? '').trim() || null,
+  }
 
   // Capture old price to record history with the reason.
   const { data: old } = await supabase

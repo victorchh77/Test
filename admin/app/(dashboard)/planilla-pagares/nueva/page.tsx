@@ -40,9 +40,10 @@ export default function NuevoPagarePage() {
   const router  = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
 
-  const [clientName, setClientName] = useState('')
-  const [notas, setNotas]           = useState('')
-  const [file, setFile]             = useState<File | null>(null)
+  const [clientName, setClientName]       = useState('')
+  const [chassisNumber, setChassisNumber] = useState('')
+  const [notas, setNotas]                 = useState('')
+  const [file, setFile]                   = useState<File | null>(null)
 
   const [scanning, setScanning]     = useState(false)
   const [scanned, setScanned]       = useState<ScannedContract | null>(null)
@@ -147,6 +148,7 @@ export default function NuevoPagarePage() {
       client_name:       clientName,
       contract_file_url,
       vehiculo:          scanned?.vehiculo ?? null,
+      numero_chassis:    chassisNumber.trim() || null,
       total_precio:      scanned?.totalPrecio ?? null,
       entrada:           scanned?.entrada ?? null,
       notas:             notas.trim() || null,
@@ -276,6 +278,13 @@ export default function NuevoPagarePage() {
             value={clientName}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setClientName(e.target.value)}
             placeholder="Juan Pérez"
+          />
+          <Input
+            label="Número de chasis del vehículo (opcional)"
+            value={chassisNumber}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setChassisNumber(e.target.value)}
+            placeholder="Ej: 9BWZZZ377VT004251"
+            hint="Si lo completás, el contrato se vincula automáticamente al vehículo correspondiente."
           />
           <Textarea
             label="Notas (opcional)"

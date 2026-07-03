@@ -18,6 +18,7 @@ export interface Vehicle {
   km: number
   km_publico: string | null
   color: string | null
+  numero_chassis: string | null
   precio_compra: number
   precio_venta: number
   estado: VehicleStatus
@@ -109,6 +110,8 @@ export interface ParesContract {
   entrada: number | null
   notas: string | null
   activo: boolean
+  client_id: string | null
+  vehicle_id: string | null
   created_by: string | null
   created_at: string
 }

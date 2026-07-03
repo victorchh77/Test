@@ -145,24 +145,51 @@ function parseContractText(text: string): ScannedContract {
 
   // ── Refuerzos ──
   if (refuerzoBlock) {
-    // Busca bloques: (GsX.XXX.XXX) opcionalmente seguidos de una fecha cercana
-    const refAmtRe = /\(Gs([\d.,]+)\)(?:[^(]{0,80}?(\d{1,2}\/\d{2}\/\d{4}))?/g
+    const WORD_NUM: Record<string, number> = {
+      un: 1, uno: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5,
+      seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10,
+    }
+
+    const refAmtRe = /\(Gs([\d.,]+)\)/g
     let rm: RegExpExecArray | null
     let refNum = 1
+
     while ((rm = refAmtRe.exec(refuerzoBlock)) !== null) {
       const monto = parseGuaranies(rm[1])
       if (!monto || monto <= 0) continue
-      // Evitar duplicar el totalPrecio si aparece mencionado de nuevo en la sección
       if (totalPrecio && monto === totalPrecio) continue
       if (entrada && monto === entrada) continue
-      const fecha = rm[2] ? parseDate(rm[2]) : null
-      cuotas.push({
-        tipo: 'refuerzo',
-        numero: refNum++,
-        monto,
-        fecha_vencimiento: fecha,
-        notas: !fecha ? 'A convenir' : null,
-      })
+
+      // Look back up to 160 chars for an explicit count like "(2) pagarés" or "DOS (2)"
+      const before = refuerzoBlock.slice(Math.max(0, rm.index - 160), rm.index)
+      let count = 1
+      const numParenM = before.match(/\((\d+)\)\s*pagar[eé]s?/i)
+      const wordNumM  = before.match(
+        /\b(un|uno|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\s+\((\d+)\)/i,
+      )
+      if (wordNumM) count = parseInt(wordNumM[2]) || WORD_NUM[wordNumM[1].toLowerCase()] || 1
+      else if (numParenM) count = parseInt(numParenM[1]) || 1
+
+      // Collect up to `count` dates from the text following this amount
+      const after = refuerzoBlock.slice(rm.index + rm[0].length, rm.index + rm[0].length + 400)
+      const afterDates: string[] = []
+      const dateRe2 = /(\d{1,2}\/\d{2}\/\d{4})/g
+      let dm: RegExpExecArray | null
+      while ((dm = dateRe2.exec(after)) !== null) {
+        afterDates.push(parseDate(dm[1]))
+        if (afterDates.length >= count) break
+      }
+
+      for (let i = 0; i < count; i++) {
+        const fecha = afterDates[i] ?? null
+        cuotas.push({
+          tipo: 'refuerzo',
+          numero: refNum++,
+          monto,
+          fecha_vencimiento: fecha,
+          notas: !fecha ? 'A convenir' : null,
+        })
+      }
     }
   }
 
@@ -267,6 +294,7 @@ export async function createParesContractWithCuotas(data: {
   client_name: string
   contract_file_url: string | null
   vehiculo: string | null
+  numero_chassis: string | null
   total_precio: number | null
   entrada: number | null
   notas: string | null
@@ -278,6 +306,37 @@ export async function createParesContractWithCuotas(data: {
   if (!data.client_name.trim()) return { error: 'El nombre del cliente es requerido' }
   if (!data.cuotas.length) return { error: 'Debés agregar al menos una cuota' }
 
+  // Auto find-or-create client in clients table
+  let clientId: string | null = null
+  const clientNameTrimmed = data.client_name.trim()
+  const { data: existingClient } = await supabase
+    .from('clients')
+    .select('id')
+    .ilike('nombre', clientNameTrimmed)
+    .maybeSingle()
+  if (existingClient) {
+    clientId = existingClient.id
+  } else {
+    const { data: newClient } = await supabase
+      .from('clients')
+      .insert({ nombre: clientNameTrimmed })
+      .select('id')
+      .single()
+    if (newClient) clientId = newClient.id
+  }
+
+  // Look up vehicle by chassis number
+  let vehicleId: string | null = null
+  const chassisTrimmed = (data.numero_chassis ?? '').trim()
+  if (chassisTrimmed) {
+    const { data: foundVehicle } = await supabase
+      .from('vehicles')
+      .select('id')
+      .eq('numero_chassis', chassisTrimmed)
+      .maybeSingle()
+    if (foundVehicle) vehicleId = foundVehicle.id
+  }
+
   // Derivar dia_pago y monto_mensual desde las cuotas (compatibilidad con schema existente)
   const firstCuota = data.cuotas.find(c => c.tipo === 'cuota') ?? data.cuotas[0]
   const diaPago = firstCuota.fecha_vencimiento
@@ -288,7 +347,7 @@ export async function createParesContractWithCuotas(data: {
   const { data: contract, error: contractErr } = await supabase
     .from('pagares_contracts')
     .insert({
-      client_name:       data.client_name.trim(),
+      client_name:       clientNameTrimmed,
       contract_file_url: data.contract_file_url,
       vehiculo:          data.vehiculo,
       total_precio:      data.total_precio,
@@ -296,6 +355,8 @@ export async function createParesContractWithCuotas(data: {
       notas:             data.notas,
       dia_pago:          diaPago,
       monto_mensual:     montoMensual,
+      client_id:         clientId,
+      vehicle_id:        vehicleId,
       created_by:        user.id,
     })
     .select('id')
@@ -316,6 +377,7 @@ export async function createParesContractWithCuotas(data: {
   if (cuotasErr) return { error: cuotasErr.message }
 
   revalidatePath('/planilla-pagares')
+  revalidatePath('/clientes')
   return { data: null }
 }
 
