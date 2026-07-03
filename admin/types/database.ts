@@ -104,10 +104,31 @@ export interface ParesContract {
   contract_file_url: string | null
   dia_pago: number
   monto_mensual: number
+  vehiculo: string | null
+  total_precio: number | null
+  entrada: number | null
   notas: string | null
   activo: boolean
   created_by: string | null
   created_at: string
+}
+
+export interface ParesCuota {
+  id: string
+  contract_id: string
+  tipo: 'cuota' | 'refuerzo'
+  numero: number
+  monto: number
+  fecha_vencimiento: string | null  // ISO date YYYY-MM-DD or null = "a convenir"
+  pagado: boolean
+  pagado_at: string | null
+  metodo_pago: string | null
+  notas: string | null
+  created_at: string
+}
+
+export interface ParesContractWithCuotas extends ParesContract {
+  cuotas: ParesCuota[]
 }
 
 export interface ParesPayment {
