@@ -265,7 +265,7 @@ export default function FlyersPage() {
     ctx.font = `700 ${Math.floor(W * 0.04)}px Arial`
     ctx.fillText(` ${data.moneda}`, cx + pw, y + cardH * 0.8)
 
-    y += cardH + Math.floor(W * 0.045)
+    y += cardH + Math.floor(W * 0.052)
 
     // Financiación
     if (data.financiado || data.partePago) {
@@ -274,7 +274,7 @@ export default function FlyersPage() {
         : data.financiado
         ? 'Financiamos tu compra a tu medida.'
         : 'Aceptamos vehículos como parte de pago.'
-      const fFont = Math.floor(W * 0.030)
+      const fFont = Math.floor(W * 0.035)
       ctx.fillStyle = 'rgba(255,255,255,0.8)'
       ctx.font = `500 ${fFont}px Arial`
       wrapText(ctx, sentence, W - PAD * 2).forEach(line => {
