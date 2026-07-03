@@ -1,13 +1,18 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Upload, Download, Plus, X, Move, ZoomIn, RotateCcw } from 'lucide-react'
+import { Upload, Download, Plus, X, Move, ZoomIn, RotateCcw, Search, CheckCircle2 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 /* Colores del FLYER (arte exportado — independiente del tema de la app) */
 const ORANGE = '#F97316'
 const ORANGE2 = '#ea580c'
 
 interface Format { id: string; label: string; sub: string; w: number; h: number }
+interface VehicleOption {
+  id: string; marca: string; modelo: string; anio: number
+  km: number; km_publico: string | null; precio_venta: number
+}
 interface FlyerData {
   marca: string; modelo: string; version: string; anio: string; km: string
   precio: string; moneda: string; financiado: boolean; partePago: boolean
@@ -77,6 +82,13 @@ export default function FlyersPage() {
   const [activeTab, setActiveTab] = useState('vehiculo')
   const [newFeat, setNewFeat] = useState('')
 
+  // Vehicle selector
+  const [vehicles, setVehicles] = useState<VehicleOption[]>([])
+  const [loadingVehicles, setLoadingVehicles] = useState(false)
+  const [vehicleSearch, setVehicleSearch] = useState('')
+  const [showVehicleList, setShowVehicleList] = useState(false)
+  const [selectedVehicleName, setSelectedVehicleName] = useState('')
+
   // Posicionamiento de la foto (tipo Canva)
   const [zoom, setZoom] = useState(1)
   const [offset, setOffset] = useState({ x: 0, y: 0 })
@@ -108,6 +120,38 @@ export default function FlyersPage() {
     img.onload = () => setLogoImg(img)
     img.src = '/logo.png'
   }, [])
+
+  useEffect(() => {
+    setLoadingVehicles(true)
+    const supabase = createClient()
+    supabase
+      .from('vehicles')
+      .select('id, marca, modelo, anio, km, km_publico, precio_venta')
+      .not('estado', 'eq', 'Vendido')
+      .order('marca', { ascending: true })
+      .then(({ data }) => {
+        setVehicles((data ?? []) as VehicleOption[])
+        setLoadingVehicles(false)
+      })
+  }, [])
+
+  const filteredVehicles = vehicles.filter(v => {
+    if (!vehicleSearch.trim()) return true
+    const q = vehicleSearch.toLowerCase()
+    return `${v.marca} ${v.modelo} ${v.anio}`.toLowerCase().includes(q)
+  }).slice(0, 8)
+
+  function loadVehicle(v: VehicleOption) {
+    updStr('marca', v.marca.toUpperCase())
+    updStr('modelo', v.modelo.toUpperCase())
+    updStr('anio', String(v.anio))
+    updStr('km', v.km_publico || v.km.toLocaleString('es-PY'))
+    updStr('precio', v.precio_venta.toLocaleString('es-PY'))
+    updStr('version', '')
+    setSelectedVehicleName(`${v.marca} ${v.modelo} ${v.anio}`)
+    setVehicleSearch('')
+    setShowVehicleList(false)
+  }
 
   // Geometría de la foto para el dibujo y el clamp del arrastre
   const photoDraw = useCallback(() => {
@@ -174,7 +218,7 @@ export default function FlyersPage() {
     // Línea de acento naranja entre foto e info
     ctx.fillStyle = ORANGE; ctx.fillRect(0, photoH, W, 3)
 
-    const ctaH = Math.floor(W * 0.105)
+    const ctaH = Math.floor(W * 0.122)
     const ctaY = H - ctaH - PAD * 0.7
     const maxY = ctaY - 8
 
@@ -218,7 +262,7 @@ export default function FlyersPage() {
     ctx.font = `700 ${Math.floor(W * 0.04)}px Arial`
     ctx.fillText(` ${data.moneda}`, cx + pw, y + cardH * 0.8)
 
-    y += cardH + Math.floor(W * 0.045)
+    y += cardH + Math.floor(W * 0.030)
 
     // Financiación
     if (data.financiado || data.partePago) {
@@ -233,14 +277,14 @@ export default function FlyersPage() {
       wrapText(ctx, sentence, W - PAD * 2).forEach(line => {
         if (y < maxY) { ctx.fillText(line, PAD, y); y += Math.floor(fFont * 1.5) }
       })
-      y += Math.floor(W * 0.018)
+      y += Math.floor(W * 0.010)
     }
 
     // Divisor
-    if (y < maxY - 30) {
+    if (y < maxY - 20) {
       ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1
       ctx.beginPath(); ctx.moveTo(PAD, y); ctx.lineTo(W - PAD, y); ctx.stroke()
-      y += Math.floor(W * 0.045)
+      y += Math.floor(W * 0.026)
     }
 
     // Características — se ajustan al espacio disponible
@@ -259,15 +303,34 @@ export default function FlyersPage() {
       y += fLineH * wrapped.length + Math.floor(fSize * 0.3)
     }
 
-    // CTA WhatsApp
-    roundRect(ctx, PAD, ctaY, W - PAD * 2, ctaH, 11)
-    const ctaGrad = ctx.createLinearGradient(PAD, ctaY, W - PAD, ctaY)
-    ctaGrad.addColorStop(0, '#16a34a'); ctaGrad.addColorStop(1, '#15803d')
-    ctx.fillStyle = ctaGrad; ctx.fill()
+    // CTA WhatsApp — premium dark with green accents
+    roundRect(ctx, PAD, ctaY, W - PAD * 2, ctaH, 16)
+    ctx.fillStyle = '#0D1812'
+    ctx.fill()
+    ctx.strokeStyle = 'rgba(37,211,102,0.45)'
+    ctx.lineWidth = 1.5
+    ctx.stroke()
+
+    // Green circle "WA" badge on left
+    const circR = Math.floor(ctaH * 0.30)
+    const circX = PAD + Math.floor(ctaH * 0.58)
+    const circY = ctaY + Math.floor(ctaH * 0.50)
+    ctx.beginPath(); ctx.arc(circX, circY, circR, 0, Math.PI * 2)
+    ctx.fillStyle = '#25D366'; ctx.fill()
     ctx.fillStyle = '#fff'
+    ctx.font = `900 ${Math.floor(circR * 0.88)}px Arial`
     ctx.textAlign = 'center'
-    ctx.font = `bold ${Math.floor(W * 0.035)}px Arial`
-    ctx.fillText(`WhatsApp   ${data.whatsapp}`, W / 2, ctaY + ctaH * 0.63)
+    ctx.fillText('WA', circX, circY + Math.floor(circR * 0.36))
+
+    // Text block to the right of badge
+    const txtX = PAD + Math.floor(ctaH * 1.18)
+    ctx.textAlign = 'left'
+    ctx.fillStyle = '#25D366'
+    ctx.font = `600 ${Math.floor(W * 0.027)}px Arial`
+    ctx.fillText('WhatsApp', txtX, ctaY + Math.floor(ctaH * 0.40))
+    ctx.fillStyle = '#ffffff'
+    ctx.font = `800 ${Math.floor(W * 0.038)}px Arial`
+    ctx.fillText(data.whatsapp, txtX, ctaY + Math.floor(ctaH * 0.76))
 
     // Barra inferior naranja
     ctx.fillStyle = ORANGE; ctx.fillRect(0, H - 3, W, 3)
@@ -400,6 +463,51 @@ export default function FlyersPage() {
         <div className="px-4 py-3 flex-1">
           {activeTab === 'vehiculo' && (
             <div className="flex flex-col gap-3">
+              {/* Vehicle from panel selector */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className={labelCls}>Cargar del panel</label>
+                  {loadingVehicles && <span className="text-[9px] text-textmuted animate-pulse">cargando...</span>}
+                </div>
+                <div className="relative">
+                  <input
+                    value={vehicleSearch}
+                    onChange={e => { setVehicleSearch(e.target.value); setShowVehicleList(true) }}
+                    onFocus={() => setShowVehicleList(true)}
+                    onBlur={() => setTimeout(() => setShowVehicleList(false), 150)}
+                    placeholder="Buscar marca o modelo..."
+                    className={`${inpCls} pr-8`}
+                  />
+                  <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-textmuted pointer-events-none" />
+                  {showVehicleList && filteredVehicles.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-sidebar border border-border rounded-lg shadow-xl z-50 max-h-44 overflow-y-auto scrollbar-thin">
+                      {filteredVehicles.map(v => (
+                        <button
+                          key={v.id}
+                          onMouseDown={() => loadVehicle(v)}
+                          className="w-full text-left px-3 py-2 text-xs hover:bg-card/80 transition-colors border-b border-border/40 last:border-0 flex items-center gap-2"
+                        >
+                          <span className="w-6 h-6 rounded bg-orange/10 text-orange text-[8px] font-black flex items-center justify-center flex-shrink-0">
+                            {v.marca.slice(0, 2).toUpperCase()}
+                          </span>
+                          <div>
+                            <div className="font-semibold text-textprim">{v.marca} {v.modelo}</div>
+                            <div className="text-textmuted text-[9px]">{v.anio} · Gs {v.precio_venta.toLocaleString('es-PY')}</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {selectedVehicleName && (
+                  <p className="text-[9px] text-success mt-1 flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" /> {selectedVehicleName}
+                  </p>
+                )}
+              </div>
+
+              <div className="h-px bg-border/50" />
+
               {vehicleFields.map(([label, key]) => (
                 <div key={key}>
                   <label className={labelCls}>{label}</label>
