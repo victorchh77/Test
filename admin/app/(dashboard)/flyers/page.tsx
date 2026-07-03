@@ -220,7 +220,10 @@ export default function FlyersPage() {
 
     const ctaH = Math.floor(W * 0.122)
     const ctaY = H - ctaH - PAD * 0.7
-    const maxY = ctaY - 8
+    // Reserve a brand-footer strip between features and WA button
+    const footerH = Math.floor(W * 0.058)
+    const footerY = ctaY - footerH - Math.floor(W * 0.016)
+    const maxY = footerY - Math.floor(W * 0.014)
 
     let y = photoH + PAD + Math.floor(W * 0.055)
     ctx.textAlign = 'left'
@@ -287,10 +290,15 @@ export default function FlyersPage() {
       y += Math.floor(W * 0.026)
     }
 
-    // Características — se ajustan al espacio disponible
-    const fSize = Math.floor(W * (isStory ? 0.034 : isFeed ? 0.03 : 0.032))
-    const fLineH = Math.floor(fSize * 1.5)
-    const textX = PAD + Math.floor(fSize * 1.4)
+    // Características — espaciado adaptativo para llenar el espacio disponible
+    const fSize = Math.floor(W * (isStory ? 0.034 : isFeed ? 0.030 : 0.032))
+    const textX  = PAD + Math.floor(fSize * 1.4)
+    const availForFeatures = maxY - y
+    const fLineHBase = Math.floor(fSize * 1.62)
+    const fLineHMax  = Math.floor(fSize * 2.45)
+    const fLineH = data.features.length > 0
+      ? Math.min(fLineHMax, Math.max(fLineHBase, Math.floor(availForFeatures / data.features.length)))
+      : fLineHBase
     for (const feat of data.features) {
       const wrapped = wrapText(ctx, feat, W - textX - PAD)
       if (y + fLineH * wrapped.length > maxY) break
@@ -300,7 +308,23 @@ export default function FlyersPage() {
       ctx.fillStyle = 'rgba(255,255,255,0.92)'
       ctx.font = `400 ${fSize}px Arial`
       wrapped.forEach((line, li) => ctx.fillText(line, textX, y + li * fLineH))
-      y += fLineH * wrapped.length + Math.floor(fSize * 0.3)
+      y += fLineH * wrapped.length
+    }
+
+    // Footer de marca — siempre visible, elimina el espacio muerto
+    ctx.fillStyle = 'rgba(249,115,22,0.06)'
+    ctx.fillRect(0, footerY, W, footerH)
+    ctx.strokeStyle = 'rgba(249,115,22,0.22)'; ctx.lineWidth = 1
+    ctx.beginPath(); ctx.moveTo(0, footerY); ctx.lineTo(W, footerY); ctx.stroke()
+    ctx.textAlign = 'left'
+    ctx.fillStyle = 'rgba(255,255,255,0.38)'
+    ctx.font = `700 ${Math.floor(W * 0.026)}px Arial`
+    ctx.fillText('VH GROUP S.R.L.', PAD, footerY + footerH * 0.63)
+    if (data.ciudad) {
+      const vhW = ctx.measureText('VH GROUP S.R.L.').width
+      ctx.fillStyle = 'rgba(255,255,255,0.20)'
+      ctx.font = `400 ${Math.floor(W * 0.024)}px Arial`
+      ctx.fillText(`  ·  ${data.ciudad}`, PAD + vhW, footerY + footerH * 0.63)
     }
 
     // CTA WhatsApp — premium dark with green accents
