@@ -265,7 +265,7 @@ export default function FlyersPage() {
     ctx.font = `700 ${Math.floor(W * 0.04)}px Arial`
     ctx.fillText(` ${data.moneda}`, cx + pw, y + cardH * 0.8)
 
-    y += cardH + Math.floor(W * 0.024)
+    y += cardH + Math.floor(W * 0.033)
 
     // Financiación
     if (data.financiado || data.partePago) {
@@ -280,10 +280,10 @@ export default function FlyersPage() {
       wrapText(ctx, sentence, W - PAD * 2).forEach(line => {
         if (y < maxY) { ctx.fillText(line, PAD, y); y += Math.floor(fFont * 1.5) }
       })
-      y += Math.floor(W * 0.014)
+      y += Math.floor(W * 0.006)
     }
 
-    // Divisor — con espacio claro bajo el texto de financiamiento
+    // Divisor — justo debajo del texto de financiamiento
     if (y < maxY - 20) {
       ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1
       ctx.beginPath(); ctx.moveTo(PAD, y); ctx.lineTo(W - PAD, y); ctx.stroke()
