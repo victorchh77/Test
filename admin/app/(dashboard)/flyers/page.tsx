@@ -265,7 +265,7 @@ export default function FlyersPage() {
     ctx.font = `700 ${Math.floor(W * 0.04)}px Arial`
     ctx.fillText(` ${data.moneda}`, cx + pw, y + cardH * 0.8)
 
-    y += cardH + Math.floor(W * 0.030)
+    y += cardH + Math.floor(W * 0.046)
 
     // Financiación
     if (data.financiado || data.partePago) {
@@ -280,14 +280,14 @@ export default function FlyersPage() {
       wrapText(ctx, sentence, W - PAD * 2).forEach(line => {
         if (y < maxY) { ctx.fillText(line, PAD, y); y += Math.floor(fFont * 1.5) }
       })
-      y += Math.floor(W * 0.010)
+      y += Math.floor(W * 0.003)
     }
 
-    // Divisor
+    // Divisor — pegado al texto de financiamiento
     if (y < maxY - 20) {
       ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 1
       ctx.beginPath(); ctx.moveTo(PAD, y); ctx.lineTo(W - PAD, y); ctx.stroke()
-      y += Math.floor(W * 0.026)
+      y += Math.floor(W * 0.030)
     }
 
     // Características — espaciado adaptativo para llenar el espacio disponible
@@ -297,7 +297,7 @@ export default function FlyersPage() {
     const fLineHBase = Math.floor(fSize * 1.62)
     const fLineHMax  = Math.floor(fSize * 2.45)
     const fLineH = data.features.length > 0
-      ? Math.min(fLineHMax, Math.max(fLineHBase, Math.floor(availForFeatures / data.features.length)))
+      ? Math.min(fLineHMax, Math.max(fLineHBase, Math.ceil(availForFeatures / data.features.length)))
       : fLineHBase
     for (const feat of data.features) {
       const wrapped = wrapText(ctx, feat, W - textX - PAD)
