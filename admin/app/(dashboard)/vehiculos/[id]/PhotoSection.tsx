@@ -60,7 +60,7 @@ export function PhotoSection({ vehicleId, photos: initialPhotos, canEdit = false
 
   async function handleDelete(photo: VehiclePhoto) {
     if (!confirm('¿Eliminar esta foto?')) return
-    await deleteVehiclePhoto(photo.id, photo.storage_path, vehicleId)
+    await deleteVehiclePhoto(photo.id, vehicleId)
     setPhotos(p => p.filter(x => x.id !== photo.id))
   }
 

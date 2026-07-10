@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { isAdminOrSecretary } from '@/lib/auth/roles'
 import type { ParesContract, ParesCuota, ParesContractWithCuotas, ParesPayment, ActionResult } from '@/types'
 
 // ── Tipos del escáner ─────────────────────────────────────────────────────
@@ -217,6 +218,7 @@ function parseContractText(text: string): ScannedContract {
 // ── Escáner de contrato ───────────────────────────────────────────────────
 
 export async function scanParesContract(formData: FormData): Promise<ActionResult<ScannedContract>> {
+  if (!(await isAdminOrSecretary())) return { error: 'No autorizado' }
   const file = formData.get('file') as File | null
   if (!file) return { error: 'No se recibió archivo' }
 
