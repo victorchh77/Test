@@ -50,6 +50,7 @@ export async function addVehicleToPriceList(
     precio_financiado_12?: number | null
     precio_financiado_18?: number | null
     precio_financiado_24?: number | null
+    precio_financiado_30?: number | null
     entrega?: number | null
   },
   notas?: string,
@@ -65,6 +66,7 @@ export async function addVehicleToPriceList(
     precio_financiado_12: prices.precio_financiado_12 ?? null,
     precio_financiado_18: prices.precio_financiado_18 ?? null,
     precio_financiado_24: prices.precio_financiado_24 ?? null,
+    precio_financiado_30: prices.precio_financiado_30 ?? null,
     entrega: prices.entrega ?? null,
     notas: notas ?? null,
   })

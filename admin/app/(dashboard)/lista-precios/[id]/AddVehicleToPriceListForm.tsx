@@ -25,6 +25,7 @@ export function AddVehicleToPriceListForm({ priceListId, vehicles }: Props) {
   const [f12, setF12] = useState('')
   const [f18, setF18] = useState('')
   const [f24, setF24] = useState('')
+  const [f30, setF30] = useState('')
   const [entrega, setEntrega] = useState('')
   const [notas, setNotas] = useState('')
   const [loading, setLoading] = useState(false)
@@ -45,6 +46,7 @@ export function AddVehicleToPriceListForm({ priceListId, vehicles }: Props) {
         precio_financiado_12: numOrNull(f12),
         precio_financiado_18: numOrNull(f18),
         precio_financiado_24: numOrNull(f24),
+        precio_financiado_30: numOrNull(f30),
         entrega: numOrNull(entrega),
       },
       notas || undefined,
@@ -53,7 +55,7 @@ export function AddVehicleToPriceListForm({ priceListId, vehicles }: Props) {
     if (result.error) setError(result.error)
     else {
       setVehicleId(''); setP1(''); setP2(''); setPLista('')
-      setF12(''); setF18(''); setF24(''); setEntrega(''); setNotas('')
+      setF12(''); setF18(''); setF24(''); setF30(''); setEntrega(''); setNotas('')
     }
   }
 
@@ -94,11 +96,14 @@ export function AddVehicleToPriceListForm({ priceListId, vehicles }: Props) {
 
       {/* Financed prices (total cost) + Entrega */}
       <p className="text-xs font-semibold text-textsec uppercase tracking-wider mb-2">Financiado (costo total)</p>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-2">
         <Input label="Entrega (Gs.)"        type="number" value={entrega} onChange={e => setEntrega(e.target.value)} placeholder="0" />
         <Input label="12 cuotas (Gs. total)" type="number" value={f12}    onChange={e => setF12(e.target.value)}    placeholder="0" />
         <Input label="18 cuotas (Gs. total)" type="number" value={f18}    onChange={e => setF18(e.target.value)}    placeholder="0" />
+      </div>
+      <div className="grid grid-cols-2 gap-3 mb-4">
         <Input label="24 cuotas (Gs. total)" type="number" value={f24}    onChange={e => setF24(e.target.value)}    placeholder="0" />
+        <Input label="30 cuotas (Gs. total)" type="number" value={f30}    onChange={e => setF30(e.target.value)}    placeholder="0" />
       </div>
 
       <Input label="Notas (opcional)" value={notas} onChange={e => setNotas(e.target.value)} placeholder="Condición, etc." />
