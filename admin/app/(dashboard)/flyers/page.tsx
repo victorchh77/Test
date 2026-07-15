@@ -12,13 +12,14 @@ interface Format { id: string; label: string; sub: string; w: number; h: number 
 interface VehicleOption {
   id: string; marca: string; modelo: string; anio: number
   km: number; km_publico: string | null; precio_venta: number
+  descripcion: string | null
 }
 interface FlyerData {
   marca: string; modelo: string; version: string; anio: string; km: string
   precio: string; moneda: string; financiado: boolean; partePago: boolean
-  whatsapp: string; ciudad: string; features: string[]
+  ciudad: string; features: string[]
 }
-type StrKey = 'marca' | 'modelo' | 'version' | 'anio' | 'km' | 'precio' | 'moneda' | 'whatsapp' | 'ciudad'
+type StrKey = 'marca' | 'modelo' | 'version' | 'anio' | 'km' | 'precio' | 'moneda' | 'ciudad'
 type BoolKey = 'financiado' | 'partePago'
 
 const FORMATS: Format[] = [
@@ -98,7 +99,7 @@ export default function FlyersPage() {
     marca: 'TOYOTA', modelo: 'HILUX', version: 'SRV 4x4',
     anio: '2014', km: '154.000', precio: '185.000.000',
     moneda: 'Gs', financiado: true, partePago: true,
-    whatsapp: '+595 971 XXX XXX', ciudad: 'Encarnación',
+    ciudad: 'Encarnación',
     features: [
       'Motor 3.0 Turbo Intercooler 4x4',
       'Mecánico Full',
@@ -126,7 +127,7 @@ export default function FlyersPage() {
     const supabase = createClient()
     supabase
       .from('vehicles')
-      .select('id, marca, modelo, anio, km, km_publico, precio_venta')
+      .select('id, marca, modelo, anio, km, km_publico, precio_venta, descripcion')
       .not('estado', 'eq', 'Vendido')
       .order('marca', { ascending: true })
       .then(({ data }) => {
@@ -141,16 +142,36 @@ export default function FlyersPage() {
     return `${v.marca} ${v.modelo} ${v.anio}`.toLowerCase().includes(q)
   }).slice(0, 8)
 
-  function loadVehicle(v: VehicleOption) {
+  async function loadVehicle(v: VehicleOption) {
     updStr('marca', v.marca.toUpperCase())
     updStr('modelo', v.modelo.toUpperCase())
     updStr('anio', String(v.anio))
     updStr('km', v.km_publico || v.km.toLocaleString('es-PY'))
     updStr('precio', v.precio_venta.toLocaleString('es-PY'))
     updStr('version', '')
+    if (v.descripcion) {
+      const feats = v.descripcion.split('\n').map(s => s.trim()).filter(Boolean)
+      updFeatures(feats.length > 0 ? feats : [])
+    } else {
+      updFeatures([])
+    }
     setSelectedVehicleName(`${v.marca} ${v.modelo} ${v.anio}`)
     setVehicleSearch('')
     setShowVehicleList(false)
+
+    const supabase = createClient()
+    const { data: photos } = await supabase
+      .from('vehicle_photos')
+      .select('url')
+      .eq('vehicle_id', v.id)
+      .eq('is_main', true)
+      .limit(1)
+    if (photos && photos[0]?.url) {
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+      img.onload = () => { setPhotoImg(img); setPhotoLoaded(true); setZoom(1); setOffset({ x: 0, y: 0 }) }
+      img.src = photos[0].url
+    }
   }
 
   // Geometría de la foto para el dibujo y el clamp del arrastre
@@ -218,11 +239,8 @@ export default function FlyersPage() {
     // Línea de acento naranja entre foto e info
     ctx.fillStyle = ORANGE; ctx.fillRect(0, photoH, W, 3)
 
-    const ctaH = Math.floor(W * 0.122)
-    const ctaY = H - ctaH - PAD * 0.7
-    // Reserve a brand-footer strip between features and WA button
     const footerH = Math.floor(W * 0.058)
-    const footerY = ctaY - footerH - Math.floor(W * 0.016)
+    const footerY = H - footerH - Math.floor(W * 0.028)
     const maxY = footerY - Math.floor(W * 0.014)
 
     let y = photoH + PAD + Math.floor(W * 0.055)
@@ -326,35 +344,6 @@ export default function FlyersPage() {
       ctx.font = `400 ${Math.floor(W * 0.024)}px Arial`
       ctx.fillText(`  ·  ${data.ciudad}`, PAD + vhW, footerY + footerH * 0.63)
     }
-
-    // CTA WhatsApp — premium dark with green accents
-    roundRect(ctx, PAD, ctaY, W - PAD * 2, ctaH, 16)
-    ctx.fillStyle = '#0D1812'
-    ctx.fill()
-    ctx.strokeStyle = 'rgba(37,211,102,0.45)'
-    ctx.lineWidth = 1.5
-    ctx.stroke()
-
-    // Green circle "WA" badge on left
-    const circR = Math.floor(ctaH * 0.30)
-    const circX = PAD + Math.floor(ctaH * 0.58)
-    const circY = ctaY + Math.floor(ctaH * 0.50)
-    ctx.beginPath(); ctx.arc(circX, circY, circR, 0, Math.PI * 2)
-    ctx.fillStyle = '#25D366'; ctx.fill()
-    ctx.fillStyle = '#fff'
-    ctx.font = `900 ${Math.floor(circR * 0.88)}px Arial`
-    ctx.textAlign = 'center'
-    ctx.fillText('WA', circX, circY + Math.floor(circR * 0.36))
-
-    // Text block to the right of badge
-    const txtX = PAD + Math.floor(ctaH * 1.18)
-    ctx.textAlign = 'left'
-    ctx.fillStyle = '#25D366'
-    ctx.font = `600 ${Math.floor(W * 0.027)}px Arial`
-    ctx.fillText('WhatsApp', txtX, ctaY + Math.floor(ctaH * 0.40))
-    ctx.fillStyle = '#ffffff'
-    ctx.font = `800 ${Math.floor(W * 0.038)}px Arial`
-    ctx.fillText(data.whatsapp, txtX, ctaY + Math.floor(ctaH * 0.76))
 
     // Barra inferior naranja
     ctx.fillStyle = ORANGE; ctx.fillRect(0, H - 3, W, 3)
@@ -571,10 +560,6 @@ export default function FlyersPage() {
                     {data[key] ? '✓' : '○'} {key === 'financiado' ? 'Financiamos' : 'Parte de pago'}
                   </button>
                 ))}
-              </div>
-              <div>
-                <label className={labelCls}>WhatsApp</label>
-                <input value={data.whatsapp} onChange={e => updStr('whatsapp', e.target.value)} className={inpCls} />
               </div>
             </div>
           )}
