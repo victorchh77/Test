@@ -44,7 +44,15 @@ function chunkArr<T>(arr: T[], size: number): T[][] {
   return chunks
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const secret = process.env.CRON_SECRET
+  if (secret) {
+    const auth = request.headers.get('authorization')
+    if (auth !== `Bearer ${secret}`) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
+  }
+
   try {
     const supabase = createClient(
       process.env.SUPABASE_URL!,

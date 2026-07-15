@@ -17,7 +17,15 @@ function getDate(props: any, key: string): string | null {
   return props[key]?.date?.start ?? null
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const secret = process.env.CRON_SECRET
+  if (secret) {
+    const auth = request.headers.get('authorization')
+    if (auth !== `Bearer ${secret}`) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
+  }
+
   try {
     const notion = new Client({ auth: process.env.NOTION_API_KEY })
 
