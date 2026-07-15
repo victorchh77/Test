@@ -22,20 +22,24 @@ function formatGs(n: number): string {
 }
 
 function buildPost(v: any): string {
-  const km = v.km_publico != null ? v.km_publico : v.km
-  const lines = [
+  const descLines = (v.descripcion as string)
+    .split('\n')
+    .map((s: string) => s.trim())
+    .filter(Boolean)
+  return [
     `✴️${v.marca} ${v.modelo} Año ${v.anio}`,
-    `✅Recién Importado`,
-    `✅Motor: Automático Full`,
-    `✅Interior Oscuro`,
-    `✅Impecable Estado`,
-    `✅KM: ${km ? formatGs(km) : '—'} km`,
-    `✅Color: ${v.color ?? '—'}`,
-  ]
-  if (v.descripcion) lines.push(`✅${v.descripcion}`)
-  lines.push(`✅Aceptamos vehículo por parte de pago y financiamos`)
-  lines.push(`✴️Precio contado: ${v.precio_venta ? formatGs(v.precio_venta) : '—'} Gs.`)
-  return lines.join('\n')
+    ...descLines,
+    ``,
+    `✴️Precio contado: ${v.precio_venta ? formatGs(v.precio_venta) : '—'} Gs.`,
+    `✅Aceptamos vehículo por parte de pago y financiamos`,
+  ].join('\n')
+}
+
+function hasGoodDesc(v: any): boolean {
+  if (!v.descripcion) return false
+  const d = v.descripcion.trim()
+  if (d.length < 30) return false
+  return true
 }
 
 function chunkArr<T>(arr: T[], size: number): T[][] {
@@ -60,17 +64,21 @@ export async function GET(request: Request) {
     )
     const notion = new Client({ auth: process.env.NOTION_API_KEY })
 
-    const { data: vehicles, error } = await supabase
+    const { data: allVehicles, error } = await supabase
       .from('vehicles')
-      .select('id, marca, modelo, anio, km, km_publico, color, precio_venta, descripcion, fecha_ingreso')
+      .select('id, marca, modelo, anio, precio_venta, descripcion, fecha_ingreso')
       .eq('estado', 'Disponible')
       .eq('oculto', false)
+      .not('descripcion', 'is', null)
       .order('fecha_ingreso', { ascending: false })
-      .limit(10)
+      .limit(30)
 
     if (error) throw new Error(`Supabase: ${error.message}`)
-    if (!vehicles || vehicles.length === 0) {
-      return NextResponse.json({ ok: true, message: 'Sin vehículos disponibles.' })
+
+    const vehicles = (allVehicles ?? []).filter(hasGoodDesc).slice(0, 10)
+
+    if (vehicles.length === 0) {
+      return NextResponse.json({ ok: true, message: 'Sin vehículos con descripción disponibles.' })
     }
 
     const posts = vehicles.map((v: any) => ({ vehicle: v, post: buildPost(v) }))
