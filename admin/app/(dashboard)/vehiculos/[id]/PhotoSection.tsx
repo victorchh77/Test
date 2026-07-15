@@ -9,6 +9,32 @@ import type { VehiclePhoto } from '@/types'
 
 interface Props { vehicleId: string; photos: VehiclePhoto[]; canEdit?: boolean }
 
+async function compressImage(file: File): Promise<File> {
+  const MAX_DIM = 1920
+  const QUALITY = 0.82
+  return new Promise((resolve) => {
+    const img = document.createElement('img')
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      const scale = Math.min(1, MAX_DIM / Math.max(img.width, img.height))
+      const w = Math.round(img.width * scale)
+      const h = Math.round(img.height * scale)
+      const canvas = document.createElement('canvas')
+      canvas.width = w
+      canvas.height = h
+      canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
+      canvas.toBlob(
+        blob => resolve(new File([blob!], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' })),
+        'image/jpeg',
+        QUALITY,
+      )
+    }
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file) }
+    img.src = url
+  })
+}
+
 export function PhotoSection({ vehicleId, photos: initialPhotos, canEdit = false }: Props) {
   const MAX_PHOTOS = 10
   const [photos, setPhotos] = useState(initialPhotos)
@@ -37,9 +63,11 @@ export function PhotoSection({ vehicleId, photos: initialPhotos, canEdit = false
     let uploaded = 0
     let firstError = ''
     for (let i = 0; i < toUpload.length; i++) {
+      setProgress(`Procesando ${i + 1} de ${toUpload.length}…`)
+      const compressed = await compressImage(toUpload[i])
       setProgress(`Subiendo ${i + 1} de ${toUpload.length}…`)
       const fd = new FormData()
-      fd.append('file', toUpload[i])
+      fd.append('file', compressed)
       // First photo of an empty gallery becomes the main one.
       fd.append('is_main', photos.length === 0 && i === 0 ? 'true' : 'false')
       const result = await uploadVehiclePhoto(vehicleId, fd)
