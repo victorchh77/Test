@@ -1,3 +1,5 @@
+import { withSentryConfig } from '@sentry/nextjs'
+
 /** @type {import('next').NextConfig} */
 
 // Orígenes permitidos para invocar Server Actions (anti-CSRF / cross-origin).
@@ -40,4 +42,19 @@ const nextConfig = {
   },
 }
 
-export default nextConfig
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+
+  // Silencia el log del build de Sentry (source maps, etc.) salvo en CI.
+  silent: !process.env.CI,
+
+  // No falla el build si faltan las variables de Sentry (org/project/token):
+  // así el proyecto sigue armando incluso antes de configurar Sentry en Vercel.
+  disableLogger: true,
+  widenClientFileUpload: true,
+
+  // Evita que el navegador bloquee el tunnel de Sentry vía ad-blockers.
+  tunnelRoute: '/monitoring',
+})
