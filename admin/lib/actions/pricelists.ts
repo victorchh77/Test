@@ -78,7 +78,7 @@ export async function addVehicleToPriceList(
 export async function removeFromPriceList(itemId: string, priceListId: string): Promise<ActionResult> {
   if (!(await isAdminOrSecretary())) return NO_AUTH
   const supabase = createClient()
-  const { error } = await supabase.from('price_list_items').delete().eq('id', itemId)
+  const { error } = await supabase.from('price_list_items').delete().eq('id', itemId).eq('price_list_id', priceListId)
   if (error) return { error: error.message }
   revalidatePath(`/lista-precios/${priceListId}`)
   return {}

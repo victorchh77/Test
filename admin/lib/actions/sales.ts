@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { isAdminOrSecretary } from '@/lib/auth/roles'
 import type { SaleFormData } from '@/lib/validations/sale'
 import type { ActionResult } from '@/types'
 
@@ -19,6 +20,7 @@ export async function getSales(fromDate?: string, toDate?: string) {
 }
 
 export async function createSale(formData: SaleFormData): Promise<ActionResult> {
+  if (!(await isAdminOrSecretary())) return { error: 'No autorizado: solo administradores y secretaría pueden registrar ventas.' }
   const supabase = createClient()
 
   const { error } = await supabase.from('sales').insert({

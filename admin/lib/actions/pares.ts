@@ -302,6 +302,7 @@ export async function createParesContractWithCuotas(data: {
   notas: string | null
   cuotas: CreateCuotaInput[]
 }): Promise<ActionResult> {
+  if (!(await isAdminOrSecretary())) return { error: 'No autorizado' }
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autenticado' }
@@ -388,6 +389,7 @@ export async function toggleCuotaPagada(
   pagado: boolean,
   metodoPago: string | null,
 ): Promise<ActionResult> {
+  if (!(await isAdminOrSecretary())) return { error: 'No autorizado' }
   const supabase = createClient()
   const { error } = await supabase
     .from('pagares_cuotas')
@@ -406,6 +408,7 @@ export async function addCuotaToContract(
   contractId: string,
   cuota: CreateCuotaInput,
 ): Promise<ActionResult> {
+  if (!(await isAdminOrSecretary())) return { error: 'No autorizado' }
   const supabase = createClient()
   const { error } = await supabase.from('pagares_cuotas').insert({
     contract_id:       contractId,
@@ -421,6 +424,7 @@ export async function addCuotaToContract(
 }
 
 export async function toggleParesContract(id: string, activo: boolean): Promise<ActionResult> {
+  if (!(await isAdminOrSecretary())) return { error: 'No autorizado' }
   const supabase = createClient()
   const { error } = await supabase
     .from('pagares_contracts')
@@ -478,6 +482,7 @@ export async function upsertParesPayment(
   pagado: boolean,
   metodo_pago: string | null,
 ): Promise<ActionResult> {
+  if (!(await isAdminOrSecretary())) return { error: 'No autorizado' }
   const supabase = createClient()
   const { error } = await supabase.from('pagares_payments').upsert(
     {

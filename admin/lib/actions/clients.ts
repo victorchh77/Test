@@ -20,6 +20,7 @@ export async function getClient(id: string) {
 }
 
 export async function createClient_(formData: ClientFormData): Promise<ActionResult<Client>> {
+  if (!(await isAdminOrSecretary())) return { error: 'No autorizado: solo administradores y secretaría pueden crear clientes.' }
   const supabase = createClient()
   const { data, error } = await supabase
     .from('clients')
