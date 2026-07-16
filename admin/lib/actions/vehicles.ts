@@ -5,7 +5,8 @@ import { createPublicClient, isPublicSupabaseConfigured } from '@/lib/supabase/p
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { isAdmin } from '@/lib/auth/roles'
-import type { VehicleFormData } from '@/lib/validations/vehicle'
+import { vehicleSchema, type VehicleFormData } from '@/lib/validations/vehicle'
+import { parseInput } from '@/lib/validations/parse'
 import type { ActionResult, Vehicle, SaleWithDetails, VehicleStatus } from '@/types'
 
 export interface FeaturedVehicle {
@@ -89,9 +90,11 @@ export async function getVehicle(id: string) {
 
 export async function createVehicle(formData: VehicleFormData): Promise<ActionResult<Vehicle>> {
   if (!(await isAdmin())) return { error: 'No autorizado: solo administradores pueden agregar vehículos.' }
+  const parsed = parseInput(vehicleSchema, formData)
+  if (!parsed.success) return { error: parsed.error }
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  const { motivo_precio: _omit, ...vehicleData } = formData
+  const { motivo_precio: _omit, ...vehicleData } = parsed.data
   const payload = {
     ...vehicleData,
     km_publico:     (vehicleData.km_publico     ?? '').trim() || null,
@@ -109,8 +112,10 @@ export async function createVehicle(formData: VehicleFormData): Promise<ActionRe
 
 export async function updateVehicle(id: string, formData: VehicleFormData): Promise<ActionResult<Vehicle>> {
   if (!(await isAdmin())) return { error: 'No autorizado: solo administradores pueden modificar vehículos.' }
+  const parsed = parseInput(vehicleSchema, formData)
+  if (!parsed.success) return { error: parsed.error }
   const supabase = createClient()
-  const { motivo_precio, ...vehicleData } = formData
+  const { motivo_precio, ...vehicleData } = parsed.data
   const payload = {
     ...vehicleData,
     km_publico:     (vehicleData.km_publico     ?? '').trim() || null,

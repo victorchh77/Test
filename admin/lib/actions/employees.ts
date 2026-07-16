@@ -4,7 +4,9 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { isAdminOrSecretary } from '@/lib/auth/roles'
-import type { EmployeeFormData } from '@/lib/validations/employee'
+import { employeeSchema, type EmployeeFormData } from '@/lib/validations/employee'
+import { paymentSchema } from '@/lib/validations/payment'
+import { parseInput } from '@/lib/validations/parse'
 import type { ActionResult, Employee } from '@/types'
 
 export async function getEmployees() {
@@ -25,10 +27,12 @@ export async function getEmployee(id: string) {
 
 export async function createEmployee(formData: EmployeeFormData): Promise<ActionResult<Employee>> {
   if (!(await isAdminOrSecretary())) return { error: 'No autorizado.' }
+  const parsed = parseInput(employeeSchema, formData)
+  if (!parsed.success) return { error: parsed.error }
   const supabase = createClient()
   const { data, error } = await supabase
     .from('employees')
-    .insert(formData)
+    .insert(parsed.data)
     .select()
     .single()
   if (error) return { error: error.message }
@@ -38,6 +42,8 @@ export async function createEmployee(formData: EmployeeFormData): Promise<Action
 
 export async function updateEmployee(id: string, formData: EmployeeFormData): Promise<ActionResult<Employee>> {
   if (!(await isAdminOrSecretary())) return { error: 'No autorizado.' }
+  const parsed = parseInput(employeeSchema, formData)
+  if (!parsed.success) return { error: parsed.error }
   const supabase = createClient()
 
   // Capture old salary to record raises/changes in history.
@@ -49,18 +55,18 @@ export async function updateEmployee(id: string, formData: EmployeeFormData): Pr
 
   const { data, error } = await supabase
     .from('employees')
-    .update(formData)
+    .update(parsed.data)
     .eq('id', id)
     .select()
     .single()
   if (error) return { error: error.message }
 
-  if (old && Number(old.salario_base) !== Number(formData.salario_base)) {
+  if (old && Number(old.salario_base) !== Number(parsed.data.salario_base)) {
     const { data: { user } } = await supabase.auth.getUser()
     await supabase.from('employee_salary_history').insert({
       employee_id: id,
       salario_anterior: old.salario_base,
-      salario_nuevo: formData.salario_base,
+      salario_nuevo: parsed.data.salario_base,
       changed_by: user?.id,
     })
   }
@@ -95,14 +101,16 @@ export async function registerPayment(
   payment: { monto: number; tipo: string; fecha: string; notas?: string }
 ): Promise<ActionResult> {
   if (!(await isAdminOrSecretary())) return { error: 'No autorizado.' }
+  const parsed = parseInput(paymentSchema, payment)
+  if (!parsed.success) return { error: parsed.error }
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const { error } = await supabase.from('employee_payments').insert({
     employee_id: employeeId,
-    monto: payment.monto,
-    tipo: payment.tipo,
-    fecha: payment.fecha,
-    notas: payment.notas ?? null,
+    monto: parsed.data.monto,
+    tipo: parsed.data.tipo,
+    fecha: parsed.data.fecha,
+    notas: parsed.data.notas ?? null,
     created_by: user?.id,
   })
   if (error) return { error: error.message }

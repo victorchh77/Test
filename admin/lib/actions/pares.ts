@@ -3,6 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { isAdminOrSecretary } from '@/lib/auth/roles'
+import { paresContractSchema, cuotaInputSchema, paresPaymentSchema } from '@/lib/validations/pares'
+import { parseInput } from '@/lib/validations/parse'
 import type { ParesContract, ParesCuota, ParesContractWithCuotas, ParesPayment, ActionResult } from '@/types'
 
 // ── Tipos del escáner ─────────────────────────────────────────────────────
@@ -217,10 +219,13 @@ function parseContractText(text: string): ScannedContract {
 
 // ── Escáner de contrato ───────────────────────────────────────────────────
 
+const MAX_CONTRACT_BYTES = 10 * 1024 * 1024 // 10MB
+
 export async function scanParesContract(formData: FormData): Promise<ActionResult<ScannedContract>> {
   if (!(await isAdminOrSecretary())) return { error: 'No autorizado' }
   const file = formData.get('file') as File | null
   if (!file) return { error: 'No se recibió archivo' }
+  if (file.size > MAX_CONTRACT_BYTES) return { error: 'El archivo supera el tamaño máximo permitido (10MB).' }
 
   const ext = file.name.split('.').pop()?.toLowerCase()
   if (ext !== 'docx' && ext !== 'doc') {
@@ -303,11 +308,12 @@ export async function createParesContractWithCuotas(data: {
   cuotas: CreateCuotaInput[]
 }): Promise<ActionResult> {
   if (!(await isAdminOrSecretary())) return { error: 'No autorizado' }
+  const parsed = parseInput(paresContractSchema, data)
+  if (!parsed.success) return { error: parsed.error }
+  data = parsed.data
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autenticado' }
-  if (!data.client_name.trim()) return { error: 'El nombre del cliente es requerido' }
-  if (!data.cuotas.length) return { error: 'Debés agregar al menos una cuota' }
 
   // Auto find-or-create client in clients table
   let clientId: string | null = null
@@ -409,14 +415,16 @@ export async function addCuotaToContract(
   cuota: CreateCuotaInput,
 ): Promise<ActionResult> {
   if (!(await isAdminOrSecretary())) return { error: 'No autorizado' }
+  const parsed = parseInput(cuotaInputSchema, cuota)
+  if (!parsed.success) return { error: parsed.error }
   const supabase = createClient()
   const { error } = await supabase.from('pagares_cuotas').insert({
     contract_id:       contractId,
-    tipo:              cuota.tipo,
-    numero:            cuota.numero,
-    monto:             cuota.monto,
-    fecha_vencimiento: cuota.fecha_vencimiento || null,
-    notas:             cuota.notas || null,
+    tipo:              parsed.data.tipo,
+    numero:            parsed.data.numero,
+    monto:             parsed.data.monto,
+    fecha_vencimiento: parsed.data.fecha_vencimiento || null,
+    notas:             parsed.data.notas || null,
   })
   if (error) return { error: error.message }
   revalidatePath('/planilla-pagares')
@@ -444,6 +452,7 @@ export async function createParesContract(data: {
   contract_file_url: string | null
   notas: string | null
 }): Promise<ActionResult> {
+  if (!(await isAdminOrSecretary())) return { error: 'No autorizado' }
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autenticado' }
@@ -483,15 +492,17 @@ export async function upsertParesPayment(
   metodo_pago: string | null,
 ): Promise<ActionResult> {
   if (!(await isAdminOrSecretary())) return { error: 'No autorizado' }
+  const parsed = parseInput(paresPaymentSchema, { contract_id, anio, mes, pagado, metodo_pago })
+  if (!parsed.success) return { error: parsed.error }
   const supabase = createClient()
   const { error } = await supabase.from('pagares_payments').upsert(
     {
-      contract_id,
-      anio,
-      mes,
-      pagado,
-      metodo_pago: pagado ? metodo_pago : null,
-      pagado_at:   pagado ? new Date().toISOString() : null,
+      contract_id: parsed.data.contract_id,
+      anio:        parsed.data.anio,
+      mes:         parsed.data.mes,
+      pagado:      parsed.data.pagado,
+      metodo_pago: parsed.data.pagado ? parsed.data.metodo_pago : null,
+      pagado_at:   parsed.data.pagado ? new Date().toISOString() : null,
     },
     { onConflict: 'contract_id,anio,mes' },
   )

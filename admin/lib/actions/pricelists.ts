@@ -3,6 +3,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { isAdminOrSecretary } from '@/lib/auth/roles'
+import { priceListSchema } from '@/lib/validations/pricelist'
+import { priceListItemSchema } from '@/lib/validations/pricelist-item'
+import { parseInput } from '@/lib/validations/parse'
 import type { ActionResult } from '@/types'
 
 const NO_AUTH = { error: 'No autorizado: solo administradores y secretaría pueden modificar la lista de precios.' }
@@ -28,11 +31,13 @@ export async function getPriceList(id: string) {
 
 export async function createPriceList(titulo: string, descripcion?: string): Promise<ActionResult<{ id: string }>> {
   if (!(await isAdminOrSecretary())) return NO_AUTH
+  const parsed = parseInput(priceListSchema, { titulo, descripcion })
+  if (!parsed.success) return { error: parsed.error }
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const { data, error } = await supabase
     .from('price_lists')
-    .insert({ titulo, descripcion: descripcion ?? null, created_by: user?.id })
+    .insert({ titulo: parsed.data.titulo, descripcion: parsed.data.descripcion ?? null, created_by: user?.id })
     .select()
     .single()
   if (error) return { error: error.message }
@@ -56,18 +61,20 @@ export async function addVehicleToPriceList(
   notas?: string,
 ): Promise<ActionResult> {
   if (!(await isAdminOrSecretary())) return NO_AUTH
+  const parsed = parseInput(priceListItemSchema, prices)
+  if (!parsed.success) return { error: parsed.error }
   const supabase = createClient()
   const { error } = await supabase.from('price_list_items').insert({
     price_list_id: priceListId,
     vehicle_id: vehicleId,
-    precio_1: prices.precio_1 ?? null,
-    precio_2: prices.precio_2 ?? null,
-    precio_lista: prices.precio_lista,
-    precio_financiado_12: prices.precio_financiado_12 ?? null,
-    precio_financiado_18: prices.precio_financiado_18 ?? null,
-    precio_financiado_24: prices.precio_financiado_24 ?? null,
-    precio_financiado_30: prices.precio_financiado_30 ?? null,
-    entrega: prices.entrega ?? null,
+    precio_1: parsed.data.precio_1 ?? null,
+    precio_2: parsed.data.precio_2 ?? null,
+    precio_lista: parsed.data.precio_lista,
+    precio_financiado_12: parsed.data.precio_financiado_12 ?? null,
+    precio_financiado_18: parsed.data.precio_financiado_18 ?? null,
+    precio_financiado_24: parsed.data.precio_financiado_24 ?? null,
+    precio_financiado_30: parsed.data.precio_financiado_30 ?? null,
+    entrega: parsed.data.entrega ?? null,
     notas: notas ?? null,
   })
   if (error) return { error: error.message }

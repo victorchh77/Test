@@ -3,7 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { isAdminOrSecretary } from '@/lib/auth/roles'
-import type { SaleFormData } from '@/lib/validations/sale'
+import { saleSchema, type SaleFormData } from '@/lib/validations/sale'
+import { parseInput } from '@/lib/validations/parse'
 import type { ActionResult } from '@/types'
 
 export async function getSales(fromDate?: string, toDate?: string) {
@@ -21,23 +22,25 @@ export async function getSales(fromDate?: string, toDate?: string) {
 
 export async function createSale(formData: SaleFormData): Promise<ActionResult> {
   if (!(await isAdminOrSecretary())) return { error: 'No autorizado: solo administradores y secretaría pueden registrar ventas.' }
+  const parsed = parseInput(saleSchema, formData)
+  if (!parsed.success) return { error: parsed.error }
   const supabase = createClient()
 
   const { error } = await supabase.from('sales').insert({
-    vehicle_id:   formData.vehicle_id,
-    client_id:    formData.client_id || null,
-    precio_final: formData.precio_final,
-    fecha_venta:  formData.fecha_venta,
+    vehicle_id:   parsed.data.vehicle_id,
+    client_id:    parsed.data.client_id || null,
+    precio_final: parsed.data.precio_final,
+    fecha_venta:  parsed.data.fecha_venta,
     comision:     0,
-    vendedor_id:  formData.vendedor_id || null,
-    notas:        formData.notas ?? null,
+    vendedor_id:  parsed.data.vendedor_id || null,
+    notas:        parsed.data.notas ?? null,
   })
   if (error) return { error: error.message }
 
   await supabase
     .from('vehicles')
     .update({ estado: 'Vendido' })
-    .eq('id', formData.vehicle_id)
+    .eq('id', parsed.data.vehicle_id)
 
   revalidatePath('/ventas')
   revalidatePath('/vehiculos')

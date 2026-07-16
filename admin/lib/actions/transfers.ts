@@ -3,6 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { isAdmin } from '@/lib/auth/roles'
+import { transferSchema } from '@/lib/validations/transfer'
+import { parseInput } from '@/lib/validations/parse'
 import type { Transfer, ActionResult } from '@/types'
 
 export async function getTransfers(): Promise<Transfer[]> {
@@ -43,13 +45,14 @@ export async function createTransfer(data: {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autenticado' }
-  if (!data.monto || data.monto <= 0) return { error: 'El monto debe ser mayor a 0' }
+  const parsed = parseInput(transferSchema, data)
+  if (!parsed.success) return { error: parsed.error }
 
   const { error } = await supabase.from('transfers').insert({
-    monto: data.monto,
-    remitente: data.remitente,
-    comprobante_url: data.comprobante_url,
-    notas: data.notas,
+    monto: parsed.data.monto,
+    remitente: parsed.data.remitente ?? null,
+    comprobante_url: parsed.data.comprobante_url ?? null,
+    notas: parsed.data.notas ?? null,
     created_by: user.id,
   })
   if (error) return { error: error.message }

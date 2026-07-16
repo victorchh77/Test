@@ -4,7 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { isAdminOrSecretary } from '@/lib/auth/roles'
-import type { ClientFormData } from '@/lib/validations/client'
+import { clientSchema, type ClientFormData } from '@/lib/validations/client'
+import { parseInput } from '@/lib/validations/parse'
 import type { ActionResult, Client } from '@/types'
 
 export async function getClients() {
@@ -21,10 +22,12 @@ export async function getClient(id: string) {
 
 export async function createClient_(formData: ClientFormData): Promise<ActionResult<Client>> {
   if (!(await isAdminOrSecretary())) return { error: 'No autorizado: solo administradores y secretaría pueden crear clientes.' }
+  const parsed = parseInput(clientSchema, formData)
+  if (!parsed.success) return { error: parsed.error }
   const supabase = createClient()
   const { data, error } = await supabase
     .from('clients')
-    .insert(formData)
+    .insert(parsed.data)
     .select()
     .single()
   if (error) return { error: error.message }
@@ -34,10 +37,12 @@ export async function createClient_(formData: ClientFormData): Promise<ActionRes
 
 export async function updateClient(id: string, formData: ClientFormData): Promise<ActionResult<Client>> {
   if (!(await isAdminOrSecretary())) return { error: 'No autorizado: solo administradores pueden modificar clientes.' }
+  const parsed = parseInput(clientSchema, formData)
+  if (!parsed.success) return { error: parsed.error }
   const supabase = createClient()
   const { data, error } = await supabase
     .from('clients')
-    .update(formData)
+    .update(parsed.data)
     .eq('id', id)
     .select()
     .single()

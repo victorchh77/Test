@@ -9,12 +9,14 @@ const NO_AUTH = { error: 'No autorizado: solo administradores pueden modificar l
 
 const ALLOWED_EXT  = new Set(['jpg', 'jpeg', 'png', 'webp'])
 const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp'])
+const MAX_FILE_BYTES = 8 * 1024 * 1024 // 8MB — la app comprime en el cliente a ~300KB, esto es solo un techo de seguridad
 
 export async function uploadVehiclePhoto(vehicleId: string, formData: FormData): Promise<ActionResult<{ url: string }>> {
   if (!(await isAdmin())) return NO_AUTH
   const supabase = createClient()
   const file = formData.get('file') as File
   if (!file) return { error: 'No se seleccionó archivo' }
+  if (file.size > MAX_FILE_BYTES) return { error: 'La imagen supera el tamaño máximo permitido (8MB).' }
 
   const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
   if (!ALLOWED_EXT.has(ext))  return { error: 'Solo se admiten imágenes JPG, PNG o WebP.' }
