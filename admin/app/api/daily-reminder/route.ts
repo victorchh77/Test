@@ -19,11 +19,8 @@ function getDate(props: any, key: string): string | null {
 
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET
-  if (secret) {
-    const auth = request.headers.get('authorization')
-    if (auth !== `Bearer ${secret}`) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
-    }
+  if (!secret || request.headers.get('authorization') !== `Bearer ${secret}`) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   }
 
   try {
