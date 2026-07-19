@@ -33,8 +33,8 @@ export async function getFeaturedVehicles(limit = 6): Promise<FeaturedVehicle[]>
   if (!isPublicSupabaseConfigured()) return []
   const supabase = createPublicClient()
 
-  // Se pide de más porque después filtramos los vehículos sin foto ni
-  // descripción cargada, para no quedar cortos de `limit` resultados.
+  // Se pide de más porque después filtramos los vehículos a los que les
+  // falte foto o descripción, para no quedar cortos de `limit` resultados.
   const fetchLimit = Math.min(limit * 4, 200)
 
   const { data: vehicles, error } = await supabase
@@ -57,7 +57,7 @@ export async function getFeaturedVehicles(limit = 6): Promise<FeaturedVehicle[]>
   })
 
   return vehicles
-    .filter((v) => photoMap[v.id as string] || hasUsefulDescription(v.descripcion as string | null))
+    .filter((v) => photoMap[v.id as string] && hasUsefulDescription(v.descripcion as string | null))
     .slice(0, limit)
     .map((v) => ({
       id: v.id as string,
