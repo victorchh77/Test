@@ -6,6 +6,7 @@ export const vehicleSchema = z.object({
   anio:          z.coerce.number().int().min(1990).max(new Date().getFullYear() + 1),
   km:            z.coerce.number().int().min(0),
   km_publico:     z.string().optional(),
+  ocultar_km:     z.boolean().optional(),
   color:          z.string().optional(),
   numero_chassis: z.string().optional(),
   precio_compra: z.coerce.number().int().min(1, 'El precio de compra es requerido'),

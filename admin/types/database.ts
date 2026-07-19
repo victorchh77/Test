@@ -17,6 +17,7 @@ export interface Vehicle {
   anio: number
   km: number
   km_publico: string | null
+  ocultar_km: boolean
   color: string | null
   numero_chassis: string | null
   precio_compra: number

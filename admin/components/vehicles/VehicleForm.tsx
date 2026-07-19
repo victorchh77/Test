@@ -27,6 +27,7 @@ export function VehicleForm({ onSubmit, defaultValues, isEdit, loading, error }:
       anio:          defaultValues?.anio ?? new Date().getFullYear(),
       km:            defaultValues?.km ?? 0,
       km_publico:     defaultValues?.km_publico ?? '',
+      ocultar_km:     defaultValues?.ocultar_km ?? false,
       color:          defaultValues?.color ?? '',
       numero_chassis: defaultValues?.numero_chassis ?? '',
       precio_compra:  defaultValues?.precio_compra ?? 0,
@@ -84,9 +85,24 @@ export function VehicleForm({ onSubmit, defaultValues, isEdit, loading, error }:
       <Input
         {...register('km_publico')}
         label="Kilometraje a mostrar en el catálogo web (opcional)"
-        placeholder="Ej: Recién importado · Consultar · A confirmar"
-        hint="Si lo dejás vacío, el catálogo muestra el km real. Si lo completás, se muestra este texto en su lugar (el km real se mantiene interno en el panel)."
+        placeholder="Ej: Recién importado · Consultar · A confirmar · Manual · Diésel"
+        hint="Si lo dejás vacío, el catálogo muestra el km real. Si lo completás, se muestra este texto en su lugar — podés poner cualquier otro dato (transmisión, combustible, etc.), no tiene que ser sobre kilometraje."
       />
+
+      <label className="flex items-start gap-3 cursor-pointer rounded-xl border border-border bg-card-elevated/40 px-4 py-3
+                        hover:border-border-bright transition-colors">
+        <input
+          type="checkbox"
+          {...register('ocultar_km')}
+          className="mt-0.5 w-4 h-4 rounded accent-orange cursor-pointer"
+        />
+        <span className="text-sm">
+          <span className="font-medium text-textprim">No mostrar este dato en el catálogo web</span>
+          <span className="block text-xs text-textsec mt-0.5">
+            Oculta por completo el recuadro de kilometraje en la tarjeta y el detalle (ni el km real ni el texto de arriba). Tiene prioridad sobre el campo anterior.
+          </span>
+        </span>
+      </label>
 
       <Input
         {...register('numero_chassis')}

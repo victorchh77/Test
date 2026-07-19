@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation'
 import { isAdmin } from '@/lib/auth/roles'
 import { vehicleSchema, type VehicleFormData } from '@/lib/validations/vehicle'
 import { parseInput } from '@/lib/validations/parse'
-import { hasUsefulDescription } from '@/lib/utils/vehicle'
+import { hasUsefulDescription, stripPriceLines } from '@/lib/utils/vehicle'
 import type { ActionResult, Vehicle, SaleWithDetails, VehicleStatus } from '@/types'
 
 export interface FeaturedVehicle {
@@ -17,10 +17,16 @@ export interface FeaturedVehicle {
   anio: number
   km: number
   km_publico: string | null
+  ocultar_km: boolean
   color: string | null
   precio_venta: number
   estado: VehicleStatus
   fotoUrl: string | null
+}
+
+export interface VehiclePublicDetail extends FeaturedVehicle {
+  descripcion: string // ya sin las líneas de precio
+  photos: string[]
 }
 
 /**
@@ -39,7 +45,7 @@ export async function getFeaturedVehicles(limit = 6): Promise<FeaturedVehicle[]>
 
   const { data: vehicles, error } = await supabase
     .from('vehiculos_publicos')
-    .select('id, marca, modelo, anio, km, km_publico, color, precio_venta, estado, descripcion')
+    .select('id, marca, modelo, anio, km, km_publico, ocultar_km, color, precio_venta, estado, descripcion')
     .order('created_at', { ascending: false })
     .limit(fetchLimit)
 
@@ -66,11 +72,55 @@ export async function getFeaturedVehicles(limit = 6): Promise<FeaturedVehicle[]>
       anio: v.anio as number,
       km: v.km as number,
       km_publico: (v.km_publico as string | null) ?? null,
+      ocultar_km: v.ocultar_km as boolean,
       color: (v.color as string | null) ?? null,
       precio_venta: v.precio_venta as number,
       estado: v.estado as VehicleStatus,
       fotoUrl: photoMap[v.id as string] ?? null,
     }))
+}
+
+/**
+ * Detalle público de un vehículo para el modal de galería del catálogo:
+ * todas las fotos + descripción completa (sin las líneas que mencionan
+ * precio, ya que el precio se muestra por separado desde `precio_venta`).
+ */
+export async function getVehiclePublicDetail(id: string): Promise<VehiclePublicDetail | null> {
+  if (!isPublicSupabaseConfigured()) return null
+  const supabase = createPublicClient()
+
+  const { data: v, error } = await supabase
+    .from('vehiculos_publicos')
+    .select('id, marca, modelo, anio, km, km_publico, ocultar_km, color, precio_venta, estado, descripcion')
+    .eq('id', id)
+    .single()
+
+  if (error || !v) return null
+
+  const { data: photos } = await supabase
+    .from('vehiculo_fotos_publicas')
+    .select('url, is_main')
+    .eq('vehicle_id', id)
+
+  const sorted = (photos ?? []).slice().sort((a: { is_main: boolean }, b: { is_main: boolean }) =>
+    (b.is_main ? 1 : 0) - (a.is_main ? 1 : 0)
+  )
+
+  return {
+    id: v.id as string,
+    marca: v.marca as string,
+    modelo: v.modelo as string,
+    anio: v.anio as number,
+    km: v.km as number,
+    km_publico: (v.km_publico as string | null) ?? null,
+    ocultar_km: v.ocultar_km as boolean,
+    color: (v.color as string | null) ?? null,
+    precio_venta: v.precio_venta as number,
+    estado: v.estado as VehicleStatus,
+    fotoUrl: sorted[0]?.url ?? null,
+    descripcion: stripPriceLines(v.descripcion as string | null),
+    photos: sorted.map((p: { url: string }) => p.url),
+  }
 }
 
 export async function getVehicles(filters?: { marca?: string; estado?: string; search?: string }) {

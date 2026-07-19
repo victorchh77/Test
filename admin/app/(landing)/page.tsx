@@ -25,12 +25,12 @@ export const revalidate = 600
 /* ── Fallback: solo se usa si no hay stock real disponible todavía ────── */
 
 const fallbackVehicles: FeaturedVehicle[] = [
-  { id: 'demo-1', marca: 'Toyota',     modelo: 'Hilux SRV 4x4',  anio: 2021, km: 48000, color: 'Gris',   precio_venta: 245000000, estado: 'Disponible', km_publico: null, fotoUrl: null },
-  { id: 'demo-2', marca: 'Volkswagen', modelo: 'T-Cross Comfort', anio: 2022, km: 22000, color: 'Blanco', precio_venta: 185000000, estado: 'Disponible', km_publico: null, fotoUrl: null },
-  { id: 'demo-3', marca: 'Hyundai',    modelo: 'Tucson Limited',  anio: 2021, km: 38000, color: 'Negro',  precio_venta: 205000000, estado: 'Disponible', km_publico: null, fotoUrl: null },
-  { id: 'demo-4', marca: 'Nissan',     modelo: 'Frontier XE',     anio: 2020, km: 65000, color: 'Plata',  precio_venta: 218000000, estado: 'Reservado',  km_publico: null, fotoUrl: null },
-  { id: 'demo-5', marca: 'Kia',        modelo: 'Cerato EX',       anio: 2019, km: 55000, color: 'Rojo',    precio_venta: 122000000, estado: 'Disponible', km_publico: null, fotoUrl: null },
-  { id: 'demo-6', marca: 'Chevrolet',  modelo: 'Onix Premier',    anio: 2022, km: 18000, color: 'Azul',   precio_venta: 118000000, estado: 'Disponible', km_publico: null, fotoUrl: null },
+  { id: 'demo-1', marca: 'Toyota',     modelo: 'Hilux SRV 4x4',  anio: 2021, km: 48000, color: 'Gris',   precio_venta: 245000000, estado: 'Disponible', km_publico: null, ocultar_km: false, fotoUrl: null },
+  { id: 'demo-2', marca: 'Volkswagen', modelo: 'T-Cross Comfort', anio: 2022, km: 22000, color: 'Blanco', precio_venta: 185000000, estado: 'Disponible', km_publico: null, ocultar_km: false, fotoUrl: null },
+  { id: 'demo-3', marca: 'Hyundai',    modelo: 'Tucson Limited',  anio: 2021, km: 38000, color: 'Negro',  precio_venta: 205000000, estado: 'Disponible', km_publico: null, ocultar_km: false, fotoUrl: null },
+  { id: 'demo-4', marca: 'Nissan',     modelo: 'Frontier XE',     anio: 2020, km: 65000, color: 'Plata',  precio_venta: 218000000, estado: 'Reservado',  km_publico: null, ocultar_km: false, fotoUrl: null },
+  { id: 'demo-5', marca: 'Kia',        modelo: 'Cerato EX',       anio: 2019, km: 55000, color: 'Rojo',    precio_venta: 122000000, estado: 'Disponible', km_publico: null, ocultar_km: false, fotoUrl: null },
+  { id: 'demo-6', marca: 'Chevrolet',  modelo: 'Onix Premier',    anio: 2022, km: 18000, color: 'Azul',   precio_venta: 118000000, estado: 'Disponible', km_publico: null, ocultar_km: false, fotoUrl: null },
 ]
 
 const stats = [
