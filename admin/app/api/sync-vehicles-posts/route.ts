@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Client } from '@notionhq/client'
 import nodemailer from 'nodemailer'
+import { hasUsefulDescription } from '@/lib/utils/vehicle'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,13 +36,6 @@ function buildPost(v: any): string {
   ].join('\n')
 }
 
-function hasGoodDesc(v: any): boolean {
-  if (!v.descripcion) return false
-  const d = v.descripcion.trim()
-  if (d.length < 30) return false
-  return true
-}
-
 function chunkArr<T>(arr: T[], size: number): T[][] {
   const chunks: T[][] = []
   for (let i = 0; i < arr.length; i += size) chunks.push(arr.slice(i, i + size))
@@ -72,7 +66,7 @@ export async function GET(request: Request) {
 
     if (error) throw new Error(`Supabase: ${error.message}`)
 
-    const vehicles = (allVehicles ?? []).filter(hasGoodDesc).slice(0, 10)
+    const vehicles = (allVehicles ?? []).filter((v: any) => hasUsefulDescription(v.descripcion)).slice(0, 10)
 
     if (vehicles.length === 0) {
       return NextResponse.json({ ok: true, message: 'Sin vehículos con descripción disponibles.' })

@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation'
 import { isAdmin } from '@/lib/auth/roles'
 import { vehicleSchema, type VehicleFormData } from '@/lib/validations/vehicle'
 import { parseInput } from '@/lib/validations/parse'
+import { hasUsefulDescription } from '@/lib/utils/vehicle'
 import type { ActionResult, Vehicle, SaleWithDetails, VehicleStatus } from '@/types'
 
 export interface FeaturedVehicle {
@@ -32,11 +33,15 @@ export async function getFeaturedVehicles(limit = 6): Promise<FeaturedVehicle[]>
   if (!isPublicSupabaseConfigured()) return []
   const supabase = createPublicClient()
 
+  // Se pide de más porque después filtramos los vehículos sin foto ni
+  // descripción cargada, para no quedar cortos de `limit` resultados.
+  const fetchLimit = Math.min(limit * 4, 200)
+
   const { data: vehicles, error } = await supabase
     .from('vehiculos_publicos')
-    .select('id, marca, modelo, anio, km, km_publico, color, precio_venta, estado')
+    .select('id, marca, modelo, anio, km, km_publico, color, precio_venta, estado, descripcion')
     .order('created_at', { ascending: false })
-    .limit(limit)
+    .limit(fetchLimit)
 
   if (error || !vehicles?.length) return []
 
@@ -51,18 +56,21 @@ export async function getFeaturedVehicles(limit = 6): Promise<FeaturedVehicle[]>
     if (!photoMap[p.vehicle_id] || p.is_main) photoMap[p.vehicle_id] = p.url
   })
 
-  return vehicles.map((v) => ({
-    id: v.id as string,
-    marca: v.marca as string,
-    modelo: v.modelo as string,
-    anio: v.anio as number,
-    km: v.km as number,
-    km_publico: (v.km_publico as string | null) ?? null,
-    color: (v.color as string | null) ?? null,
-    precio_venta: v.precio_venta as number,
-    estado: v.estado as VehicleStatus,
-    fotoUrl: photoMap[v.id as string] ?? null,
-  }))
+  return vehicles
+    .filter((v) => photoMap[v.id as string] || hasUsefulDescription(v.descripcion as string | null))
+    .slice(0, limit)
+    .map((v) => ({
+      id: v.id as string,
+      marca: v.marca as string,
+      modelo: v.modelo as string,
+      anio: v.anio as number,
+      km: v.km as number,
+      km_publico: (v.km_publico as string | null) ?? null,
+      color: (v.color as string | null) ?? null,
+      precio_venta: v.precio_venta as number,
+      estado: v.estado as VehicleStatus,
+      fotoUrl: photoMap[v.id as string] ?? null,
+    }))
 }
 
 export async function getVehicles(filters?: { marca?: string; estado?: string; search?: string }) {
