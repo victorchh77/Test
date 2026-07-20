@@ -79,3 +79,39 @@ export async function updateUserRole(userId: string, role: Role): Promise<Action
   revalidatePath('/usuarios')
   return { data: null }
 }
+
+export async function deleteUser(userId: string): Promise<ActionResult> {
+  if (!(await isAdmin())) return { error: 'No autorizado' }
+  const supabase = createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user?.id === userId) return { error: 'No podés eliminar tu propia cuenta.' }
+
+  const { data: target } = await supabase.from('profiles').select('role').eq('id', userId).single()
+  if (target?.role === 'admin') {
+    const { count } = await supabase
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .eq('role', 'admin')
+    if ((count ?? 0) <= 1) {
+      return { error: 'No se puede eliminar: es el único administrador del sistema.' }
+    }
+  }
+
+  const adminClient = createAdminClient()
+  const { error } = await adminClient.auth.admin.deleteUser(userId)
+  if (error) {
+    const msg = error.message.toLowerCase()
+    if (msg.includes('foreign key') || msg.includes('violat') || msg.includes('constraint')) {
+      return {
+        error: 'No se puede eliminar: este usuario tiene actividad registrada en el sistema ' +
+          '(ventas, vehículos, gastos, transferencias, etc.). Cambiale el rol si querés quitarle ' +
+          'el acceso sin perder ese historial.',
+      }
+    }
+    return { error: error.message }
+  }
+
+  revalidatePath('/usuarios')
+  return { data: null }
+}

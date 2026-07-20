@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { formatDate } from '@/lib/utils/format'
 import { RoleSelect, RoleBadge } from './RoleSelect'
 import { CreateUserForm } from './CreateUserForm'
+import { DeleteUserButton } from './DeleteUserButton'
 import type { Role } from '@/types'
 
 export default async function UsuariosPage() {
@@ -56,7 +57,7 @@ export default async function UsuariosPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr>
-                  {['Usuario', 'Email', 'Username', 'Rol actual', 'Cambiar rol', 'Registrado'].map((h, i) => (
+                  {['Usuario', 'Email', 'Username', 'Rol actual', 'Cambiar rol', 'Registrado', 'Eliminar'].map((h, i) => (
                     <th key={i} className="table-header-cell">{h}</th>
                   ))}
                 </tr>
@@ -116,6 +117,9 @@ export default async function UsuariosPage() {
                           <Calendar className="w-3 h-3 text-textmuted" />
                           {formatDate(u.created_at)}
                         </div>
+                      </td>
+                      <td className="table-cell">
+                        <DeleteUserButton userId={u.id} label={u.full_name || u.email} isSelf={isSelf} />
                       </td>
                     </tr>
                   )
