@@ -9,6 +9,7 @@ import { formatDate } from '@/lib/utils/format'
 import { RoleSelect, RoleBadge } from './RoleSelect'
 import { CreateUserForm } from './CreateUserForm'
 import { DeleteUserButton } from './DeleteUserButton'
+import { ToggleActiveButton } from './ToggleActiveButton'
 import type { Role } from '@/types'
 
 export default async function UsuariosPage() {
@@ -57,7 +58,7 @@ export default async function UsuariosPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr>
-                  {['Usuario', 'Email', 'Username', 'Rol actual', 'Cambiar rol', 'Registrado', 'Eliminar'].map((h, i) => (
+                  {['Usuario', 'Email', 'Username', 'Rol actual', 'Cambiar rol', 'Estado', 'Registrado', 'Eliminar'].map((h, i) => (
                     <th key={i} className="table-header-cell">{h}</th>
                   ))}
                 </tr>
@@ -111,6 +112,14 @@ export default async function UsuariosPage() {
                       </td>
                       <td className="table-cell">
                         <RoleSelect userId={u.id} currentRole={u.role as Role} isSelf={isSelf} />
+                      </td>
+                      <td className="table-cell">
+                        <ToggleActiveButton
+                          userId={u.id}
+                          label={u.full_name || u.email}
+                          activo={u.activo}
+                          isSelf={isSelf}
+                        />
                       </td>
                       <td className="table-cell text-textsec text-xs whitespace-nowrap">
                         <div className="flex items-center gap-1">

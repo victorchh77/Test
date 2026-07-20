@@ -13,6 +13,7 @@ export interface UserWithEmail {
   role: Role
   email: string
   created_at: string
+  activo: boolean
 }
 
 export async function getUsersWithEmail(): Promise<UserWithEmail[]> {
@@ -24,7 +25,26 @@ export async function getUsersWithEmail(): Promise<UserWithEmail[]> {
     console.error('get_all_profiles_with_email error:', error)
     return []
   }
-  return (data ?? []) as UserWithEmail[]
+  return ((data ?? []) as any[]).map((u) => ({
+    id: u.id,
+    full_name: u.full_name,
+    username: u.username,
+    role: u.role,
+    email: u.email,
+    created_at: u.created_at,
+    activo: !u.banned_until || new Date(u.banned_until) <= new Date(),
+  }))
+}
+
+/** Bloquea acciones destructivas que dejarían al sistema sin ningún admin. */
+async function isOnlyAdmin(supabase: ReturnType<typeof createClient>, userId: string): Promise<boolean> {
+  const { data: target } = await supabase.from('profiles').select('role').eq('id', userId).single()
+  if (target?.role !== 'admin') return false
+  const { count } = await supabase
+    .from('profiles')
+    .select('id', { count: 'exact', head: true })
+    .eq('role', 'admin')
+  return (count ?? 0) <= 1
 }
 
 export async function createUser(data: {
@@ -87,15 +107,8 @@ export async function deleteUser(userId: string): Promise<ActionResult> {
   const { data: { user } } = await supabase.auth.getUser()
   if (user?.id === userId) return { error: 'No podés eliminar tu propia cuenta.' }
 
-  const { data: target } = await supabase.from('profiles').select('role').eq('id', userId).single()
-  if (target?.role === 'admin') {
-    const { count } = await supabase
-      .from('profiles')
-      .select('id', { count: 'exact', head: true })
-      .eq('role', 'admin')
-    if ((count ?? 0) <= 1) {
-      return { error: 'No se puede eliminar: es el único administrador del sistema.' }
-    }
+  if (await isOnlyAdmin(supabase, userId)) {
+    return { error: 'No se puede eliminar: es el único administrador del sistema.' }
   }
 
   const adminClient = createAdminClient()
@@ -111,6 +124,33 @@ export async function deleteUser(userId: string): Promise<ActionResult> {
     }
     return { error: error.message }
   }
+
+  revalidatePath('/usuarios')
+  return { data: null }
+}
+
+/**
+ * Desactiva o reactiva una cuenta usando el baneo nativo de Supabase Auth
+ * (banned_until) en vez de borrar nada: bloquea el login sin tocar el
+ * historial que referencia a este usuario (ventas, vehículos, etc.).
+ */
+export async function toggleUserActive(userId: string, activo: boolean): Promise<ActionResult> {
+  if (!(await isAdmin())) return { error: 'No autorizado' }
+  const supabase = createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user?.id === userId) return { error: 'No podés desactivar tu propia cuenta.' }
+
+  if (!activo && (await isOnlyAdmin(supabase, userId))) {
+    return { error: 'No se puede desactivar: es el único administrador del sistema.' }
+  }
+
+  const adminClient = createAdminClient()
+  const { error } = await adminClient.auth.admin.updateUserById(userId, {
+    // 'none' reactiva; ~100 años equivale a desactivado indefinidamente.
+    ban_duration: activo ? 'none' : '876000h',
+  })
+  if (error) return { error: error.message }
 
   revalidatePath('/usuarios')
   return { data: null }
