@@ -46,6 +46,30 @@ function geom(fmt: Format) {
 
 const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max)
 
+// Quita emojis/viñetas/guiones ya puestos al inicio del texto (copiados de la
+// descripción del vehículo, que suele traer su propio "✅"/"•"/etc.) — el
+// canvas ya dibuja su propia viñeta naranja, así que si no se limpia queda
+// duplicada: "• ✅ Tapizado...".
+function stripLeadingMarker(s: string): string {
+  // \p{Extended_Pictographic} cubre los emojis; \uFE0F/\u200D son el
+  // selector de variacion y el zero-width-joiner que suelen acompanarlos
+  // (ej. una tilde de check seguida de selector de variacion).
+  return s.replace(/^(?:[\p{Extended_Pictographic}\uFE0F\u200D]|[\u2022\u00B7\-\u2013\u2014*])+\s*/u, '').trim()
+}
+
+// canvas.toDataURL ya nos da el PNG como data: URI (sincrónico, necesario
+// para no perder el gesto de usuario en Safari) — esto lo convierte a Blob,
+// también de forma sincrónica (atob no es async), para poder armar un File
+// y usar el share sheet nativo en iOS/iPadOS.
+function dataUrlToBlob(dataUrl: string): Blob {
+  const [header, base64] = dataUrl.split(',')
+  const mime = header.match(/:(.*?);/)?.[1] ?? 'image/png'
+  const binary = atob(base64)
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+  return new Blob([bytes], { type: mime })
+}
+
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath()
   ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y)
@@ -119,7 +143,7 @@ export default function FlyersPage() {
   const updStr = (k: StrKey, v: string) => setData(d => ({ ...d, [k]: v }))
   const updBool = (k: BoolKey, v: boolean) => setData(d => ({ ...d, [k]: v }))
   const updFeatures = (v: string[]) => setData(d => ({ ...d, features: v }))
-  const addFeat = () => { if (newFeat.trim()) { updFeatures([...data.features, newFeat.trim()]); setNewFeat('') } }
+  const addFeat = () => { if (newFeat.trim()) { updFeatures([...data.features, stripLeadingMarker(newFeat)]); setNewFeat('') } }
   const removeFeat = (i: number) => updFeatures(data.features.filter((_, idx) => idx !== i))
 
   useEffect(() => {
@@ -156,7 +180,7 @@ export default function FlyersPage() {
     updStr('precio', v.precio_venta.toLocaleString('es-PY'))
     updStr('version', '')
     if (v.descripcion) {
-      const feats = v.descripcion.split('\n').map(s => s.trim()).filter(Boolean)
+      const feats = v.descripcion.split('\n').map(s => stripLeadingMarker(s)).filter(Boolean)
       updFeatures(feats.length > 0 ? feats : [])
     } else {
       updFeatures([])
@@ -419,23 +443,37 @@ export default function FlyersPage() {
 
   const [downloadError, setDownloadError] = useState('')
 
-  const download = () => {
+  const download = async () => {
     const canvas = canvasRef.current
     if (!canvas) return
     setDownloadError('')
+    const filename = `VHGroup_${data.marca}_${data.modelo}_${data.anio}.png`
     // Sincrónico a propósito (toDataURL, no toBlob): Safari en iOS solo
-    // permite descargas dentro del mismo gesto del usuario que originó el
-    // clic — un callback async (toBlob) pierde ese contexto y falla con
-    // "WebKitBlobResource error 1".
+    // permite descargas/share dentro del mismo gesto del usuario que originó
+    // el clic — un callback async (toBlob) pierde ese contexto.
     try {
       const dataUrl = canvas.toDataURL('image/png')
+
+      // En iOS/iPadOS Safari, <a download> no siempre guarda el archivo —
+      // a veces solo abre la imagen. El share sheet nativo es la forma
+      // confiable de guardar/compartir ahí, así que se intenta primero.
+      if (navigator.share && navigator.canShare) {
+        const file = new File([dataUrlToBlob(dataUrl)], filename, { type: 'image/png' })
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: filename })
+          return
+        }
+      }
+
       const a = document.createElement('a')
-      a.download = `VHGroup_${data.marca}_${data.modelo}_${data.anio}.png`
+      a.download = filename
       a.href = dataUrl
       document.body.appendChild(a)
       a.click()
       a.remove()
-    } catch {
+    } catch (err) {
+      // Cancelar el share sheet también tira error (AbortError) — no es una falla real.
+      if (err instanceof Error && err.name === 'AbortError') return
       setDownloadError(
         'No se pudo generar la imagen — puede ser por la foto cargada desde el panel. ' +
         'Probá subir la foto manualmente con "Cambiar foto" y descargar de nuevo.'
