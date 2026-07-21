@@ -377,9 +377,18 @@ export default function FlyersPage() {
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    const img = new Image()
-    img.onload = () => { setPhotoImg(img); setPhotoLoaded(true); setZoom(1); setOffset({ x: 0, y: 0 }) }
-    img.src = URL.createObjectURL(file)
+    // FileReader + data: URI en vez de URL.createObjectURL: el blob: URL de
+    // este último puede invalidarse en iOS Safari (cambio de app, presión de
+    // memoria) mientras la foto sigue cargada, y el próximo redibujado del
+    // canvas falla con "WebKitBlobResource error 1". La data: URI queda
+    // embebida y no depende de un recurso blob vivo.
+    const reader = new FileReader()
+    reader.onload = () => {
+      const img = new Image()
+      img.onload = () => { setPhotoImg(img); setPhotoLoaded(true); setZoom(1); setOffset({ x: 0, y: 0 }) }
+      img.src = reader.result as string
+    }
+    reader.readAsDataURL(file)
   }
 
   /* ── Arrastrar la foto (reposicionar) ── */
