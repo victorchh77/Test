@@ -110,6 +110,12 @@ export default function FlyersPage() {
     ],
   })
 
+  // El canvas lee el texto desde esta ref (no como dependencia de `draw`) para
+  // que escribir no recree el callback ni fuerce un redibujado costoso en cada
+  // tecla — eso es lo que hacía sentir lentos los inputs.
+  const dataRef = useRef(data)
+  useEffect(() => { dataRef.current = data }, [data])
+
   const updStr = (k: StrKey, v: string) => setData(d => ({ ...d, [k]: v }))
   const updBool = (k: BoolKey, v: boolean) => setData(d => ({ ...d, [k]: v }))
   const updFeatures = (v: string[]) => setData(d => ({ ...d, features: v }))
@@ -170,7 +176,12 @@ export default function FlyersPage() {
       const img = new Image()
       img.crossOrigin = 'anonymous'
       img.onload = () => { setPhotoImg(img); setPhotoLoaded(true); setZoom(1); setOffset({ x: 0, y: 0 }) }
-      img.src = photos[0].url
+      // Cache-busting: si esta misma foto ya se cargó antes en el panel/catálogo
+      // SIN crossOrigin (ej. al ver el vehículo), el navegador puede reusar esa
+      // respuesta cacheada sin validación CORS y "contaminar" el canvas —
+      // toDataURL/toBlob fallan en silencio después. Forzamos un fetch nuevo.
+      const sep = photos[0].url.includes('?') ? '&' : '?'
+      img.src = `${photos[0].url}${sep}cb=${Date.now()}`
     }
   }
 
@@ -188,6 +199,7 @@ export default function FlyersPage() {
   const draw = useCallback(() => {
     const canvas = canvasRef.current
     if (!canvas) return
+    const data = dataRef.current
     const { W, H, photoH, PAD, isStory, isFeed } = geom(fmt)
     canvas.width = W * 2; canvas.height = H * 2
     canvas.style.width = W + 'px'; canvas.style.height = H + 'px'
@@ -347,9 +359,20 @@ export default function FlyersPage() {
 
     // Barra inferior naranja
     ctx.fillStyle = ORANGE; ctx.fillRect(0, H - 3, W, 3)
-  }, [fmt, photoImg, photoLoaded, logoImg, data, offset, zoom, photoDraw])
+  }, [fmt, photoImg, photoLoaded, logoImg, offset, zoom, photoDraw])
 
+  // Redibujado inmediato: arrastre, zoom, formato o foto necesitan feedback
+  // en vivo — no deben esperar.
   useEffect(() => { draw() }, [draw])
+
+  // Redibujado con una breve espera al escribir texto: evita ejecutar el
+  // dibujo completo (caro: mide/wrappea texto) en cada tecla, que es lo que
+  // hacía sentir lentos los inputs. El input en sí no espera nada, solo la
+  // vista previa del canvas.
+  useEffect(() => {
+    const id = setTimeout(() => draw(), 120)
+    return () => clearTimeout(id)
+  }, [data, draw])
 
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -385,13 +408,30 @@ export default function FlyersPage() {
   }
   const onPointerUp = () => { drag.current = null }
 
+  const [downloadError, setDownloadError] = useState('')
+
   const download = () => {
     const canvas = canvasRef.current
     if (!canvas) return
-    const a = document.createElement('a')
-    a.download = `VHGroup_${data.marca}_${data.modelo}_${data.anio}.png`
-    a.href = canvas.toDataURL('image/png')
-    a.click()
+    setDownloadError('')
+    try {
+      canvas.toBlob((blob) => {
+        if (!blob) { setDownloadError('No se pudo generar la imagen. Probá de nuevo.'); return }
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.download = `VHGroup_${data.marca}_${data.modelo}_${data.anio}.png`
+        a.href = url
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+        URL.revokeObjectURL(url)
+      }, 'image/png')
+    } catch {
+      setDownloadError(
+        'No se pudo generar la imagen — puede ser por la foto cargada desde el panel. ' +
+        'Probá subir la foto manualmente con "Cambiar foto" y descargar de nuevo.'
+      )
+    }
   }
 
   const vehicleFields: Array<[string, StrKey]> = [
@@ -598,6 +638,9 @@ export default function FlyersPage() {
             style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE2})` }}>
             <Download className="w-4 h-4" /> Descargar PNG
           </button>
+          {downloadError && (
+            <p className="text-[10px] text-error mt-2 leading-snug">{downloadError}</p>
+          )}
         </div>
       </div>
 
