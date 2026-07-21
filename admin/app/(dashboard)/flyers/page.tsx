@@ -414,18 +414,18 @@ export default function FlyersPage() {
     const canvas = canvasRef.current
     if (!canvas) return
     setDownloadError('')
+    // Sincrónico a propósito (toDataURL, no toBlob): Safari en iOS solo
+    // permite descargas dentro del mismo gesto del usuario que originó el
+    // clic — un callback async (toBlob) pierde ese contexto y falla con
+    // "WebKitBlobResource error 1".
     try {
-      canvas.toBlob((blob) => {
-        if (!blob) { setDownloadError('No se pudo generar la imagen. Probá de nuevo.'); return }
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.download = `VHGroup_${data.marca}_${data.modelo}_${data.anio}.png`
-        a.href = url
-        document.body.appendChild(a)
-        a.click()
-        a.remove()
-        URL.revokeObjectURL(url)
-      }, 'image/png')
+      const dataUrl = canvas.toDataURL('image/png')
+      const a = document.createElement('a')
+      a.download = `VHGroup_${data.marca}_${data.modelo}_${data.anio}.png`
+      a.href = dataUrl
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
     } catch {
       setDownloadError(
         'No se pudo generar la imagen — puede ser por la foto cargada desde el panel. ' +
