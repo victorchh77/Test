@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Car, ChevronLeft, ChevronRight, Gauge, Calendar, Palette, MessageCircle } from 'lucide-react'
+import { Car, ChevronLeft, ChevronRight, Gauge, Calendar, Palette, MessageCircle, Loader2, ImageOff } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { formatCurrency, formatKm } from '@/lib/utils/format'
 import { getVehiclePublicDetail, type FeaturedVehicle, type VehiclePublicDetail } from '@/lib/actions/vehicles'
@@ -14,14 +14,24 @@ interface Props {
 export function VehicleDetailModal({ vehicle, onClose }: Props) {
   const [detail, setDetail] = useState<VehiclePublicDetail | null | undefined>(undefined)
   const [activePhoto, setActivePhoto] = useState(0)
+  const [photoStatus, setPhotoStatus] = useState<'loading' | 'loaded' | 'error'>('loading')
 
   useEffect(() => {
     let cancelled = false
-    getVehiclePublicDetail(vehicle.id).then((d) => { if (!cancelled) setDetail(d ?? null) })
+    getVehiclePublicDetail(vehicle.id)
+      .then((d) => { if (!cancelled) setDetail(d ?? null) })
+      .catch(() => { if (!cancelled) setDetail(null) })
     return () => { cancelled = true }
   }, [vehicle.id])
 
   const photos = detail?.photos ?? (vehicle.fotoUrl ? [vehicle.fotoUrl] : [])
+  const currentPhotoUrl = photos[activePhoto]
+
+  // Cada vez que cambia la foto activa (o llegan las fotos reales del
+  // detalle), hay que volver a mostrar el estado de carga para esa imagen.
+  useEffect(() => {
+    setPhotoStatus('loading')
+  }, [currentPhotoUrl])
   const km = vehicle.ocultar_km ? null : (vehicle.km_publico?.trim() || formatKm(vehicle.km))
 
   return (
@@ -30,12 +40,26 @@ export function VehicleDetailModal({ vehicle, onClose }: Props) {
       <div className="relative rounded-xl overflow-hidden bg-bg/60 aspect-video mb-5">
         {photos.length > 0 ? (
           <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={photos[activePhoto]}
-              alt={`${vehicle.marca} ${vehicle.modelo} ${vehicle.anio} — foto ${activePhoto + 1}`}
-              className="absolute inset-0 w-full h-full object-cover"
-            />
+            {photoStatus === 'loading' && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-orange/50 animate-spin" />
+              </div>
+            )}
+            {photoStatus === 'error' ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                <ImageOff className="w-10 h-10 text-textmuted/50" />
+                <span className="text-xs text-textmuted">No se pudo cargar la foto</span>
+              </div>
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={currentPhotoUrl}
+                alt={`${vehicle.marca} ${vehicle.modelo} ${vehicle.anio} — foto ${activePhoto + 1}`}
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-200 ${photoStatus === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
+                onLoad={() => setPhotoStatus('loaded')}
+                onError={() => setPhotoStatus('error')}
+              />
+            )}
             {photos.length > 1 && (
               <>
                 <button

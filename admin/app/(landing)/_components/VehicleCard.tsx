@@ -8,6 +8,7 @@ import { VehicleDetailModal } from './VehicleDetailModal'
 
 export function VehicleCard({ v }: { v: FeaturedVehicle }) {
   const [showDetail, setShowDetail] = useState(false)
+  const [photoError, setPhotoError] = useState(false)
   const available = v.estado === 'Disponible'
   const km = v.ocultar_km ? null : (v.km_publico?.trim() || formatKm(v.km))
 
@@ -23,13 +24,14 @@ export function VehicleCard({ v }: { v: FeaturedVehicle }) {
       >
         {/* Visual header: foto real si existe, si no degradado + ícono */}
         <div className="relative h-44 bg-gradient-to-br from-card-elevated to-bg flex items-center justify-center overflow-hidden">
-          {v.fotoUrl ? (
+          {v.fotoUrl && !photoError ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={v.fotoUrl}
               alt={`${v.marca} ${v.modelo} ${v.anio}`}
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               loading="lazy"
+              onError={() => setPhotoError(true)}
             />
           ) : (
             <>
