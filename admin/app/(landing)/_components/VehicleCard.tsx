@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Car, Gauge, Calendar, Palette, ChevronRight } from 'lucide-react'
+import { Car, Gauge, Calendar, Palette, ChevronRight, Loader2 } from 'lucide-react'
 import { formatCurrency, formatKm } from '@/lib/utils/format'
 import type { FeaturedVehicle } from '@/lib/actions/vehicles'
 import { VehicleDetailModal } from './VehicleDetailModal'
@@ -9,6 +9,7 @@ import { VehicleDetailModal } from './VehicleDetailModal'
 export function VehicleCard({ v }: { v: FeaturedVehicle }) {
   const [showDetail, setShowDetail] = useState(false)
   const [photoError, setPhotoError] = useState(false)
+  const [photoLoaded, setPhotoLoaded] = useState(false)
   const available = v.estado === 'Disponible'
   const km = v.ocultar_km ? null : (v.km_publico?.trim() || formatKm(v.km))
 
@@ -25,14 +26,23 @@ export function VehicleCard({ v }: { v: FeaturedVehicle }) {
         {/* Visual header: foto real si existe, si no degradado + ícono */}
         <div className="relative h-44 bg-gradient-to-br from-card-elevated to-bg flex items-center justify-center overflow-hidden">
           {v.fotoUrl && !photoError ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={v.fotoUrl}
-              alt={`${v.marca} ${v.modelo} ${v.anio}`}
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              loading="lazy"
-              onError={() => setPhotoError(true)}
-            />
+            <>
+              {!photoLoaded && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Loader2 className="w-6 h-6 text-orange/40 animate-spin" />
+                </div>
+              )}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                ref={(el) => { if (el?.complete && el.naturalWidth > 0) setPhotoLoaded(true) }}
+                src={v.fotoUrl}
+                alt={`${v.marca} ${v.modelo} ${v.anio}`}
+                className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${photoLoaded ? 'opacity-100' : 'opacity-0'}`}
+                loading="lazy"
+                onLoad={() => setPhotoLoaded(true)}
+                onError={() => setPhotoError(true)}
+              />
+            </>
           ) : (
             <>
               <div className="absolute inset-0 bg-dots opacity-40" aria-hidden />

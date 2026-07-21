@@ -53,6 +53,7 @@ export function VehicleDetailModal({ vehicle, onClose }: Props) {
             ) : (
               // eslint-disable-next-line @next/next/no-img-element
               <img
+                ref={(el) => { if (el?.complete && el.naturalWidth > 0) setPhotoStatus('loaded') }}
                 src={currentPhotoUrl}
                 alt={`${vehicle.marca} ${vehicle.modelo} ${vehicle.anio} — foto ${activePhoto + 1}`}
                 className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-200 ${photoStatus === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
