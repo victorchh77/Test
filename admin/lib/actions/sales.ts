@@ -27,13 +27,16 @@ export async function createSale(formData: SaleFormData): Promise<ActionResult> 
   const supabase = createClient()
 
   const { error } = await supabase.from('sales').insert({
-    vehicle_id:   parsed.data.vehicle_id,
-    client_id:    parsed.data.client_id || null,
-    precio_final: parsed.data.precio_final,
-    fecha_venta:  parsed.data.fecha_venta,
-    comision:     0,
-    vendedor_id:  parsed.data.vendedor_id || null,
-    notas:        parsed.data.notas ?? null,
+    vehicle_id:      parsed.data.vehicle_id,
+    client_id:       parsed.data.client_id || null,
+    precio_final:    parsed.data.precio_final,
+    fecha_venta:     parsed.data.fecha_venta,
+    comision:        0,
+    vendedor_id:     parsed.data.vendedor_id || null,
+    financiado:      parsed.data.financiado ?? false,
+    es_permuta:      parsed.data.es_permuta ?? false,
+    permuta_detalle: parsed.data.es_permuta ? (parsed.data.permuta_detalle?.trim() || null) : null,
+    notas:           parsed.data.notas ?? null,
   })
   if (error) return { error: error.message }
 

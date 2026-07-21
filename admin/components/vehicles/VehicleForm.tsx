@@ -36,6 +36,7 @@ export function VehicleForm({ onSubmit, defaultValues, isEdit, loading, error }:
       oculto:        defaultValues?.oculto ?? false,
       descripcion:   defaultValues?.descripcion ?? '',
       fecha_ingreso: defaultValues?.fecha_ingreso ?? new Date().toISOString().split('T')[0],
+      fecha_compra:  defaultValues?.fecha_compra ?? '',
     },
   })
 
@@ -141,6 +142,13 @@ export function VehicleForm({ onSubmit, defaultValues, isEdit, loading, error }:
           error={errors.fecha_ingreso?.message}
         />
       </div>
+
+      <Input
+        {...register('fecha_compra')}
+        label="Fecha de compra (opcional)"
+        type="date"
+        hint="Cuándo compraron este vehículo — distinta de la fecha de ingreso al panel."
+      />
 
       {isEdit && (
         <Input

@@ -106,7 +106,7 @@ export default async function VehiculosPage({ searchParams }: { searchParams: Ve
             <table className="w-full text-sm">
               <thead>
                 <tr>
-                  {['Foto', 'Vehículo', 'Año', 'Km', 'P. Compra', 'P. Venta', 'Estado', 'Ingreso', 'Acciones'].map(h => (
+                  {['Foto', 'Vehículo', 'Año', 'Km', 'P. Compra', 'P. Venta', 'Estado', 'F. Compra', 'Ingreso', 'Acciones'].map(h => (
                     <th key={h} className="table-header-cell">{h}</th>
                   ))}
                 </tr>
@@ -145,6 +145,7 @@ export default async function VehiculosPage({ searchParams }: { searchParams: Ve
                       <td className="table-cell">
                         <Badge color={statusBadge[v.estado]} dot>{v.estado}</Badge>
                       </td>
+                      <td className="table-cell text-textsec text-xs whitespace-nowrap">{v.fecha_compra ? formatDate(v.fecha_compra) : '—'}</td>
                       <td className="table-cell text-textsec text-xs whitespace-nowrap">{formatDate(v.fecha_ingreso)}</td>
                       <td className="table-cell">
                         <div className="flex items-center gap-2">

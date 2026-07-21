@@ -48,6 +48,7 @@ export default function NuevaVentaPage() {
 
   const watchedVehicleId   = watch('vehicle_id')
   const watchedPrecioFinal = watch('precio_final')
+  const watchedEsPermuta   = watch('es_permuta')
 
   useEffect(() => {
     Promise.all([
@@ -142,15 +143,23 @@ export default function NuevaVentaPage() {
             error={errors.vehicle_id?.message}
           />
 
-          {/* Vehicle price display */}
+          {/* Precio de lista (referencia) + precio final editable */}
           {selectedVehicle && (
             <div className="flex items-center justify-between bg-[#0B1220] border border-border rounded-xl px-4 py-3">
-              <span className="text-xs text-textsec">Precio de venta registrado</span>
-              <span className="font-display font-bold text-textprim text-base">
+              <span className="text-xs text-textsec">Precio de lista</span>
+              <span className="font-medium text-textsec text-sm">
                 {formatCurrency(selectedVehicle.precio_venta)}
               </span>
             </div>
           )}
+
+          <Input
+            {...register('precio_final')}
+            label="Precio final de venta *"
+            type="number"
+            hint="Se autocompleta con el precio de lista — editalo si la venta se cerró por otro monto."
+            error={errors.precio_final?.message}
+          />
 
           {/* Admin-only profitability panel */}
           {selectedVehicle && admin && (
@@ -279,6 +288,32 @@ export default function NuevaVentaPage() {
             type="date"
             error={errors.fecha_venta?.message}
           />
+
+          {/* Forma de venta */}
+          <div className="flex flex-col gap-3">
+            <p className="section-label">Forma de venta</p>
+            <div className="flex gap-3">
+              <label className="flex items-center gap-2 flex-1 cursor-pointer rounded-xl border border-border bg-card-elevated/40 px-4 py-3
+                                hover:border-border-bright transition-colors">
+                <input type="checkbox" {...register('financiado')} className="w-4 h-4 rounded accent-orange cursor-pointer" />
+                <span className="text-sm font-medium text-textprim">Financiado</span>
+              </label>
+              <label className="flex items-center gap-2 flex-1 cursor-pointer rounded-xl border border-border bg-card-elevated/40 px-4 py-3
+                                hover:border-border-bright transition-colors">
+                <input type="checkbox" {...register('es_permuta')} className="w-4 h-4 rounded accent-orange cursor-pointer" />
+                <span className="text-sm font-medium text-textprim">Permuta (recibimos un vehículo)</span>
+              </label>
+            </div>
+
+            {watchedEsPermuta && (
+              <Input
+                {...register('permuta_detalle')}
+                label="Vehículo recibido en permuta *"
+                placeholder="Ej: Toyota Corolla 2015, chapa ABC123"
+                error={errors.permuta_detalle?.message}
+              />
+            )}
+          </div>
 
           <Textarea
             {...register('notas')}

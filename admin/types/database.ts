@@ -26,6 +26,7 @@ export interface Vehicle {
   oculto: boolean
   descripcion: string | null
   fecha_ingreso: string
+  fecha_compra: string | null
   created_by: string | null
   created_at: string
   updated_at: string
@@ -57,11 +58,14 @@ export interface Client {
 export interface Sale {
   id: string
   vehicle_id: string
-  client_id: string
+  client_id: string | null
   precio_final: number
   fecha_venta: string
   comision: number
   vendedor_id: string | null
+  financiado: boolean
+  es_permuta: boolean
+  permuta_detalle: string | null
   notas: string | null
   created_at: string
 }
@@ -81,7 +85,7 @@ export interface SaleWithDetails extends Sale {
   modelo: string
   anio: number
   precio_compra: number
-  client_nombre: string
+  client_nombre: string | null
   client_telefono: string | null
   vendedor_nombre: string | null
   ganancia: number

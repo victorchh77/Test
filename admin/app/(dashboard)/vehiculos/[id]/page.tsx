@@ -52,6 +52,9 @@ export default async function VehicleDetailPage({ params }: { params: { id: stri
                 {visibleEnWeb ? 'Visible en web' : 'Oculto en web'}
               </Badge>
               <span className="text-xs text-textsec">Ingresado el {formatDate(vehicle.fecha_ingreso)}</span>
+              {vehicle.fecha_compra && (
+                <span className="text-xs text-textsec">· Comprado el {formatDate(vehicle.fecha_compra)}</span>
+              )}
             </div>
           </div>
         </div>

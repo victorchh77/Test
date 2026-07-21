@@ -15,6 +15,7 @@ export const vehicleSchema = z.object({
   oculto:        z.boolean().optional(),
   descripcion:   z.string().optional(),
   fecha_ingreso: z.string().min(1, 'La fecha de ingreso es requerida'),
+  fecha_compra:  z.string().optional(),
   motivo_precio: z.string().optional(),
 })
 

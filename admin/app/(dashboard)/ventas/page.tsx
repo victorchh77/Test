@@ -62,7 +62,7 @@ export default async function VentasPage({
             <table className="w-full text-sm">
               <thead>
                 <tr>
-                  {['Vehículo', 'Cliente', 'Vendedor', ...(admin ? ['P. Compra'] : []), 'P. Venta', ...(admin ? ['Ganancia'] : []), 'Fecha'].map(h => (
+                  {['Vehículo', 'Cliente', 'Vendedor', 'Forma', ...(admin ? ['P. Compra'] : []), 'P. Venta', ...(admin ? ['Ganancia'] : []), 'Fecha'].map(h => (
                     <th key={h} className="table-header-cell">{h}</th>
                   ))}
                 </tr>
@@ -74,8 +74,28 @@ export default async function VentasPage({
                       <p className="font-semibold text-textprim">{s.marca} {s.modelo}</p>
                       <p className="text-xs text-textsec">{s.anio}</p>
                     </td>
-                    <td className="table-cell text-textsec">{s.client_nombre}</td>
+                    <td className="table-cell text-textsec">{s.client_nombre ?? <span className="text-textmuted italic">Sin cliente</span>}</td>
                     <td className="table-cell text-textsec text-xs">{s.vendedor_nombre ?? '—'}</td>
+                    <td className="table-cell">
+                      <div className="flex flex-col gap-1 items-start">
+                        {s.financiado && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide bg-blue-500/15 text-blue-400 border border-blue-500/25">
+                            Financiado
+                          </span>
+                        )}
+                        {s.es_permuta && (
+                          <>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide bg-purple-500/15 text-purple-400 border border-purple-500/25">
+                              Permuta
+                            </span>
+                            {s.permuta_detalle && (
+                              <span className="text-[10px] text-textsec max-w-[160px] leading-snug">{s.permuta_detalle}</span>
+                            )}
+                          </>
+                        )}
+                        {!s.financiado && !s.es_permuta && <span className="text-textmuted text-xs">Contado</span>}
+                      </div>
+                    </td>
                     {admin && <td className="table-cell text-textsec">{formatCurrency(s.precio_compra)}</td>}
                     <td className="table-cell font-semibold text-textprim">{formatCurrency(s.precio_final)}</td>
                     {admin && (
