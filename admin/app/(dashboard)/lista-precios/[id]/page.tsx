@@ -122,7 +122,7 @@ export default async function PriceListDetailPage({ params }: { params: { id: st
 
                   <div className="mt-3 flex items-baseline justify-between border-t border-border/60 pt-3">
                     <span className="text-xs text-textsec uppercase tracking-wide">Precio lista</span>
-                    <span className="font-bold text-orange tabular text-base">{formatCurrency(item.precio_lista)}</span>
+                    <span className="font-bold text-orange tabular text-base">{formatCurrency(item.precio_lista, item.vehicles?.moneda)}</span>
                   </div>
 
                   {rows.length > 0 && (
@@ -130,7 +130,7 @@ export default async function PriceListDetailPage({ params }: { params: { id: st
                       {rows.map(([label, value]) => (
                         <div key={label} className="flex items-center justify-between text-sm">
                           <span className="text-textsec text-xs">{label}</span>
-                          <span className="text-textprim tabular">{formatCurrency(value as number)}</span>
+                          <span className="text-textprim tabular">{formatCurrency(value as number, item.vehicles?.moneda)}</span>
                         </div>
                       ))}
                     </div>
@@ -197,14 +197,14 @@ export default async function PriceListDetailPage({ params }: { params: { id: st
                           {item.vehicles?.estado}
                         </Badge>
                       </td>
-                      <td className="table-cell text-textsec whitespace-nowrap">{item.precio_1 ? formatCurrency(item.precio_1) : '—'}</td>
-                      <td className="table-cell text-textsec whitespace-nowrap">{item.precio_2 ? formatCurrency(item.precio_2) : '—'}</td>
-                      <td className="table-cell font-bold text-orange whitespace-nowrap">{formatCurrency(item.precio_lista)}</td>
-                      <td className="table-cell text-textsec whitespace-nowrap">{item.entrega ? formatCurrency(item.entrega) : '—'}</td>
-                      <td className="table-cell text-textsec whitespace-nowrap">{item.precio_financiado_12 ? formatCurrency(item.precio_financiado_12) : '—'}</td>
-                      <td className="table-cell text-textsec whitespace-nowrap">{item.precio_financiado_18 ? formatCurrency(item.precio_financiado_18) : '—'}</td>
-                      <td className="table-cell text-textsec whitespace-nowrap">{item.precio_financiado_24 ? formatCurrency(item.precio_financiado_24) : '—'}</td>
-                      <td className="table-cell text-textsec whitespace-nowrap">{item.precio_financiado_30 ? formatCurrency(item.precio_financiado_30) : '—'}</td>
+                      <td className="table-cell text-textsec whitespace-nowrap">{item.precio_1 ? formatCurrency(item.precio_1, item.vehicles?.moneda) : '—'}</td>
+                      <td className="table-cell text-textsec whitespace-nowrap">{item.precio_2 ? formatCurrency(item.precio_2, item.vehicles?.moneda) : '—'}</td>
+                      <td className="table-cell font-bold text-orange whitespace-nowrap">{formatCurrency(item.precio_lista, item.vehicles?.moneda)}</td>
+                      <td className="table-cell text-textsec whitespace-nowrap">{item.entrega ? formatCurrency(item.entrega, item.vehicles?.moneda) : '—'}</td>
+                      <td className="table-cell text-textsec whitespace-nowrap">{item.precio_financiado_12 ? formatCurrency(item.precio_financiado_12, item.vehicles?.moneda) : '—'}</td>
+                      <td className="table-cell text-textsec whitespace-nowrap">{item.precio_financiado_18 ? formatCurrency(item.precio_financiado_18, item.vehicles?.moneda) : '—'}</td>
+                      <td className="table-cell text-textsec whitespace-nowrap">{item.precio_financiado_24 ? formatCurrency(item.precio_financiado_24, item.vehicles?.moneda) : '—'}</td>
+                      <td className="table-cell text-textsec whitespace-nowrap">{item.precio_financiado_30 ? formatCurrency(item.precio_financiado_30, item.vehicles?.moneda) : '—'}</td>
                       <td className="table-cell text-textsec text-xs">{item.notas ?? '—'}</td>
                       {admin && (
                         <td className="table-cell">

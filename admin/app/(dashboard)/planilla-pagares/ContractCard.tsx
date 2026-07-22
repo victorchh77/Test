@@ -2,8 +2,9 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronDown, ChevronUp, FileText, Car, ToggleLeft, Loader2 } from 'lucide-react'
-import { toggleParesContract } from '@/lib/actions/pares'
+import Link from 'next/link'
+import { ChevronDown, ChevronUp, FileText, Car, ToggleLeft, Loader2, Pencil, Trash2 } from 'lucide-react'
+import { toggleParesContract, deleteParesContract } from '@/lib/actions/pares'
 import { formatCurrency } from '@/lib/utils/format'
 import { Badge } from '@/components/ui/Badge'
 import { CuotaRow } from './CuotaRow'
@@ -19,11 +20,23 @@ export function ContractCard({ contract, contratoUrl, defaultExpanded = false }:
   const router = useRouter()
   const [expanded, setExpanded]       = useState(defaultExpanded)
   const [toggling, startToggle]       = useTransition()
+  const [deleting, startDelete]       = useTransition()
+  const [deleteError, setDeleteError] = useState('')
 
   function handleToggleActive() {
     startToggle(async () => {
       await toggleParesContract(contract.id, !contract.activo)
       router.refresh()
+    })
+  }
+
+  function handleDelete() {
+    if (!confirm(`¿Eliminar el contrato de "${contract.client_name}"? Se eliminarán también todas sus cuotas. Esta acción no se puede deshacer.`)) return
+    setDeleteError('')
+    startDelete(async () => {
+      const res = await deleteParesContract(contract.id)
+      if (res.error) setDeleteError(res.error)
+      else router.refresh()
     })
   }
 
@@ -98,7 +111,7 @@ export function ContractCard({ contract, contratoUrl, defaultExpanded = false }:
           {montoPendiente > 0 && (
             <div className="text-right hidden md:block">
               <p className="text-[10px] text-textsec">Pendiente</p>
-              <p className="text-sm font-bold text-orange tabular-nums">{formatCurrency(montoPendiente)}</p>
+              <p className="text-sm font-bold text-orange tabular-nums">{formatCurrency(montoPendiente, contract.moneda)}</p>
             </div>
           )}
 
@@ -117,10 +130,10 @@ export function ContractCard({ contract, contratoUrl, defaultExpanded = false }:
           {/* Contract meta */}
           <div className="flex items-center gap-4 px-5 py-3 bg-white/[0.01] border-b border-border flex-wrap text-xs text-textsec gap-y-1">
             {contract.total_precio && (
-              <span>Total contrato: <strong className="text-textprim">{formatCurrency(contract.total_precio)}</strong></span>
+              <span>Total contrato: <strong className="text-textprim">{formatCurrency(contract.total_precio, contract.moneda)}</strong></span>
             )}
             {contract.entrada && (
-              <span>Entrada: <strong className="text-textprim">{formatCurrency(contract.entrada)}</strong></span>
+              <span>Entrada: <strong className="text-textprim">{formatCurrency(contract.entrada, contract.moneda)}</strong></span>
             )}
             {contratoUrl && (
               <a href={contratoUrl} target="_blank" rel="noopener noreferrer"
@@ -150,24 +163,45 @@ export function ContractCard({ contract, contratoUrl, defaultExpanded = false }:
                 <span className="flex-shrink-0">Estado</span>
               </div>
               {cuotas.map(cuota => (
-                <CuotaRow key={cuota.id} cuota={cuota} />
+                <CuotaRow key={cuota.id} cuota={cuota} moneda={contract.moneda} />
               ))}
             </div>
           )}
 
           {/* Footer actions */}
-          <div className="flex items-center justify-between px-5 py-3 border-t border-border bg-white/[0.01]">
-            <button
-              onClick={handleToggleActive}
-              disabled={toggling}
-              className="inline-flex items-center gap-1.5 text-xs text-textmuted hover:text-textsec border border-border hover:border-border-bright px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
-            >
-              {toggling
-                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                : <ToggleLeft className="w-3.5 h-3.5" />
-              }
-              {contract.activo ? 'Desactivar contrato' : 'Activar contrato'}
-            </button>
+          <div className="flex items-center justify-between px-5 py-3 border-t border-border bg-white/[0.01] flex-wrap gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={handleToggleActive}
+                disabled={toggling}
+                className="inline-flex items-center gap-1.5 text-xs text-textmuted hover:text-textsec border border-border hover:border-border-bright px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {toggling
+                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  : <ToggleLeft className="w-3.5 h-3.5" />
+                }
+                {contract.activo ? 'Desactivar contrato' : 'Activar contrato'}
+              </button>
+              <Link
+                href={`/planilla-pagares/${contract.id}/editar`}
+                className="inline-flex items-center gap-1.5 text-xs text-textsec hover:text-orange border border-border hover:border-orange/30 px-3 py-1.5 rounded-lg transition-colors"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                Editar contrato
+              </Link>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="inline-flex items-center gap-1.5 text-xs text-textmuted hover:text-error border border-border hover:border-error/30 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {deleting
+                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  : <Trash2 className="w-3.5 h-3.5" />
+                }
+                Eliminar contrato
+              </button>
+            </div>
+            {deleteError && <p className="text-xs text-error">{deleteError}</p>}
           </div>
         </div>
       )}

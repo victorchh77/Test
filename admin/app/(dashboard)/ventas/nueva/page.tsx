@@ -137,7 +137,7 @@ export default function NuevaVentaPage() {
             label="Vehículo *"
             options={vehicles.map(v => ({
               value: v.id,
-              label: `${v.marca} ${v.modelo} ${v.anio} — ${formatCurrency(v.precio_venta)}`,
+              label: `${v.marca} ${v.modelo} ${v.anio} — ${formatCurrency(v.precio_venta, v.moneda)}`,
             }))}
             placeholder="Seleccioná un vehículo disponible"
             error={errors.vehicle_id?.message}
@@ -148,7 +148,7 @@ export default function NuevaVentaPage() {
             <div className="flex items-center justify-between bg-[#0B1220] border border-border rounded-xl px-4 py-3">
               <span className="text-xs text-textsec">Precio de lista</span>
               <span className="font-medium text-textsec text-sm">
-                {formatCurrency(selectedVehicle.precio_venta)}
+                {formatCurrency(selectedVehicle.precio_venta, selectedVehicle.moneda)}
               </span>
             </div>
           )}
@@ -174,7 +174,7 @@ export default function NuevaVentaPage() {
                 <div className="grid grid-cols-2 gap-3 mb-2">
                   <div>
                     <p className="section-label mb-0.5">P. Compra</p>
-                    <p className="font-medium text-textprim">{formatCurrency(selectedVehicle.precio_compra)}</p>
+                    <p className="font-medium text-textprim">{formatCurrency(selectedVehicle.precio_compra, selectedVehicle.moneda)}</p>
                   </div>
                   <div>
                     <p className="section-label mb-0.5">Gastos</p>
@@ -185,7 +185,7 @@ export default function NuevaVentaPage() {
                   <span className="text-textsec">Ganancia estimada</span>
                   <span className={`text-lg font-bold ${gananciaPos ? 'text-success' : 'text-error'}`}>
                     {rentabilidad !== null
-                      ? `${rentabilidad >= 0 ? '+' : ''}${formatCurrency(rentabilidad)}`
+                      ? `${rentabilidad >= 0 ? '+' : ''}${formatCurrency(rentabilidad, selectedVehicle.moneda)}`
                       : '—'
                     }
                   </span>

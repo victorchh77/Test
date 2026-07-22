@@ -1,30 +1,48 @@
 'use client'
 
-import { useState, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useRef, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Upload, X, FileImage, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { createTransfer } from '@/lib/actions/transfers'
+import { getTransfer, updateTransfer } from '@/lib/actions/transfers'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Textarea } from '@/components/ui/Textarea'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader } from '@/components/ui/Card'
+import { PageLoader } from '@/components/shared/LoadingSpinner'
+import type { Transfer } from '@/types'
 
-export default function NuevaTransferenciaPage() {
+export default function EditarTransferenciaPage() {
+  const params = useParams()
   const router = useRouter()
+  const id = params.id as string
   const fileRef = useRef<HTMLInputElement>(null)
 
+  const [transfer, setTransfer] = useState<Transfer | null>(null)
   const [monto, setMonto]           = useState('')
   const [moneda, setMoneda]         = useState<'Gs' | 'USD'>('Gs')
   const [remitente, setRemitente]   = useState('')
   const [notas, setNotas]           = useState('')
+  const [comprobanteUrl, setComprobanteUrl] = useState<string | null>(null)
   const [file, setFile]             = useState<File | null>(null)
   const [preview, setPreview]       = useState<string | null>(null)
   const [uploading, setUploading]   = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError]           = useState('')
+
+  useEffect(() => {
+    getTransfer(id).then(t => {
+      if (!t) return
+      setTransfer(t)
+      setMonto(String(t.monto))
+      setMoneda(t.moneda)
+      setRemitente(t.remitente ?? '')
+      setNotas(t.notas ?? '')
+      setComprobanteUrl(t.comprobante_url)
+    })
+  }, [id])
 
   function handleFile(f: File | null) {
     setFile(f)
@@ -43,7 +61,7 @@ export default function NuevaTransferenciaPage() {
     if (!montoNum || montoNum <= 0) { setError('Ingresá un monto válido'); return }
 
     setSubmitting(true)
-    let comprobante_url: string | null = null
+    let comprobante_url = comprobanteUrl
 
     if (file) {
       setUploading(true)
@@ -55,16 +73,22 @@ export default function NuevaTransferenciaPage() {
         .upload(path, file, { upsert: false })
       setUploading(false)
       if (upErr) { setError('Error al subir el comprobante: ' + upErr.message); setSubmitting(false); return }
-      // Bucket privado: guardamos el path interno, no una URL pública.
-      // La URL firmada se genera al mostrar (ver transferencias/page.tsx).
       comprobante_url = data.path
     }
 
-    const res = await createTransfer({ monto: montoNum, moneda, remitente: remitente.trim() || null, comprobante_url, notas: notas.trim() || null })
+    const res = await updateTransfer(id, {
+      monto: montoNum,
+      moneda,
+      remitente: remitente.trim() || null,
+      comprobante_url,
+      notas: notas.trim() || null,
+    })
     setSubmitting(false)
     if (res.error) { setError(res.error); return }
     router.push('/transferencias')
   }
+
+  if (!transfer) return <PageLoader />
 
   return (
     <div className="max-w-xl mx-auto flex flex-col gap-5 animate-fade-in">
@@ -73,13 +97,13 @@ export default function NuevaTransferenciaPage() {
           <Button variant="ghost" size="sm"><ArrowLeft className="w-4 h-4" /></Button>
         </Link>
         <div>
-          <h1 className="font-display text-xl font-bold text-textprim tracking-tight">Nueva transferencia</h1>
-          <p className="text-sm text-textsec mt-0.5">Registrá el comprobante y monto</p>
+          <h1 className="font-display text-xl font-bold text-textprim tracking-tight">Editar transferencia</h1>
+          <p className="text-sm text-textsec mt-0.5">Modificá el monto, la moneda o el comprobante</p>
         </div>
       </div>
 
       <Card>
-        <CardHeader title="Datos de la transferencia" subtitle="Adjuntá el comprobante y completá el monto" />
+        <CardHeader title="Datos de la transferencia" subtitle="Actualizá lo que haga falta" />
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="grid grid-cols-3 gap-3">
             <div className="col-span-2">
@@ -151,7 +175,9 @@ export default function NuevaTransferenciaPage() {
               ) : (
                 <div className="flex flex-col items-center gap-2 py-2">
                   <Upload className="w-8 h-8 text-textmuted" />
-                  <p className="text-sm text-textsec">Hacé clic para adjuntar</p>
+                  <p className="text-sm text-textsec">
+                    {comprobanteUrl ? 'Hacé clic para reemplazar el comprobante actual' : 'Hacé clic para adjuntar'}
+                  </p>
                   <p className="text-xs text-textmuted">JPG, PNG, PDF — opcional</p>
                 </div>
               )}
@@ -178,7 +204,7 @@ export default function NuevaTransferenciaPage() {
             </Link>
             <Button type="submit" loading={submitting}>
               {uploading && <Loader2 className="w-4 h-4 animate-spin" />}
-              Registrar transferencia
+              Guardar cambios
             </Button>
           </div>
         </form>

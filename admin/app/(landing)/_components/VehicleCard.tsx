@@ -76,7 +76,7 @@ export function VehicleCard({ v }: { v: FeaturedVehicle }) {
           <div>
             <p className="text-[10px] uppercase tracking-widest text-textmuted">Precio</p>
             <p className="font-display text-lg font-bold text-orange glow-text-orange tabular">
-              {formatCurrency(v.precio_venta)}
+              {formatCurrency(v.precio_venta, v.moneda)}
             </p>
           </div>
           <a

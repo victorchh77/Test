@@ -81,7 +81,7 @@ export function AddVehicleToPriceListForm({ priceListId, vehicles }: Props) {
         />
         {selected && (
           <p className="text-xs text-textsec mt-1">
-            Precio de venta: <span className="text-orange font-semibold">{formatCurrency(selected.precio_venta)}</span>
+            Precio de venta: <span className="text-orange font-semibold">{formatCurrency(selected.precio_venta, selected.moneda)}</span>
           </p>
         )}
       </div>

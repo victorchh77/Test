@@ -178,6 +178,7 @@ export default async function PlanillaPagaresPage({
                         cuota={cuota}
                         clientName={contract.client_name}
                         vehiculo={contract.vehiculo ?? null}
+                        moneda={contract.moneda}
                       />
                     ))}
                   </tbody>
@@ -212,6 +213,7 @@ export default async function PlanillaPagaresPage({
                         cuota={cuota}
                         clientName={contract.client_name}
                         vehiculo={contract.vehiculo ?? null}
+                        moneda={contract.moneda}
                       />
                     ))}
                   </tbody>

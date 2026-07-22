@@ -20,6 +20,7 @@ export interface FeaturedVehicle {
   ocultar_km: boolean
   color: string | null
   precio_venta: number
+  moneda: 'Gs' | 'USD'
   estado: VehicleStatus
   fotoUrl: string | null
 }
@@ -45,7 +46,7 @@ export async function getFeaturedVehicles(limit = 6): Promise<FeaturedVehicle[]>
 
   const { data: vehicles, error } = await supabase
     .from('vehiculos_publicos')
-    .select('id, marca, modelo, anio, km, km_publico, ocultar_km, color, precio_venta, estado, descripcion')
+    .select('id, marca, modelo, anio, km, km_publico, ocultar_km, color, precio_venta, moneda, estado, descripcion')
     .order('created_at', { ascending: false })
     .limit(fetchLimit)
 
@@ -75,6 +76,7 @@ export async function getFeaturedVehicles(limit = 6): Promise<FeaturedVehicle[]>
       ocultar_km: v.ocultar_km as boolean,
       color: (v.color as string | null) ?? null,
       precio_venta: v.precio_venta as number,
+      moneda: (v.moneda as 'Gs' | 'USD') ?? 'Gs',
       estado: v.estado as VehicleStatus,
       fotoUrl: photoMap[v.id as string] ?? null,
     }))
@@ -91,7 +93,7 @@ export async function getVehiclePublicDetail(id: string): Promise<VehiclePublicD
 
   const { data: v, error } = await supabase
     .from('vehiculos_publicos')
-    .select('id, marca, modelo, anio, km, km_publico, ocultar_km, color, precio_venta, estado, descripcion')
+    .select('id, marca, modelo, anio, km, km_publico, ocultar_km, color, precio_venta, moneda, estado, descripcion')
     .eq('id', id)
     .single()
 
@@ -116,6 +118,7 @@ export async function getVehiclePublicDetail(id: string): Promise<VehiclePublicD
     ocultar_km: v.ocultar_km as boolean,
     color: (v.color as string | null) ?? null,
     precio_venta: v.precio_venta as number,
+    moneda: (v.moneda as 'Gs' | 'USD') ?? 'Gs',
     estado: v.estado as VehicleStatus,
     fotoUrl: sorted[0]?.url ?? null,
     descripcion: stripPriceLines(v.descripcion as string | null),
@@ -309,7 +312,7 @@ export async function getDashboardStats() {
   const [vehiclesRes, salesRes, clientsRes] = await Promise.all([
     supabase.from('vehicles').select('estado'),
     supabase.from('sales_with_details')
-      .select('id, fecha_venta, precio_final, ganancia, marca, modelo, anio, client_nombre')
+      .select('id, fecha_venta, precio_final, ganancia, marca, modelo, anio, client_nombre, moneda')
       .gte('fecha_venta', firstDay)
       .order('fecha_venta', { ascending: false }),
     supabase.from('clients').select('id', { count: 'exact', head: true }),

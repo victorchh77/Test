@@ -11,6 +11,7 @@ import { createClient } from '@/lib/supabase/client'
 import { createParesContractWithCuotas, scanParesContract } from '@/lib/actions/pares'
 import type { ScannedContract } from '@/lib/actions/pares'
 import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 import { Textarea } from '@/components/ui/Textarea'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader } from '@/components/ui/Card'
@@ -42,6 +43,7 @@ export default function NuevoPagarePage() {
 
   const [clientName, setClientName]       = useState('')
   const [chassisNumber, setChassisNumber] = useState('')
+  const [moneda, setMoneda]               = useState<'Gs' | 'USD'>('Gs')
   const [notas, setNotas]                 = useState('')
   const [file, setFile]                   = useState<File | null>(null)
 
@@ -151,6 +153,7 @@ export default function NuevoPagarePage() {
       numero_chassis:    chassisNumber.trim() || null,
       total_precio:      scanned?.totalPrecio ?? null,
       entrada:           scanned?.entrada ?? null,
+      moneda,
       notas:             notas.trim() || null,
       cuotas:            cuotaRows,
     })
@@ -251,14 +254,14 @@ export default function NuevoPagarePage() {
                 <div className="flex items-center gap-1.5">
                   <DollarSign className="w-3 h-3 text-textsec" />
                   <span className="text-textsec">Total:</span>
-                  <span className="text-textprim font-medium">{formatCurrency(scanned.totalPrecio)}</span>
+                  <span className="text-textprim font-medium">{formatCurrency(scanned.totalPrecio, moneda)}</span>
                 </div>
               )}
               {scanned.entrada && (
                 <div className="flex items-center gap-1.5">
                   <DollarSign className="w-3 h-3 text-textsec" />
                   <span className="text-textsec">Entrada:</span>
-                  <span className="text-textprim font-medium">{formatCurrency(scanned.entrada)}</span>
+                  <span className="text-textprim font-medium">{formatCurrency(scanned.entrada, moneda)}</span>
                 </div>
               )}
             </div>
@@ -286,6 +289,12 @@ export default function NuevoPagarePage() {
             placeholder="Ej: 9BWZZZ377VT004251"
             hint="Si lo completás, el contrato se vincula automáticamente al vehículo correspondiente."
           />
+          <Select
+            label="Moneda del contrato"
+            value={moneda}
+            onChange={e => setMoneda(e.target.value as 'Gs' | 'USD')}
+            options={[{ value: 'Gs', label: 'Guaraníes (Gs.)' }, { value: 'USD', label: 'Dólares (USD)' }]}
+          />
           <Textarea
             label="Notas (opcional)"
             value={notas}
@@ -304,7 +313,7 @@ export default function NuevoPagarePage() {
             <p className="text-xs text-textsec mt-0.5">
               {cuotas.length === 0
                 ? 'Agregar cuotas manualmente o escaneando un .docx'
-                : `${cuotasRegulares.length} cuota${cuotasRegulares.length !== 1 ? 's' : ''} · ${cuotasRefuerzos.length} refuerzo${cuotasRefuerzos.length !== 1 ? 's' : ''} · Total: ${formatCurrency(montoTotal)}`}
+                : `${cuotasRegulares.length} cuota${cuotasRegulares.length !== 1 ? 's' : ''} · ${cuotasRefuerzos.length} refuerzo${cuotasRefuerzos.length !== 1 ? 's' : ''} · Total: ${formatCurrency(montoTotal, moneda)}`}
             </p>
           </div>
           <div className="flex gap-2">
@@ -336,7 +345,7 @@ export default function NuevoPagarePage() {
             <div className="grid grid-cols-[80px_1fr_1fr_1fr_32px] gap-2 text-[10px] font-semibold text-textmuted uppercase tracking-wider px-1">
               <span>Tipo</span>
               <span>Vencimiento</span>
-              <span>Monto (Gs)</span>
+              <span>Monto ({moneda})</span>
               <span>Notas</span>
               <span />
             </div>

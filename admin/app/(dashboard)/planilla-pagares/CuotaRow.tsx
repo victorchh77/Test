@@ -9,6 +9,7 @@ import type { ParesCuota } from '@/types'
 
 interface Props {
   cuota: ParesCuota
+  moneda: 'Gs' | 'USD'
 }
 
 function formatFecha(iso: string | null): string {
@@ -23,7 +24,7 @@ function isVencida(iso: string | null): boolean {
   return new Date(iso + 'T00:00:00') < new Date(new Date().toDateString())
 }
 
-export function CuotaRow({ cuota }: Props) {
+export function CuotaRow({ cuota, moneda }: Props) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [metodo, setMetodo]         = useState(cuota.metodo_pago ?? '')
@@ -62,7 +63,7 @@ export function CuotaRow({ cuota }: Props) {
 
       {/* Monto */}
       <span className="text-sm font-bold text-orange tabular-nums w-32 flex-shrink-0">
-        {formatCurrency(cuota.monto)}
+        {formatCurrency(cuota.monto, moneda)}
       </span>
 
       {/* Notas */}

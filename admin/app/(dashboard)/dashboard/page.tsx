@@ -188,11 +188,11 @@ export default async function DashboardPage() {
                       </td>
                       <td className="table-cell text-textsec">{s.client_nombre}</td>
                       <td className="table-cell text-right font-semibold text-textprim tabular">
-                        {formatCurrency(s.precio_final)}
+                        {formatCurrency(s.precio_final, s.moneda)}
                       </td>
                       {admin && (
                         <td className={`table-cell text-right font-bold tabular ${s.ganancia >= 0 ? 'text-success' : 'text-error'}`}>
-                          {s.ganancia >= 0 ? '+' : ''}{formatCurrency(s.ganancia)}
+                          {s.ganancia >= 0 ? '+' : ''}{formatCurrency(s.ganancia, s.moneda)}
                         </td>
                       )}
                       <td className="table-cell text-right text-textsec text-xs whitespace-nowrap tabular">

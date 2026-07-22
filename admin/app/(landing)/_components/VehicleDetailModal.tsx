@@ -119,7 +119,7 @@ export function VehicleDetailModal({ vehicle, onClose }: Props) {
         <div>
           <p className="text-[10px] uppercase tracking-widest text-textmuted">Precio</p>
           <p className="font-display text-xl font-bold text-orange glow-text-orange tabular">
-            {formatCurrency(vehicle.precio_venta)}
+            {formatCurrency(vehicle.precio_venta, vehicle.moneda)}
           </p>
         </div>
         <a

@@ -11,9 +11,10 @@ interface Props {
   cuota: ParesCuota
   clientName: string
   vehiculo: string | null
+  moneda: 'Gs' | 'USD'
 }
 
-export function MesCuotaRow({ cuota, clientName, vehiculo }: Props) {
+export function MesCuotaRow({ cuota, clientName, vehiculo, moneda }: Props) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [metodo, setMetodo]         = useState(cuota.metodo_pago ?? '')
@@ -60,7 +61,7 @@ export function MesCuotaRow({ cuota, clientName, vehiculo }: Props) {
 
       {/* Monto */}
       <td className="table-cell">
-        <span className="font-bold text-orange tabular-nums text-sm">{formatCurrency(cuota.monto)}</span>
+        <span className="font-bold text-orange tabular-nums text-sm">{formatCurrency(cuota.monto, moneda)}</span>
       </td>
 
       {/* Estado / pago */}

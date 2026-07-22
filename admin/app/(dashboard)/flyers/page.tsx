@@ -12,6 +12,7 @@ interface Format { id: string; label: string; sub: string; w: number; h: number 
 interface VehicleOption {
   id: string; marca: string; modelo: string; anio: number
   km: number; km_publico: string | null; precio_venta: number
+  moneda: 'Gs' | 'USD'
   descripcion: string | null
 }
 interface FlyerData {
@@ -157,7 +158,7 @@ export default function FlyersPage() {
     const supabase = createClient()
     supabase
       .from('vehicles')
-      .select('id, marca, modelo, anio, km, km_publico, precio_venta, descripcion')
+      .select('id, marca, modelo, anio, km, km_publico, precio_venta, moneda, descripcion')
       .not('estado', 'eq', 'Vendido')
       .order('marca', { ascending: true })
       .then(({ data }) => {
@@ -178,6 +179,7 @@ export default function FlyersPage() {
     updStr('anio', String(v.anio))
     updStr('km', v.km_publico || v.km.toLocaleString('es-PY'))
     updStr('precio', v.precio_venta.toLocaleString('es-PY'))
+    updStr('moneda', v.moneda)
     updStr('version', '')
     if (v.descripcion) {
       const feats = v.descripcion.split('\n').map(s => stripLeadingMarker(s)).filter(Boolean)
@@ -592,7 +594,7 @@ export default function FlyersPage() {
                           </span>
                           <div>
                             <div className="font-semibold text-textprim">{v.marca} {v.modelo}</div>
-                            <div className="text-textmuted text-[9px]">{v.anio} · Gs {v.precio_venta.toLocaleString('es-PY')}</div>
+                            <div className="text-textmuted text-[9px]">{v.anio} · {v.moneda} {v.precio_venta.toLocaleString('es-PY')}</div>
                           </div>
                         </button>
                       ))}

@@ -31,7 +31,7 @@ function buildPost(v: any): string {
     `✴️${v.marca} ${v.modelo} Año ${v.anio}`,
     ...descLines,
     ``,
-    `✴️Precio contado: ${v.precio_venta ? formatGs(v.precio_venta) : '—'} Gs.`,
+    `✴️Precio contado: ${v.precio_venta ? formatGs(v.precio_venta) : '—'} ${v.moneda === 'USD' ? 'USD' : 'Gs.'}`,
     `✅Aceptamos vehículo por parte de pago y financiamos`,
   ].join('\n')
 }
@@ -57,7 +57,7 @@ export async function GET(request: Request) {
 
     const { data: allVehicles, error } = await supabase
       .from('vehicles')
-      .select('id, marca, modelo, anio, precio_venta, descripcion, fecha_ingreso')
+      .select('id, marca, modelo, anio, precio_venta, moneda, descripcion, fecha_ingreso')
       .eq('estado', 'Disponible')
       .eq('oculto', false)
       .not('descripcion', 'is', null)
@@ -149,7 +149,7 @@ body{font-family:Arial,sans-serif;background:#f0f2f5;color:#333;margin:0;padding
           'Vehículo': { title: [{ text: { content: nombre } }] },
           'Modelo': { rich_text: [{ text: { content: v.modelo ?? '' } }] },
           'Año': { number: v.anio ?? null },
-          'Precio': { rich_text: [{ text: { content: v.precio_venta ? `${formatGs(v.precio_venta)} Gs.` : '—' } }] },
+          'Precio': { rich_text: [{ text: { content: v.precio_venta ? `${formatGs(v.precio_venta)} ${v.moneda === 'USD' ? 'USD' : 'Gs.'}` : '—' } }] },
         }
 
         if (existing.results.length > 0) {
