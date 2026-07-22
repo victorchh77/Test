@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { isAdmin } from '@/lib/auth/roles'
+import { isAdmin, isAdminOrSecretary } from '@/lib/auth/roles'
 import { transferSchema } from '@/lib/validations/transfer'
 import { parseInput } from '@/lib/validations/parse'
 import type { Transfer, ActionResult } from '@/types'
@@ -15,6 +15,12 @@ export async function getTransfers(): Promise<Transfer[]> {
     .order('created_at', { ascending: false })
   if (error) { console.error(error); return [] }
   return (data ?? []) as Transfer[]
+}
+
+export async function getTransfer(id: string): Promise<Transfer | null> {
+  const supabase = createClient()
+  const { data } = await supabase.from('transfers').select('*').eq('id', id).single()
+  return (data ?? null) as Transfer | null
 }
 
 /**
@@ -38,6 +44,7 @@ export async function getComprobanteSignedUrls(paths: string[]): Promise<Record<
 
 export async function createTransfer(data: {
   monto: number
+  moneda: 'Gs' | 'USD'
   remitente: string | null
   comprobante_url: string | null
   notas: string | null
@@ -50,11 +57,47 @@ export async function createTransfer(data: {
 
   const { error } = await supabase.from('transfers').insert({
     monto: parsed.data.monto,
+    moneda: parsed.data.moneda,
     remitente: parsed.data.remitente ?? null,
     comprobante_url: parsed.data.comprobante_url ?? null,
     notas: parsed.data.notas ?? null,
     created_by: user.id,
   })
+  if (error) return { error: error.message }
+  revalidatePath('/transferencias')
+  return { data: null }
+}
+
+export async function updateTransfer(id: string, data: {
+  monto: number
+  moneda: 'Gs' | 'USD'
+  remitente: string | null
+  comprobante_url: string | null
+  notas: string | null
+}): Promise<ActionResult> {
+  if (!(await isAdminOrSecretary())) return { error: 'No autorizado para editar transferencias.' }
+  const parsed = parseInput(transferSchema, data)
+  if (!parsed.success) return { error: parsed.error }
+  const supabase = createClient()
+  const { error } = await supabase
+    .from('transfers')
+    .update({
+      monto: parsed.data.monto,
+      moneda: parsed.data.moneda,
+      remitente: parsed.data.remitente ?? null,
+      comprobante_url: parsed.data.comprobante_url ?? null,
+      notas: parsed.data.notas ?? null,
+    })
+    .eq('id', id)
+  if (error) return { error: error.message }
+  revalidatePath('/transferencias')
+  return { data: null }
+}
+
+export async function deleteTransfer(id: string): Promise<ActionResult> {
+  if (!(await isAdminOrSecretary())) return { error: 'No autorizado para eliminar transferencias.' }
+  const supabase = createClient()
+  const { error } = await supabase.from('transfers').delete().eq('id', id)
   if (error) return { error: error.message }
   revalidatePath('/transferencias')
   return { data: null }

@@ -81,8 +81,8 @@ export default async function VehiculosPage({ searchParams }: { searchParams: Ve
                     <p className="text-xs text-textsec mt-0.5">
                       {v.anio} · {formatKm(v.km)}{v.color ? ` · ${v.color}` : ''}
                     </p>
-                    <p className="font-bold text-orange mt-1 tabular">{formatCurrency(v.precio_venta)}</p>
-                    {admin && <p className="text-[11px] text-textsec tabular">Compra: {formatCurrency(v.precio_compra)}</p>}
+                    <p className="font-bold text-orange mt-1 tabular">{formatCurrency(v.precio_venta, v.moneda)}</p>
+                    {admin && <p className="text-[11px] text-textsec tabular">Compra: {formatCurrency(v.precio_compra, v.moneda)}</p>}
                   </div>
                 </div>
                 <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/60">
@@ -140,8 +140,8 @@ export default async function VehiculosPage({ searchParams }: { searchParams: Ve
                       </td>
                       <td className="table-cell text-textsec">{v.anio}</td>
                       <td className="table-cell text-textsec">{formatKm(v.km)}</td>
-                      <td className="table-cell text-textsec">{formatCurrency(v.precio_compra)}</td>
-                      <td className="table-cell font-semibold text-textprim">{formatCurrency(v.precio_venta)}</td>
+                      <td className="table-cell text-textsec">{formatCurrency(v.precio_compra, v.moneda)}</td>
+                      <td className="table-cell font-semibold text-textprim">{formatCurrency(v.precio_venta, v.moneda)}</td>
                       <td className="table-cell">
                         <Badge color={statusBadge[v.estado]} dot>{v.estado}</Badge>
                       </td>

@@ -1,4 +1,5 @@
-export function formatCurrency(value: number): string {
+export function formatCurrency(value: number, moneda: 'Gs' | 'USD' = 'Gs'): string {
+  if (moneda === 'USD') return 'USD ' + value.toLocaleString('es-PY')
   return 'Gs. ' + value.toLocaleString('es-PY')
 }
 

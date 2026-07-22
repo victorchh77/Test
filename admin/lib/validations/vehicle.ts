@@ -11,6 +11,7 @@ export const vehicleSchema = z.object({
   numero_chassis: z.string().optional(),
   precio_compra: z.coerce.number().int().min(1, 'El precio de compra es requerido'),
   precio_venta:  z.coerce.number().int().min(1, 'El precio de venta es requerido'),
+  moneda:        z.enum(['Gs', 'USD']).default('Gs'),
   estado:        z.enum(['Disponible', 'Reservado', 'Vendido']),
   oculto:        z.boolean().optional(),
   descripcion:   z.string().optional(),

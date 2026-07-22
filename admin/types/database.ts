@@ -22,6 +22,7 @@ export interface Vehicle {
   numero_chassis: string | null
   precio_compra: number
   precio_venta: number
+  moneda: 'Gs' | 'USD'
   estado: VehicleStatus
   oculto: boolean
   descripcion: string | null
@@ -85,6 +86,7 @@ export interface SaleWithDetails extends Sale {
   modelo: string
   anio: number
   precio_compra: number
+  moneda: 'Gs' | 'USD'
   client_nombre: string | null
   client_telefono: string | null
   vendedor_nombre: string | null
@@ -94,6 +96,7 @@ export interface SaleWithDetails extends Sale {
 export interface Transfer {
   id: string
   monto: number
+  moneda: 'Gs' | 'USD'
   remitente: string | null
   comprobante_url: string | null
   notas: string | null
@@ -113,6 +116,7 @@ export interface ParesContract {
   vehiculo: string | null
   total_precio: number | null
   entrada: number | null
+  moneda: 'Gs' | 'USD'
   notas: string | null
   activo: boolean
   client_id: string | null

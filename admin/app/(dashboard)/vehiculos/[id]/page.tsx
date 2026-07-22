@@ -98,8 +98,8 @@ export default async function VehicleDetailPage({ params }: { params: { id: stri
               { label: 'Kilometraje',   value: formatKm(vehicle.km) },
               { label: 'Color',         value: vehicle.color || '—' },
               { label: 'Estado',        value: vehicle.estado },
-              ...(admin ? [{ label: 'P. Compra', value: formatCurrency(vehicle.precio_compra) }] : []),
-              { label: 'P. Venta',      value: formatCurrency(vehicle.precio_venta) },
+              ...(admin ? [{ label: 'P. Compra', value: formatCurrency(vehicle.precio_compra, vehicle.moneda) }] : []),
+              { label: 'P. Venta',      value: formatCurrency(vehicle.precio_venta, vehicle.moneda) },
               ...(admin ? [{ label: 'Total Gastos', value: formatCurrency(totalGastos) }] : []),
             ].map(({ label, value }) => (
               <div key={label}>
@@ -123,11 +123,11 @@ export default async function VehicleDetailPage({ params }: { params: { id: stri
           <div className="flex flex-col gap-3">
             <div className="flex justify-between text-sm">
               <span className="text-textsec">Precio de venta</span>
-              <span className="text-textprim font-medium">{formatCurrency(vehicle.precio_venta)}</span>
+              <span className="text-textprim font-medium">{formatCurrency(vehicle.precio_venta, vehicle.moneda)}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-textsec">Precio de compra</span>
-              <span className="text-error">−{formatCurrency(vehicle.precio_compra)}</span>
+              <span className="text-error">−{formatCurrency(vehicle.precio_compra, vehicle.moneda)}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-textsec">Total gastos</span>

@@ -32,6 +32,7 @@ export function VehicleForm({ onSubmit, defaultValues, isEdit, loading, error }:
       numero_chassis: defaultValues?.numero_chassis ?? '',
       precio_compra:  defaultValues?.precio_compra ?? 0,
       precio_venta:  defaultValues?.precio_venta ?? 0,
+      moneda:        defaultValues?.moneda ?? 'Gs',
       estado:        defaultValues?.estado ?? 'Disponible',
       oculto:        defaultValues?.oculto ?? false,
       descripcion:   defaultValues?.descripcion ?? '',
@@ -111,17 +112,28 @@ export function VehicleForm({ onSubmit, defaultValues, isEdit, loading, error }:
         placeholder="Ej: 9BWZZZ377VT004251"
       />
 
+      <div>
+        <Select
+          {...register('moneda')}
+          label="Moneda de los precios"
+          options={[{ value: 'Gs', label: 'Guaraníes (Gs.)' }, { value: 'USD', label: 'Dólares (USD)' }]}
+        />
+        <p className="text-xs text-textsec mt-1.5">
+          Aplica al precio de compra y de venta de este vehículo — no se convierte, se muestra tal cual en toda la app.
+        </p>
+      </div>
+
       <div className="grid grid-cols-2 gap-4">
         <Input
           {...register('precio_compra')}
-          label="Precio de compra (Gs.) *"
+          label="Precio de compra *"
           type="number"
           placeholder="50000000"
           error={errors.precio_compra?.message}
         />
         <Input
           {...register('precio_venta')}
-          label="Precio de venta (Gs.) *"
+          label="Precio de venta *"
           type="number"
           placeholder="70000000"
           error={errors.precio_venta?.message}

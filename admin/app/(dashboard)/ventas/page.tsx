@@ -96,12 +96,12 @@ export default async function VentasPage({
                         {!s.financiado && !s.es_permuta && <span className="text-textmuted text-xs">Contado</span>}
                       </div>
                     </td>
-                    {admin && <td className="table-cell text-textsec">{formatCurrency(s.precio_compra)}</td>}
-                    <td className="table-cell font-semibold text-textprim">{formatCurrency(s.precio_final)}</td>
+                    {admin && <td className="table-cell text-textsec">{formatCurrency(s.precio_compra, s.moneda)}</td>}
+                    <td className="table-cell font-semibold text-textprim">{formatCurrency(s.precio_final, s.moneda)}</td>
                     {admin && (
                       <td className="table-cell">
                         <span className={`font-bold ${(s.ganancia ?? 0) >= 0 ? 'text-success' : 'text-error'}`}>
-                          {(s.ganancia ?? 0) >= 0 ? '+' : ''}{formatCurrency(s.ganancia ?? 0)}
+                          {(s.ganancia ?? 0) >= 0 ? '+' : ''}{formatCurrency(s.ganancia ?? 0, s.moneda)}
                         </span>
                       </td>
                     )}

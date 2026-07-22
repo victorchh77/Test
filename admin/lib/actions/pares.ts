@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { isAdminOrSecretary } from '@/lib/auth/roles'
-import { paresContractSchema, cuotaInputSchema, paresPaymentSchema } from '@/lib/validations/pares'
+import { paresContractSchema, paresContractUpdateSchema, cuotaInputSchema, paresPaymentSchema } from '@/lib/validations/pares'
 import { parseInput } from '@/lib/validations/parse'
 import type { ParesContract, ParesCuota, ParesContractWithCuotas, ParesPayment, ActionResult } from '@/types'
 
@@ -274,6 +274,12 @@ export async function getParesContractsWithCuotas(): Promise<ParesContractWithCu
   })) as ParesContractWithCuotas[]
 }
 
+export async function getParesContract(id: string): Promise<ParesContract | null> {
+  const supabase = createClient()
+  const { data } = await supabase.from('pagares_contracts').select('*').eq('id', id).single()
+  return (data ?? null) as ParesContract | null
+}
+
 export async function getContratoSignedUrls(paths: string[]): Promise<Record<string, string>> {
   const clean = paths.filter((p) => p && !p.startsWith('http'))
   if (!clean.length) return {}
@@ -304,6 +310,7 @@ export async function createParesContractWithCuotas(data: {
   numero_chassis: string | null
   total_precio: number | null
   entrada: number | null
+  moneda: 'Gs' | 'USD'
   notas: string | null
   cuotas: CreateCuotaInput[]
 }): Promise<ActionResult> {
@@ -361,6 +368,7 @@ export async function createParesContractWithCuotas(data: {
       vehiculo:          data.vehiculo,
       total_precio:      data.total_precio,
       entrada:           data.entrada,
+      moneda:            data.moneda,
       notas:             data.notas,
       dia_pago:          diaPago,
       monto_mensual:     montoMensual,
@@ -438,6 +446,45 @@ export async function toggleParesContract(id: string, activo: boolean): Promise<
     .from('pagares_contracts')
     .update({ activo })
     .eq('id', id)
+  if (error) return { error: error.message }
+  revalidatePath('/planilla-pagares')
+  return { data: null }
+}
+
+export async function updateParesContract(id: string, data: {
+  client_name: string
+  contract_file_url: string | null
+  vehiculo: string | null
+  total_precio: number | null
+  entrada: number | null
+  moneda: 'Gs' | 'USD'
+  notas: string | null
+}): Promise<ActionResult> {
+  if (!(await isAdminOrSecretary())) return { error: 'No autorizado' }
+  const parsed = parseInput(paresContractUpdateSchema, data)
+  if (!parsed.success) return { error: parsed.error }
+  const supabase = createClient()
+  const { error } = await supabase
+    .from('pagares_contracts')
+    .update({
+      client_name:       parsed.data.client_name.trim(),
+      contract_file_url: parsed.data.contract_file_url,
+      vehiculo:          parsed.data.vehiculo,
+      total_precio:      parsed.data.total_precio,
+      entrada:           parsed.data.entrada,
+      moneda:            parsed.data.moneda,
+      notas:             parsed.data.notas,
+    })
+    .eq('id', id)
+  if (error) return { error: error.message }
+  revalidatePath('/planilla-pagares')
+  return { data: null }
+}
+
+export async function deleteParesContract(id: string): Promise<ActionResult> {
+  if (!(await isAdminOrSecretary())) return { error: 'No autorizado' }
+  const supabase = createClient()
+  const { error } = await supabase.from('pagares_contracts').delete().eq('id', id)
   if (error) return { error: error.message }
   revalidatePath('/planilla-pagares')
   return { data: null }
