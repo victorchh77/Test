@@ -22,6 +22,7 @@ export interface ScannedContract {
   vehiculo:     string | null
   totalPrecio:  number | null
   entrada:      number | null
+  moneda:       'Gs' | 'USD'
   cuotas:       ScannedCuota[]
   // Campos legacy para retro-compatibilidad con el formulario de vista previa
   diaPago:      number | null
@@ -85,130 +86,127 @@ function extractDates(text: string): string[] {
 function parseContractText(text: string): ScannedContract {
   const t = text.replace(/\s+/g, ' ').trim()
 
-  // Nombre del comprador
+  // Nombre del comprador (solo el primero, si hay más de uno)
   let clientName: string | null = null
   const buyerM = t.match(
     /por la otra parte[,\s]+(?:el se[ñn]or|la se[ñn]ora)\s+([A-ZÁÉÍÓÚÜÑ][A-ZÁÉÍÓÚÜÑa-záéíóúüñ\s]+?)(?:,\s*paraguayo|,\s*paraguaya|,\s*con C\.I)/i,
   )
   if (buyerM) clientName = buyerM[1].trim()
 
-  // Vehículo
+  // Vehículo (admite "Marca: X; Modelo: Y" o "Marca: X, Modelo: Y")
   let vehiculo: string | null = null
-  const vM = t.match(/Marca:\s*([^;]+);\s*Modelo:\s*([^;]+).*?A[ñn]o:\s*(\d{4})/i)
-  if (vM) vehiculo = `${vM[1].trim()} ${vM[2].trim()} ${vM[3]}`
+  const vM = t.match(/Marca:\s*([^;,]+)[;,]\s*Modelo:\s*([^;]+).*?A[ñn]o:\s*(\d{4})/i)
+  if (vM) {
+    const marca = vM[1].trim()
+    const anio  = vM[3]
+    let modelo  = vM[2].trim()
+    // Evita duplicar el año si el modelo ya lo trae como sufijo ("TUCSON/2010")
+    if (modelo.endsWith(`/${anio}`)) modelo = modelo.slice(0, -(anio.length + 1))
+    vehiculo = `${marca} ${modelo} ${anio}`
+  }
 
-  // Precio total
+  // Precio total — moneda detectada del símbolo entre paréntesis (Gs o $)
   let totalPrecio: number | null = null
-  const tM = t.match(/precio total[^(]+\(Gs([\d.,]+)\)/i)
-  if (tM) totalPrecio = parseGuaranies(tM[1])
+  let moneda: 'Gs' | 'USD' = 'Gs'
+  const tM = t.match(/precio total[^(]+\((Gs|\$)([\d.,]+)\)/i)
+  if (tM) {
+    moneda = tM[1] === '$' ? 'USD' : 'Gs'
+    totalPrecio = parseGuaranies(tM[2])
+  }
 
-  // Entrada
+  // Entrada: monto recibido en efectivo + (si existe) vehículo recibido en
+  // permuta como parte de pago, que se detalla en las notas sugeridas.
   let entrada: number | null = null
-  const eM = t.match(/recib[eio][^(]+\(Gs([\d.,]+)\)/i)
+  const eM = t.match(/recib[eio][^(]+\((?:Gs|\$)([\d.,]+)\)/i)
   if (eM) entrada = parseGuaranies(eM[1])
 
-  // Cuota monto y cantidad (campos legacy)
-  let montoCuota: number | null = null
-  let cuotaCount: number | null = null
-  const caM = t.match(/cuotas?\s+iguales[^(]+\(Gs([\d.,]+)\)/i)
-  if (caM) montoCuota = parseGuaranies(caM[1])
-  const ccM = t.match(/\((\d+)\)\s+cuotas?\s+iguales/i)
-  if (ccM) cuotaCount = parseInt(ccM[1])
+  // Nota: se corta en el primer ". " (punto + espacio) en vez de en
+  // cualquier punto, porque abreviaturas como "N.º" llevan un punto pegado
+  // al símbolo siguiente sin espacio y no deben cortar la descripción.
+  let permutaVehiculo: string | null = null
+  const permutaM = t.match(/por la suma de[\s\S]+?\((?:Gs|\$)([\d.,]+)\)[\s\S]*?parte de pago[\s\S]*?veh[ií]culo de su propiedad,\s*([\s\S]+?)\.\s/i)
+  if (permutaM) {
+    entrada = (entrada ?? 0) + parseGuaranies(permutaM[1])
+    permutaVehiculo = permutaM[2].trim()
+  }
 
-  // Día de pago legacy (primer día hallado en fechas DD/MM/YYYY)
+  // Saldo — usado solo como respaldo si no se pudo detectar la entrada arriba
+  const sM = t.match(/saldo de[^(]+\((?:Gs|\$)([\d.,]+)\)/i)
+  const saldo = sM ? parseGuaranies(sM[1]) : null
+  if (entrada == null && totalPrecio != null && saldo != null) entrada = totalPrecio - saldo
+
+  // ── Grupos de pagarés ──────────────────────────────────────────────────
+  // Cada grupo: "(N) pagarés [de refuerzo] [iguales] de <MONEDA> ... (<monto>)"
+  // seguido de sus fechas de vencimiento. Un contrato puede tener varios
+  // grupos con montos distintos sin que estén etiquetados "de refuerzo"
+  // (ej. cuotas mensuales + un par de pagos más grandes en diciembre).
+  // Acepta tanto "cuotas" como "pagarés" (contratos reales usan "pagarés";
+  // algún molde alternativo usa "cuotas") y detecta "refuerzo" en cualquier
+  // punto del grupo, ya que a veces va pegado a la palabra ("pagaré de
+  // refuerzo") y otras después de "iguales" ("pagarés iguales de refuerzo").
+  interface Grupo { count: number; monto: number; refuerzo: boolean; start: number; end: number }
+  const groups: Grupo[] = []
+  const groupRe = /\((\d+)\)\s*(?:cuotas?|pagar[ée]s?)[^(]*?\((?:Gs|\$)([\d.,]+)\)/gi
+  let gm: RegExpExecArray | null
+  while ((gm = groupRe.exec(t)) !== null) {
+    groups.push({
+      count: parseInt(gm[1], 10),
+      refuerzo: /refuerzo/i.test(gm[0]),
+      monto: parseGuaranies(gm[2]),
+      start: gm.index,
+      end: gm.index + gm[0].length,
+    })
+  }
+
+  // Los grupos terminan (para efectos de buscar sus fechas) en el siguiente
+  // grupo, o en la mención de "suscribiendo/subscritos" que cierra la cláusula.
+  const lastEnd = groups.length ? groups[groups.length - 1].end : 0
+  const closingIdx = t.slice(lastEnd).search(/suscri|subscri/i)
+  const clauseEnd = closingIdx >= 0 ? lastEnd + closingIdx : t.length
+
+  const cuotas: ScannedCuota[] = []
+  let cuotaNum = 1, refuerzoNum = 1
+
+  groups.forEach((g, i) => {
+    const rangeStart = g.end
+    const rangeEnd   = i < groups.length - 1 ? groups[i + 1].start : clauseEnd
+    const dates = extractDates(t.slice(rangeStart, Math.max(rangeStart, rangeEnd)))
+    for (let n = 0; n < g.count; n++) {
+      const fecha = dates[n] ?? null
+      cuotas.push({
+        tipo: g.refuerzo ? 'refuerzo' : 'cuota',
+        numero: g.refuerzo ? refuerzoNum++ : cuotaNum++,
+        monto: g.monto,
+        fecha_vencimiento: fecha,
+        notas: fecha ? null : 'A convenir',
+      })
+    }
+  })
+
+  // Campos legacy (derivados del primer grupo, para compatibilidad)
+  const montoCuota = groups[0]?.monto ?? null
+  const cuotaCount = groups[0]?.count ?? null
   let diaPago: number | null = null
   const dM = t.match(/(\d{1,2})\/\d{2}\/\d{4}/)
   if (dM) diaPago = parseInt(dM[1])
 
-  // ── Separar sección cuotas / refuerzos ──
-  // Busca la primera aparición de "refuerzo" para dividir el texto
-  const refuerzoIdx = t.toLowerCase().indexOf('refuerzo')
-  const cuotaBlock   = refuerzoIdx > 0 ? t.slice(0, refuerzoIdx) : t
-  const refuerzoBlock = refuerzoIdx > 0 ? t.slice(refuerzoIdx) : ''
-
-  // ── Cuotas regulares ──
-  const cuotas: ScannedCuota[] = []
-  const cuotaDates = extractDates(cuotaBlock)
-
-  if (montoCuota && cuotaDates.length > 0) {
-    cuotaDates.forEach((fecha, i) => {
-      cuotas.push({ tipo: 'cuota', numero: i + 1, monto: montoCuota!, fecha_vencimiento: fecha, notas: null })
-    })
-    // Completar con cuotas "a convenir" si el contrato dice más cuotas que fechas encontradas
-    if (cuotaCount && cuotaCount > cuotaDates.length) {
-      for (let i = cuotaDates.length + 1; i <= cuotaCount; i++) {
-        cuotas.push({ tipo: 'cuota', numero: i, monto: montoCuota!, fecha_vencimiento: null, notas: 'A convenir' })
-      }
-    }
-  } else if (montoCuota && cuotaCount) {
-    for (let i = 1; i <= cuotaCount; i++) {
-      cuotas.push({ tipo: 'cuota', numero: i, monto: montoCuota, fecha_vencimiento: null, notas: null })
-    }
-  }
-
-  // ── Refuerzos ──
-  if (refuerzoBlock) {
-    const WORD_NUM: Record<string, number> = {
-      un: 1, uno: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5,
-      seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10,
-    }
-
-    const refAmtRe = /\(Gs([\d.,]+)\)/g
-    let rm: RegExpExecArray | null
-    let refNum = 1
-
-    while ((rm = refAmtRe.exec(refuerzoBlock)) !== null) {
-      const monto = parseGuaranies(rm[1])
-      if (!monto || monto <= 0) continue
-      if (totalPrecio && monto === totalPrecio) continue
-      if (entrada && monto === entrada) continue
-
-      // Look back up to 160 chars for an explicit count like "(2) pagarés" or "DOS (2)"
-      const before = refuerzoBlock.slice(Math.max(0, rm.index - 160), rm.index)
-      let count = 1
-      const numParenM = before.match(/\((\d+)\)\s*pagar[eé]s?/i)
-      const wordNumM  = before.match(
-        /\b(un|uno|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\s+\((\d+)\)/i,
-      )
-      if (wordNumM) count = parseInt(wordNumM[2]) || WORD_NUM[wordNumM[1].toLowerCase()] || 1
-      else if (numParenM) count = parseInt(numParenM[1]) || 1
-
-      // Collect up to `count` dates from the text following this amount
-      const after = refuerzoBlock.slice(rm.index + rm[0].length, rm.index + rm[0].length + 400)
-      const afterDates: string[] = []
-      const dateRe2 = /(\d{1,2}\/\d{2}\/\d{4})/g
-      let dm: RegExpExecArray | null
-      while ((dm = dateRe2.exec(after)) !== null) {
-        afterDates.push(parseDate(dm[1]))
-        if (afterDates.length >= count) break
-      }
-
-      for (let i = 0; i < count; i++) {
-        const fecha = afterDates[i] ?? null
-        cuotas.push({
-          tipo: 'refuerzo',
-          numero: refNum++,
-          monto,
-          fecha_vencimiento: fecha,
-          notas: !fecha ? 'A convenir' : null,
-        })
-      }
-    }
-  }
-
   // Nota sugerida
+  const simbolo = moneda === 'USD' ? '$' : 'Gs'
   const partes: string[] = []
   if (vehiculo)    partes.push(vehiculo)
-  if (totalPrecio) partes.push(`Total Gs ${totalPrecio.toLocaleString('es-PY')}`)
-  if (entrada)     partes.push(`Entrada Gs ${entrada.toLocaleString('es-PY')}`)
-  if (cuotaCount && montoCuota)
-    partes.push(`${cuotaCount} cuotas de Gs ${montoCuota.toLocaleString('es-PY')}`)
+  if (totalPrecio) partes.push(`Total ${simbolo} ${totalPrecio.toLocaleString('es-PY')}`)
+  if (entrada)     partes.push(`Entrada ${simbolo} ${entrada.toLocaleString('es-PY')}`)
+  groups.forEach(g => {
+    partes.push(`${g.count} ${g.refuerzo ? 'refuerzo(s)' : 'pagarés'} de ${simbolo} ${g.monto.toLocaleString('es-PY')}`)
+  })
+  if (permutaVehiculo) partes.push(`Vehículo recibido en permuta: ${permutaVehiculo}`)
 
   return {
     clientName,
     vehiculo,
     totalPrecio,
     entrada,
+    moneda,
     cuotas,
     diaPago,
     montoCuota,
