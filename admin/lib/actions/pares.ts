@@ -296,6 +296,23 @@ export async function getParesContract(id: string): Promise<ParesContract | null
   return (data ?? null) as ParesContract | null
 }
 
+export async function getParesContractWithCuotas(id: string): Promise<ParesContractWithCuotas | null> {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('pagares_contracts')
+    .select('*, pagares_cuotas(*)')
+    .eq('id', id)
+    .single()
+  if (error || !data) return null
+  return {
+    ...data,
+    cuotas: ((data.pagares_cuotas ?? []) as ParesCuota[]).sort((a, b) => {
+      if (a.tipo !== b.tipo) return a.tipo === 'cuota' ? -1 : 1
+      return a.numero - b.numero
+    }),
+  } as ParesContractWithCuotas
+}
+
 export async function getContratoSignedUrls(paths: string[]): Promise<Record<string, string>> {
   const clean = paths.filter((p) => p && !p.startsWith('http'))
   if (!clean.length) return {}
@@ -450,6 +467,38 @@ export async function addCuotaToContract(
     fecha_vencimiento: parsed.data.fecha_vencimiento || null,
     notas:             parsed.data.notas || null,
   })
+  if (error) return { error: error.message }
+  revalidatePath('/planilla-pagares')
+  return { data: null }
+}
+
+export async function updateCuota(
+  cuotaId: string,
+  cuota: CreateCuotaInput,
+): Promise<ActionResult> {
+  if (!(await isAdminOrSecretary())) return { error: 'No autorizado' }
+  const parsed = parseInput(cuotaInputSchema, cuota)
+  if (!parsed.success) return { error: parsed.error }
+  const supabase = createClient()
+  const { error } = await supabase
+    .from('pagares_cuotas')
+    .update({
+      tipo:              parsed.data.tipo,
+      numero:            parsed.data.numero,
+      monto:             parsed.data.monto,
+      fecha_vencimiento: parsed.data.fecha_vencimiento || null,
+      notas:             parsed.data.notas || null,
+    })
+    .eq('id', cuotaId)
+  if (error) return { error: error.message }
+  revalidatePath('/planilla-pagares')
+  return { data: null }
+}
+
+export async function deleteCuota(cuotaId: string): Promise<ActionResult> {
+  if (!(await isAdminOrSecretary())) return { error: 'No autorizado' }
+  const supabase = createClient()
+  const { error } = await supabase.from('pagares_cuotas').delete().eq('id', cuotaId)
   if (error) return { error: error.message }
   revalidatePath('/planilla-pagares')
   return { data: null }

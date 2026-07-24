@@ -91,7 +91,7 @@ export default async function PriceListDetailPage({ params }: { params: { id: st
         ) : (
           <>
           {/* Vista móvil: tarjetas */}
-          <div className="md:hidden flex flex-col gap-3 p-4">
+          <div className="xl:hidden flex flex-col gap-3 p-4">
             {items.map((item: any) => {
               const photoUrl = photoMap[item.vehicle_id]
               const rows = ([
@@ -150,64 +150,103 @@ export default async function PriceListDetailPage({ params }: { params: { id: st
             })}
           </div>
 
-          {/* Vista escritorio: tabla */}
-          <div className="hidden md:block overflow-x-auto scrollbar-thin">
-            <table className="w-full text-sm">
+          {/* Vista escritorio: tabla compacta — todas las columnas caben sin scroll horizontal.
+              Recién a partir de xl (1280px) garantizamos suficiente ancho de contenido real
+              (descontando sidebar fijo + padding) para que la tabla no quede apretada; en
+              anchos intermedios (tablet / ventana chica) se usan las mismas tarjetas que en
+              mobile, que ya son responsive. */}
+          <div className="hidden xl:block">
+            <table className="w-full text-sm table-fixed">
               <thead>
                 <tr>
-                  {['Foto', 'Vehículo', 'Km', 'Color', 'Estado', 'Precio 1', 'Precio 2', 'Precio lista', 'Entrega', '12 cuotas', '18 cuotas', '24 cuotas', '30 cuotas', 'Notas', ...(admin ? [''] : [])].map((h, i) => (
-                    <th key={i} className="table-header-cell">{h}</th>
+                  {[
+                    ['Vehículo', 'w-[26%]'],
+                    ['Estado', 'w-[10%]'],
+                    ['Precio lista', 'w-[16%]'],
+                    ['Entrega', 'w-[10%]'],
+                    ['Financiado', 'w-[22%]'],
+                    ['Notas', 'w-[16%]'],
+                    ...(admin ? [['', 'w-[36px]']] : []),
+                  ].map(([h, w], i) => (
+                    <th key={i} className={`table-header-cell !px-3 ${w}`}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {items.map((item: any) => {
                   const photoUrl = photoMap[item.vehicle_id]
+                  const moneda = item.vehicles?.moneda
+                  const financiado = ([
+                    ['12', item.precio_financiado_12],
+                    ['18', item.precio_financiado_18],
+                    ['24', item.precio_financiado_24],
+                    ['30', item.precio_financiado_30],
+                  ] as [string, number | null][]).filter(([, v]) => v)
                   return (
-                    <tr key={item.id} className="table-row-hover">
-                      {/* Photo thumbnail */}
-                      <td className="table-cell w-14">
-                        <div className="w-12 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-card-elevated border border-border">
-                          {photoUrl ? (
-                            <Image
-                              src={photoUrl}
-                              alt={`${item.vehicles?.marca} ${item.vehicles?.modelo}`}
-                              width={48}
-                              height={40}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-textmuted text-[9px] font-medium">
-                              Sin foto
-                            </div>
-                          )}
+                    <tr key={item.id} className="table-row-hover align-top">
+                      <td className="table-cell !px-3">
+                        <div className="flex gap-2.5 items-center">
+                          <div className="w-10 h-9 rounded-lg overflow-hidden flex-shrink-0 bg-card-elevated border border-border">
+                            {photoUrl ? (
+                              <Image
+                                src={photoUrl}
+                                alt={`${item.vehicles?.marca} ${item.vehicles?.modelo}`}
+                                width={40}
+                                height={36}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-textmuted text-[8px] font-medium text-center leading-tight">
+                                S/foto
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-semibold text-textprim truncate">
+                              {item.vehicles?.marca} {item.vehicles?.modelo}
+                            </p>
+                            <p className="text-xs text-textsec truncate">
+                              {item.vehicles?.anio} · {formatKm(item.vehicles?.km ?? 0)}{item.vehicles?.color ? ` · ${item.vehicles.color}` : ''}
+                            </p>
+                          </div>
                         </div>
                       </td>
-
-                      <td className="table-cell">
-                        <p className="font-semibold text-textprim">
-                          {item.vehicles?.marca} {item.vehicles?.modelo}
-                        </p>
-                        <p className="text-xs text-textsec">{item.vehicles?.anio}</p>
-                      </td>
-                      <td className="table-cell text-textsec">{formatKm(item.vehicles?.km ?? 0)}</td>
-                      <td className="table-cell text-textsec">{item.vehicles?.color ?? '—'}</td>
-                      <td className="table-cell">
+                      <td className="table-cell !px-3">
                         <Badge color={item.vehicles?.estado === 'Disponible' ? 'success' : 'warning'} dot>
                           {item.vehicles?.estado}
                         </Badge>
                       </td>
-                      <td className="table-cell text-textsec whitespace-nowrap">{item.precio_1 ? formatCurrency(item.precio_1, item.vehicles?.moneda) : '—'}</td>
-                      <td className="table-cell text-textsec whitespace-nowrap">{item.precio_2 ? formatCurrency(item.precio_2, item.vehicles?.moneda) : '—'}</td>
-                      <td className="table-cell font-bold text-orange whitespace-nowrap">{formatCurrency(item.precio_lista, item.vehicles?.moneda)}</td>
-                      <td className="table-cell text-textsec whitespace-nowrap">{item.entrega ? formatCurrency(item.entrega, item.vehicles?.moneda) : '—'}</td>
-                      <td className="table-cell text-textsec whitespace-nowrap">{item.precio_financiado_12 ? formatCurrency(item.precio_financiado_12, item.vehicles?.moneda) : '—'}</td>
-                      <td className="table-cell text-textsec whitespace-nowrap">{item.precio_financiado_18 ? formatCurrency(item.precio_financiado_18, item.vehicles?.moneda) : '—'}</td>
-                      <td className="table-cell text-textsec whitespace-nowrap">{item.precio_financiado_24 ? formatCurrency(item.precio_financiado_24, item.vehicles?.moneda) : '—'}</td>
-                      <td className="table-cell text-textsec whitespace-nowrap">{item.precio_financiado_30 ? formatCurrency(item.precio_financiado_30, item.vehicles?.moneda) : '—'}</td>
-                      <td className="table-cell text-textsec text-xs">{item.notas ?? '—'}</td>
+                      <td className="table-cell !px-3">
+                        <p className="font-bold text-orange tabular">{formatCurrency(item.precio_lista, moneda)}</p>
+                        {(item.precio_1 || item.precio_2) && (
+                          <p className="text-[11px] text-textsec tabular mt-0.5 leading-snug">
+                            {item.precio_1 && <>Cont. {formatCurrency(item.precio_1, moneda)}</>}
+                            {item.precio_1 && item.precio_2 && <br />}
+                            {item.precio_2 && <>Mín. {formatCurrency(item.precio_2, moneda)}</>}
+                          </p>
+                        )}
+                      </td>
+                      <td className="table-cell !px-3 text-textsec tabular">
+                        {item.entrega ? formatCurrency(item.entrega, moneda) : '—'}
+                      </td>
+                      <td className="table-cell !px-3">
+                        {financiado.length > 0 ? (
+                          <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[11px] text-textsec tabular">
+                            {financiado.map(([label, value]) => (
+                              <span key={label} className="truncate">
+                                <span className="text-textmuted">{label}:</span> {formatCurrency(value as number, moneda)}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-textmuted">—</span>
+                        )}
+                      </td>
+                      <td className="table-cell !px-3 text-textsec text-xs">
+                        <span className="block truncate" title={item.notas ?? undefined}>{item.notas ?? '—'}</span>
+                      </td>
                       {admin && (
-                        <td className="table-cell">
+                        <td className="table-cell !px-3">
                           <form action={async () => {
                             'use server'
                             await removeFromPriceList(item.id, params.id)
