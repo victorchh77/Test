@@ -86,16 +86,24 @@ function extractDates(text: string): string[] {
 function parseContractText(text: string): ScannedContract {
   const t = text.replace(/\s+/g, ' ').trim()
 
-  // Nombre del comprador (solo el primero, si hay más de uno)
+  // Nombre del comprador (solo el primero, si hay más de uno). El segundo
+  // grupo opcional absorbe un "el señor"/"la señora" duplicado por error de
+  // tipeo en el documento original (pasa en algún contrato real).
   let clientName: string | null = null
   const buyerM = t.match(
-    /por la otra parte[,\s]+(?:el se[ñn]or|la se[ñn]ora)\s+([A-ZÁÉÍÓÚÜÑ][A-ZÁÉÍÓÚÜÑa-záéíóúüñ\s]+?)(?:,\s*paraguayo|,\s*paraguaya|,\s*con C\.I)/i,
+    /por la otra parte[,\s]+(?:el se[ñn]or|la se[ñn]ora)\s+(?:el se[ñn]or\s+|la se[ñn]ora\s+)?([A-ZÁÉÍÓÚÜÑ][A-ZÁÉÍÓÚÜÑa-záéíóúüñ\s]+?)(?:,\s*paraguayo|,\s*paraguaya|,\s*con C\.I)/i,
   )
   if (buyerM) clientName = buyerM[1].trim()
 
-  // Vehículo (admite "Marca: X; Modelo: Y" o "Marca: X, Modelo: Y")
+  // Vehículo (admite "Marca: X; Modelo: Y" o "Marca: X, Modelo: Y"). El
+  // modelo también se corta en coma (no solo punto y coma): sin este límite,
+  // un contrato sin punto y coma en esta cláusula hace que la captura se
+  // extienda sin control hasta el primer ";" del documento — que puede estar
+  // varias frases más adelante (ej. dentro de la descripción del vehículo
+  // recibido en permuta) — produciendo un texto larguísimo que después
+  // revienta el límite de longitud del campo al guardar.
   let vehiculo: string | null = null
-  const vM = t.match(/Marca:\s*([^;,]+)[;,]\s*Modelo:\s*([^;]+).*?A[ñn]o:\s*(\d{4})/i)
+  const vM = t.match(/Marca:\s*([^;,]+)[;,]\s*Modelo:\s*([^;,]+).*?A[ñn]o:\s*(\d{4})/i)
   if (vM) {
     const marca = vM[1].trim()
     const anio  = vM[3]
@@ -170,7 +178,17 @@ function parseContractText(text: string): ScannedContract {
   groups.forEach((g, i) => {
     const rangeStart = g.end
     const rangeEnd   = i < groups.length - 1 ? groups[i + 1].start : clauseEnd
-    const dates = extractDates(t.slice(rangeStart, Math.max(rangeStart, rangeEnd)))
+    const windowText = t.slice(rangeStart, Math.max(rangeStart, rangeEnd))
+    const dates = extractDates(windowText)
+    // Un pagaré único sin ninguna fecha y que no dice explícitamente "a
+    // convenir" suele ser un pago en especie/servicios (ej. "se abonará con
+    // trabajos de herrería") — se usa ese texto como nota en vez del
+    // genérico "A convenir" para no perder esa condición particular.
+    let fallbackNote: string | null = null
+    if (dates.length === 0 && g.count === 1 && !/a\s+convenir/i.test(windowText)) {
+      const cleaned = windowText.replace(/^[,;\s]+|[\s-]+$/g, '').trim()
+      if (cleaned.split(/\s+/).filter(Boolean).length > 5) fallbackNote = cleaned.slice(0, 300)
+    }
     for (let n = 0; n < g.count; n++) {
       const fecha = dates[n] ?? null
       cuotas.push({
@@ -178,7 +196,7 @@ function parseContractText(text: string): ScannedContract {
         numero: g.refuerzo ? refuerzoNum++ : cuotaNum++,
         monto: g.monto,
         fecha_vencimiento: fecha,
-        notas: fecha ? null : 'A convenir',
+        notas: fecha ? null : (fallbackNote ?? 'A convenir'),
       })
     }
   })
