@@ -166,7 +166,7 @@ export default async function PlanillaPagaresPage({
                 <table className="w-full text-sm">
                   <thead>
                     <tr>
-                      {['Cliente', 'Tipo', 'Día', 'Monto', 'Estado / Pago'].map((h, i) => (
+                      {['Cliente', 'Tipo', 'Día', 'Monto', 'Estado / Pago', 'Notas'].map((h, i) => (
                         <th key={i} className="table-header-cell">{h}</th>
                       ))}
                     </tr>
@@ -201,7 +201,7 @@ export default async function PlanillaPagaresPage({
                 <table className="w-full text-sm">
                   <thead>
                     <tr>
-                      {['Cliente', 'Tipo', 'Día', 'Monto', 'Estado / Pago'].map((h, i) => (
+                      {['Cliente', 'Tipo', 'Día', 'Monto', 'Estado / Pago', 'Notas'].map((h, i) => (
                         <th key={i} className="table-header-cell">{h}</th>
                       ))}
                     </tr>
