@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { CheckCircle2, Circle, Loader2 } from 'lucide-react'
-import { toggleCuotaPagada } from '@/lib/actions/pares'
+import { toggleCuotaPagada, updateCuota } from '@/lib/actions/pares'
 import { formatCurrency } from '@/lib/utils/format'
 import type { ParesCuota } from '@/types'
 
@@ -19,11 +19,27 @@ export function MesCuotaRow({ cuota, clientName, vehiculo, moneda }: Props) {
   const [pending, startTransition] = useTransition()
   const [metodo, setMetodo]         = useState(cuota.metodo_pago ?? '')
   const [editing, setEditing]       = useState(false)
+  const [notas, setNotas]           = useState(cuota.notas ?? '')
+  const [savingNotas, startSavingNotas] = useTransition()
 
   function submit(newPagado: boolean) {
     startTransition(async () => {
       await toggleCuotaPagada(cuota.id, newPagado, newPagado ? (metodo.trim() || null) : null)
       setEditing(false)
+      router.refresh()
+    })
+  }
+
+  function saveNotas() {
+    if (notas === (cuota.notas ?? '')) return
+    startSavingNotas(async () => {
+      await updateCuota(cuota.id, {
+        tipo: cuota.tipo,
+        numero: cuota.numero,
+        monto: cuota.monto,
+        fecha_vencimiento: cuota.fecha_vencimiento,
+        notas: notas.trim() || null,
+      })
       router.refresh()
     })
   }
@@ -115,6 +131,24 @@ export function MesCuotaRow({ cuota, clientName, vehiculo, moneda }: Props) {
             Marcar pagado
           </button>
         )}
+      </td>
+
+      {/* Notas */}
+      <td className="table-cell">
+        <div className="relative">
+          <input
+            type="text"
+            value={notas}
+            onChange={e => setNotas(e.target.value)}
+            onBlur={saveNotas}
+            onKeyDown={e => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
+            placeholder="Agregar nota..."
+            className="text-xs bg-card-elevated border border-border rounded-lg px-2.5 py-1.5 pr-6 text-textprim placeholder:text-textmuted focus:outline-none focus:border-orange/60 w-full max-w-[180px]"
+          />
+          {savingNotas && (
+            <Loader2 className="w-3 h-3 animate-spin text-textmuted absolute right-2 top-1/2 -translate-y-1/2" />
+          )}
+        </div>
       </td>
     </tr>
   )

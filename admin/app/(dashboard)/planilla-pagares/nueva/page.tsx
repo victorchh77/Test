@@ -78,6 +78,7 @@ export default function NuevoPagarePage() {
 
     const d = result.data!
     setScanned(d)
+    setMoneda(d.moneda)
     if (d.clientName  && !clientName) setClientName(d.clientName)
     if (d.notaSugerida && !notas)     setNotas(d.notaSugerida)
     if (d.cuotas.length > 0) setCuotas(fromScanned(d.cuotas))

@@ -5,14 +5,15 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Upload, FileText, X, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { getParesContract, updateParesContract } from '@/lib/actions/pares'
+import { getParesContractWithCuotas, updateParesContract } from '@/lib/actions/pares'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Textarea } from '@/components/ui/Textarea'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader } from '@/components/ui/Card'
 import { PageLoader } from '@/components/shared/LoadingSpinner'
-import type { ParesContract } from '@/types'
+import { CuotaEditRow } from '../../CuotaEditRow'
+import type { ParesContractWithCuotas } from '@/types'
 
 export default function EditarPagarePage() {
   const params = useParams()
@@ -20,7 +21,7 @@ export default function EditarPagarePage() {
   const id = params.id as string
   const fileRef = useRef<HTMLInputElement>(null)
 
-  const [contract, setContract]     = useState<ParesContract | null>(null)
+  const [contract, setContract]     = useState<ParesContractWithCuotas | null>(null)
   const [clientName, setClientName] = useState('')
   const [vehiculo, setVehiculo]     = useState('')
   const [totalPrecio, setTotalPrecio] = useState('')
@@ -34,7 +35,7 @@ export default function EditarPagarePage() {
   const [error, setError]           = useState('')
 
   useEffect(() => {
-    getParesContract(id).then(c => {
+    getParesContractWithCuotas(id).then(c => {
       if (!c) return
       setContract(c)
       setClientName(c.client_name)
@@ -85,7 +86,7 @@ export default function EditarPagarePage() {
   if (!contract) return <PageLoader />
 
   return (
-    <div className="max-w-2xl mx-auto flex flex-col gap-5 animate-fade-in">
+    <div className="max-w-3xl mx-auto flex flex-col gap-5 animate-fade-in">
       <div className="flex items-center gap-3">
         <Link href="/planilla-pagares?ver=contratos">
           <Button variant="ghost" size="sm"><ArrowLeft className="w-4 h-4" /></Button>
@@ -97,7 +98,7 @@ export default function EditarPagarePage() {
       </div>
 
       <Card>
-        <CardHeader title="Datos del contrato" subtitle="Las cuotas se administran desde la tarjeta del contrato" />
+        <CardHeader title="Datos del contrato" />
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <Input
             label="Nombre del cliente"
@@ -199,6 +200,21 @@ export default function EditarPagarePage() {
             </Button>
           </div>
         </form>
+      </Card>
+
+      <Card padding={false}>
+        <div className="px-5 pt-5">
+          <CardHeader title="Cuotas" subtitle="Editá la fecha, el monto o las notas de cada cuota ya cargada" />
+        </div>
+        {contract.cuotas.length === 0 ? (
+          <p className="text-sm text-textsec text-center py-6">Este contrato no tiene cuotas registradas.</p>
+        ) : (
+          <div className="flex flex-col divide-y divide-border/50 pb-2">
+            {contract.cuotas.map(cuota => (
+              <CuotaEditRow key={cuota.id} cuota={cuota} moneda={contract.moneda} />
+            ))}
+          </div>
+        )}
       </Card>
     </div>
   )
