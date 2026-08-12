@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { isAdminOrSecretary } from '@/lib/auth/roles'
 import { paresContractSchema, paresContractUpdateSchema, cuotaInputSchema, paresPaymentSchema } from '@/lib/validations/pares'
 import { parseInput } from '@/lib/validations/parse'
+import { logAudit } from '@/lib/audit'
 import type { ParesContract, ParesCuota, ParesContractWithCuotas, ParesPayment, ActionResult } from '@/types'
 
 // ── Tipos del escáner ─────────────────────────────────────────────────────
@@ -500,6 +501,7 @@ export async function deleteCuota(cuotaId: string): Promise<ActionResult> {
   const supabase = createClient()
   const { error } = await supabase.from('pagares_cuotas').delete().eq('id', cuotaId)
   if (error) return { error: error.message }
+  await logAudit('pares_cuota.delete', 'pares_cuota', cuotaId)
   revalidatePath('/planilla-pagares')
   return { data: null }
 }
@@ -512,6 +514,7 @@ export async function toggleParesContract(id: string, activo: boolean): Promise<
     .update({ activo })
     .eq('id', id)
   if (error) return { error: error.message }
+  await logAudit(activo ? 'pares_contract.activate' : 'pares_contract.deactivate', 'pares_contract', id)
   revalidatePath('/planilla-pagares')
   return { data: null }
 }
@@ -542,6 +545,7 @@ export async function updateParesContract(id: string, data: {
     })
     .eq('id', id)
   if (error) return { error: error.message }
+  await logAudit('pares_contract.update', 'pares_contract', id)
   revalidatePath('/planilla-pagares')
   return { data: null }
 }
@@ -551,6 +555,7 @@ export async function deleteParesContract(id: string): Promise<ActionResult> {
   const supabase = createClient()
   const { error } = await supabase.from('pagares_contracts').delete().eq('id', id)
   if (error) return { error: error.message }
+  await logAudit('pares_contract.delete', 'pares_contract', id)
   revalidatePath('/planilla-pagares')
   return { data: null }
 }
