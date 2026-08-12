@@ -20,7 +20,8 @@ export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   const isAuthPage = pathname.startsWith('/login')
   // Rutas públicas (landing): no requieren sesión.
-  const isPublic = pathname === '/' || pathname.startsWith('/catalogo')
+  const isPublic = pathname === '/' || pathname.startsWith('/catalogo') ||
+    pathname.startsWith('/privacidad') || pathname.startsWith('/terminos') || pathname.startsWith('/cookies')
   const isDashboard = !isAuthPage && !isPublic
 
   // If Supabase isn't configured yet, keep users on the login page instead of
