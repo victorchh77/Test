@@ -8,6 +8,7 @@ import { isAdmin } from '@/lib/auth/roles'
 import { vehicleSchema, type VehicleFormData } from '@/lib/validations/vehicle'
 import { parseInput } from '@/lib/validations/parse'
 import { hasUsefulDescription, stripPriceLines } from '@/lib/utils/vehicle'
+import { logAudit } from '@/lib/audit'
 import type { ActionResult, Vehicle, SaleWithDetails, VehicleStatus } from '@/types'
 
 export interface FeaturedVehicle {
@@ -232,6 +233,7 @@ export async function deleteVehicle(id: string): Promise<ActionResult> {
   const supabase = createClient()
   const { error } = await supabase.from('vehicles').delete().eq('id', id)
   if (error) return { error: error.message }
+  await logAudit('vehicle.delete', 'vehicle', id)
   revalidatePath('/vehiculos')
   redirect('/vehiculos')
 }

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { isAdmin } from '@/lib/auth/roles'
+import { logAudit } from '@/lib/audit'
 import type { ActionResult, Role } from '@/types'
 
 export interface UserWithEmail {
@@ -96,6 +97,7 @@ export async function updateUserRole(userId: string, role: Role): Promise<Action
     new_role: role,
   })
   if (error) return { error: error.message }
+  await logAudit(`user.role_change:${role}`, 'user', userId)
   revalidatePath('/usuarios')
   return { data: null }
 }
@@ -125,6 +127,7 @@ export async function deleteUser(userId: string): Promise<ActionResult> {
     return { error: error.message }
   }
 
+  await logAudit('user.delete', 'user', userId)
   revalidatePath('/usuarios')
   return { data: null }
 }
@@ -152,6 +155,7 @@ export async function toggleUserActive(userId: string, activo: boolean): Promise
   })
   if (error) return { error: error.message }
 
+  await logAudit(activo ? 'user.activate' : 'user.deactivate', 'user', userId)
   revalidatePath('/usuarios')
   return { data: null }
 }

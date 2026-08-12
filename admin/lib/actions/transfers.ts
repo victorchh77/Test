@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { isAdmin, isAdminOrSecretary } from '@/lib/auth/roles'
 import { transferSchema } from '@/lib/validations/transfer'
 import { parseInput } from '@/lib/validations/parse'
+import { logAudit } from '@/lib/audit'
 import type { Transfer, ActionResult } from '@/types'
 
 export async function getTransfers(): Promise<Transfer[]> {
@@ -90,6 +91,7 @@ export async function updateTransfer(id: string, data: {
     })
     .eq('id', id)
   if (error) return { error: error.message }
+  await logAudit('transfer.update', 'transfer', id)
   revalidatePath('/transferencias')
   return { data: null }
 }
@@ -99,6 +101,7 @@ export async function deleteTransfer(id: string): Promise<ActionResult> {
   const supabase = createClient()
   const { error } = await supabase.from('transfers').delete().eq('id', id)
   if (error) return { error: error.message }
+  await logAudit('transfer.delete', 'transfer', id)
   revalidatePath('/transferencias')
   return { data: null }
 }
@@ -112,6 +115,7 @@ export async function verifyTransfer(id: string): Promise<ActionResult> {
     .update({ verified: true, verified_by: user?.id, verified_at: new Date().toISOString() })
     .eq('id', id)
   if (error) return { error: error.message }
+  await logAudit('transfer.verify', 'transfer', id)
   revalidatePath('/transferencias')
   return { data: null }
 }
@@ -124,6 +128,7 @@ export async function unverifyTransfer(id: string): Promise<ActionResult> {
     .update({ verified: false, verified_by: null, verified_at: null })
     .eq('id', id)
   if (error) return { error: error.message }
+  await logAudit('transfer.unverify', 'transfer', id)
   revalidatePath('/transferencias')
   return { data: null }
 }

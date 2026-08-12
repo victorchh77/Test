@@ -154,6 +154,17 @@ export interface ParesPayment {
   created_at: string
 }
 
+export interface AuditLog {
+  id: string
+  actor_id: string | null
+  actor_name: string | null
+  action: string
+  entity_type: string
+  entity_id: string | null
+  ip_address: string | null
+  created_at: string
+}
+
 export interface Database {
   public: {
     Tables: {
