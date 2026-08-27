@@ -8,6 +8,8 @@ export const vehicleSchema = z.object({
   km_publico:     z.string().optional(),
   ocultar_km:     z.boolean().optional(),
   color:          z.string().optional(),
+  combustible:    z.string().optional(),
+  cambio:         z.string().optional(),
   numero_chassis: z.string().optional(),
   precio_compra: z.coerce.number().int().min(1, 'El precio de compra es requerido'),
   precio_venta:  z.coerce.number().int().min(1, 'El precio de venta es requerido'),

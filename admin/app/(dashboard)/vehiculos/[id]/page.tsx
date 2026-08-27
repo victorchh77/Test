@@ -97,6 +97,8 @@ export default async function VehicleDetailPage({ params }: { params: { id: stri
               { label: 'Año',           value: vehicle.anio },
               { label: 'Kilometraje',   value: formatKm(vehicle.km) },
               { label: 'Color',         value: vehicle.color || '—' },
+              { label: 'Combustible',   value: vehicle.combustible || '—' },
+              { label: 'Cambio (volante)', value: vehicle.cambio || '—' },
               { label: 'Estado',        value: vehicle.estado },
               ...(admin ? [{ label: 'P. Compra', value: formatCurrency(vehicle.precio_compra, vehicle.moneda) }] : []),
               { label: 'P. Venta',      value: formatCurrency(vehicle.precio_venta, vehicle.moneda) },
