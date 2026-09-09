@@ -56,11 +56,6 @@ export default function CookiesPage() {
         <Link href="/privacidad">Política de Privacidad</Link>.
       </p>
 
-      <div className="mt-4 rounded-xl border border-border bg-card-elevated/40 px-4 py-3 text-xs text-textmuted">
-        Este documento fue redactado como guía general y no reemplaza el asesoramiento de un
-        abogado. Recomendamos su revisión por un profesional matriculado en Paraguay antes de
-        considerarlo definitivo.
-      </div>
     </LegalPageShell>
   )
 }
