@@ -1,12 +1,12 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Plus, Trash2, Download, FileText, AlertTriangle, Sparkles } from 'lucide-react'
+import { Plus, Trash2, Download, FileText, AlertTriangle, Sparkles, FileStack } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader } from '@/components/ui/Card'
-import { generarContrato } from '@/lib/actions/contracts'
+import { generarContrato, generarPagares } from '@/lib/actions/contracts'
 import { construirContrato, validarMontosContrato, type ContratoCuota, type ContratoInput } from '@/lib/contracts/plantillas'
 import { formatCurrency } from '@/lib/utils/format'
 import type { Vehicle, Client } from '@/types'
@@ -38,6 +38,30 @@ function base64ToBlob(base64: string, mime: string): Blob {
   const arr = new Uint8Array(bytes.length)
   for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i)
   return new Blob([arr], { type: mime })
+}
+
+const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+
+function descargarDocx(base64: string, filename: string) {
+  const blob = base64ToBlob(base64, DOCX_MIME)
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+}
+
+/** Cada pagaré necesita su posición (1-based) y el total *dentro de su propio grupo* (cuota o refuerzo). */
+function conNumeroYTotal(cuotas: CuotaRow[]) {
+  const porTipo = { cuota: cuotas.filter(c => c.tipo === 'cuota').length, refuerzo: cuotas.filter(c => c.tipo === 'refuerzo').length }
+  const contador = { cuota: 0, refuerzo: 0 }
+  return cuotas.map(c => {
+    contador[c.tipo]++
+    return { tipo: c.tipo, numero: contador[c.tipo], total: porTipo[c.tipo], monto: c.monto, fecha: c.fecha }
+  })
 }
 
 export function ContractForm({ vehicles, clients }: Props) {
@@ -157,18 +181,38 @@ export function ContractForm({ vehicles, clients }: Props) {
     if (res.error) { setError(res.error); return }
     if (!res.data) return
 
-    const blob = base64ToBlob(res.data.base64, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = res.data.filename
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
-    URL.revokeObjectURL(url)
+    descargarDocx(res.data.base64, res.data.filename)
     setOkMsg(financiado && registrarEnPlanillaPagares
       ? 'Contrato descargado y registrado en Planilla de Pagarés.'
       : 'Contrato descargado.')
+  }
+
+  const [loadingPagares, setLoadingPagares] = useState(false)
+  const cuotasSinFecha = cuotas.some(c => !c.fecha)
+
+  async function handleGenerarPagares() {
+    setError(''); setOkMsg('')
+    if (!comprador.nombre.trim() || !comprador.ci.trim() || !comprador.domicilio.trim()) {
+      setError('Completá nombre, cédula y domicilio del comprador (es el deudor de los pagarés).')
+      return
+    }
+    if (cuotas.length === 0) { setError('Cargá al menos una cuota para generar los pagarés.'); return }
+    if (cuotasSinFecha) { setError('Todas las cuotas necesitan fecha de vencimiento para generar los pagarés (no admite "a convenir").'); return }
+
+    setLoadingPagares(true)
+    const res = await generarPagares({
+      acreedor: vendedor.nombre,
+      deudor: { nombre: comprador.nombre, domicilio: comprador.domicilio, ci: comprador.ci },
+      fechaEmision: fecha,
+      moneda,
+      cuotas: conNumeroYTotal(cuotas),
+    })
+    setLoadingPagares(false)
+    if (res.error) { setError(res.error); return }
+    if (!res.data) return
+
+    descargarDocx(res.data.base64, res.data.filename)
+    setOkMsg(`${cuotas.length} pagaré${cuotas.length !== 1 ? 's' : ''} descargado${cuotas.length !== 1 ? 's' : ''}.`)
   }
 
   return (
@@ -343,9 +387,21 @@ export function ContractForm({ vehicles, clients }: Props) {
           <p className="text-sm text-success bg-success/10 border border-success/30 rounded-lg px-3 py-2">{okMsg}</p>
         )}
 
-        <Button onClick={handleGenerar} loading={loading} disabled={!camposBasicosOk} className="self-start">
-          <Download className="w-4 h-4" /> Generar y descargar contrato (.docx)
-        </Button>
+        <div className="flex flex-wrap gap-3">
+          <Button onClick={handleGenerar} loading={loading} disabled={!camposBasicosOk}>
+            <Download className="w-4 h-4" /> Generar y descargar contrato (.docx)
+          </Button>
+          {financiado && (
+            <div className="flex flex-col gap-1">
+              <Button onClick={handleGenerarPagares} loading={loadingPagares} disabled={cuotas.length === 0} variant="secondary">
+                <FileStack className="w-4 h-4" /> Generar pagarés (.docx)
+              </Button>
+              {cuotasSinFecha && cuotas.length > 0 && (
+                <p className="text-[11px] text-textsec">Faltan fechas de vencimiento en algunas cuotas.</p>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Vista previa */}

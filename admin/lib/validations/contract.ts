@@ -43,3 +43,27 @@ export const contractGenerationSchema = z.object({
 })
 
 export type ContractGenerationInput = z.infer<typeof contractGenerationSchema>
+
+const pagareCuotaSchema = z.object({
+  tipo:   z.enum(['cuota', 'refuerzo']),
+  numero: z.coerce.number().int().min(1),
+  total:  z.coerce.number().int().min(1),
+  monto:  z.coerce.number().int().positive('El monto debe ser mayor a 0'),
+  // A diferencia de la cuota del contrato, acá la fecha es obligatoria: un
+  // pagaré sin fecha de vencimiento no tiene sentido como título valor.
+  fecha:  z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Todas las cuotas necesitan fecha de vencimiento para generar los pagarés'),
+})
+
+export const pagareGenerationSchema = z.object({
+  acreedor: z.string().trim().min(3, 'El nombre del acreedor es requerido'),
+  deudor: z.object({
+    nombre:    z.string().trim().min(3, 'El nombre del deudor es requerido'),
+    domicilio: z.string().trim().min(1, 'El domicilio es requerido'),
+    ci:        z.string().trim().min(1, 'La cédula es requerida'),
+  }),
+  fechaEmision: z.string().min(1, 'La fecha es requerida'),
+  moneda: z.enum(['Gs', 'USD']),
+  cuotas: z.array(pagareCuotaSchema).min(1, 'No hay cuotas para generar pagarés'),
+})
+
+export type PagareGenerationInput = z.infer<typeof pagareGenerationSchema>

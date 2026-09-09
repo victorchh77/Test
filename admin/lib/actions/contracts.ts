@@ -1,10 +1,11 @@
 'use server'
 
-import { Document, Packer, Paragraph, TextRun, AlignmentType, HeadingLevel } from 'docx'
+import { Document, Packer, Paragraph, TextRun, AlignmentType, HeadingLevel, TabStopType } from 'docx'
 import { isAdminOrSecretary } from '@/lib/auth/roles'
-import { contractGenerationSchema, type ContractGenerationInput } from '@/lib/validations/contract'
+import { contractGenerationSchema, pagareGenerationSchema, type ContractGenerationInput } from '@/lib/validations/contract'
 import { parseInput } from '@/lib/validations/parse'
 import { construirContrato, validarMontosContrato, type ContratoInput } from '@/lib/contracts/plantillas'
+import { construirPagares, type PagareInput } from '@/lib/contracts/pagare-plantilla'
 import { createParesContractWithCuotas } from '@/lib/actions/pares'
 import { logAudit } from '@/lib/audit'
 import type { ActionResult } from '@/types'
@@ -71,6 +72,32 @@ async function construirDocxBuffer(data: ContratoInput, filename: string): Promi
       properties: {},
       children: [...children, firmas, nombresFirma],
     }],
+  })
+
+  return Packer.toBuffer(doc)
+}
+
+/** Arma el .docx con todos los pagarés individuales (ver lib/contracts/pagare-plantilla.ts). */
+async function construirPagaresDocxBuffer(data: PagareInput): Promise<Buffer> {
+  const parrafos = construirPagares(data)
+  const tabStops = [{ type: TabStopType.LEFT, position: 4500 }]
+
+  const children = parrafos.map(p => {
+    if (p.texto === '') {
+      return new Paragraph({ spacing: { after: 200 } })
+    }
+    return new Paragraph({
+      alignment: p.centrado ? AlignmentType.CENTER : AlignmentType.LEFT,
+      spacing: { after: p.negrita ? 160 : 120, line: p.tab ? undefined : 300 },
+      tabStops: p.tab ? tabStops : undefined,
+      children: [new TextRun({ text: p.texto, bold: p.negrita })],
+    })
+  })
+
+  const doc = new Document({
+    creator: 'VH Group S.R.L.',
+    title: 'Pagarés',
+    sections: [{ properties: {}, children }],
   })
 
   return Packer.toBuffer(doc)
@@ -146,4 +173,29 @@ export async function generarContrato(dataIn: unknown): Promise<ActionResult<Gen
       preview: construirContrato(contratoInput).map(p => ({ titulo: p.titulo, texto: p.texto })),
     },
   }
+}
+
+export interface GeneratedPagares {
+  base64: string
+  filename: string
+}
+
+export async function generarPagares(dataIn: unknown): Promise<ActionResult<GeneratedPagares>> {
+  if (!(await isAdminOrSecretary())) return { error: 'No autorizado' }
+  const parsed = parseInput(pagareGenerationSchema, dataIn)
+  if (!parsed.success) return { error: parsed.error }
+  const data = parsed.data
+
+  let buffer: Buffer
+  try {
+    buffer = await construirPagaresDocxBuffer(data as PagareInput)
+  } catch (err) {
+    console.error('generarPagares:', err)
+    return { error: 'No se pudieron generar los pagarés. Intentá de nuevo.' }
+  }
+
+  await logAudit('pagares.generate', 'pagare', null)
+
+  const filename = `PAGARES_${slugFilename(data.deudor.nombre)}.docx`
+  return { data: { base64: buffer.toString('base64'), filename } }
 }

@@ -23,7 +23,7 @@ const CENTENAS = [
   'SEISCIENTOS', 'SETECIENTOS', 'OCHOCIENTOS', 'NOVECIENTOS',
 ]
 
-function tresDigitos(n: number): string {
+function tresDigitos(n: number, espacioEnVeinti: boolean): string {
   if (n === 0) return ''
   if (n === 100) return 'CIEN'
   const c = Math.floor(n / 100)
@@ -34,7 +34,13 @@ function tresDigitos(n: number): string {
     if (resto < 20) {
       partes.push(UNIDADES[resto])
     } else if (resto < 30) {
-      partes.push(VEINTIS[resto - 20])
+      // El pagaré real de VH Group escribe "veinte y seis" (con espacios),
+      // no "veintiséis" — a diferencia del contrato de compraventa, que sí
+      // usa la forma junta. Cada plantilla respeta la ortografía de su
+      // propio documento de referencia real.
+      partes.push(espacioEnVeinti
+        ? (resto === 20 ? 'VEINTE' : `VEINTE Y ${UNIDADES[resto - 20]}`)
+        : VEINTIS[resto - 20])
     } else {
       const d = Math.floor(resto / 10)
       const u = resto % 10
@@ -45,9 +51,10 @@ function tresDigitos(n: number): string {
 }
 
 /** Convierte un entero no negativo a su representación en letras (español, sin decimales). */
-export function numeroALetras(n: number): string {
+export function numeroALetras(n: number, opts?: { espacioEnVeinti?: boolean }): string {
   n = Math.round(Math.abs(n))
   if (n === 0) return 'CERO'
+  const espacioEnVeinti = opts?.espacioEnVeinti ?? false
 
   const billones  = Math.floor(n / 1_000_000_000_000)
   const millones  = Math.floor((n % 1_000_000_000_000) / 1_000_000)
@@ -57,16 +64,16 @@ export function numeroALetras(n: number): string {
   const partes: string[] = []
 
   if (billones > 0) {
-    partes.push(billones === 1 ? 'UN BILLÓN' : `${tresDigitos(billones)} BILLONES`)
+    partes.push(billones === 1 ? 'UN BILLÓN' : `${tresDigitos(billones, espacioEnVeinti)} BILLONES`)
   }
   if (millones > 0) {
-    partes.push(millones === 1 ? 'UN MILLÓN' : `${tresDigitos(millones)} MILLONES`)
+    partes.push(millones === 1 ? 'UN MILLÓN' : `${tresDigitos(millones, espacioEnVeinti)} MILLONES`)
   }
   if (miles > 0) {
-    partes.push(miles === 1 ? 'MIL' : `${tresDigitos(miles)} MIL`)
+    partes.push(miles === 1 ? 'MIL' : `${tresDigitos(miles, espacioEnVeinti)} MIL`)
   }
   if (unidades > 0) {
-    partes.push(tresDigitos(unidades))
+    partes.push(tresDigitos(unidades, espacioEnVeinti))
   }
 
   return partes.join(' ').trim()
@@ -99,6 +106,26 @@ export function fechaEnLetras(fecha: string | Date): string {
   const anioLetras = numeroALetras(anio).toLowerCase()
   if (dia === 1) return `al primer día del mes de ${mes} del ${anioLetras}`
   return `a los ${numeroALetras(dia).toLowerCase()} días del mes de ${mes} del ${anioLetras}`
+}
+
+/** "02 de septiembre de 2026" — fecha corta en letras, para el campo "Enc." (lugar y fecha de emisión) del pagaré. */
+export function fechaCorta(fecha: string | Date): string {
+  const d = typeof fecha === 'string' ? new Date(`${fecha}T00:00:00`) : fecha
+  const dia = String(d.getDate()).padStart(2, '0')
+  return `${dia} de ${MESES[d.getMonth()]} de ${d.getFullYear()}`
+}
+
+/**
+ * "el día diez de octubre del año dos mil veinte y seis" — fecha de
+ * vencimiento en letras, tal como aparece en el pagaré real de VH Group
+ * (nótese "veinte y seis", no "veintiséis" — ver nota en tresDigitos).
+ */
+export function fechaPagareEnLetras(fecha: string | Date): string {
+  const d = typeof fecha === 'string' ? new Date(`${fecha}T00:00:00`) : fecha
+  const dia  = numeroALetras(d.getDate(), { espacioEnVeinti: true }).toLowerCase()
+  const mes  = MESES[d.getMonth()]
+  const anio = numeroALetras(d.getFullYear(), { espacioEnVeinti: true }).toLowerCase()
+  return `el día ${dia} de ${mes} del año ${anio}`
 }
 
 /** Formatea una lista de fechas ISO ("YYYY-MM-DD") como "el DD/MM/YYYY, el DD/MM/YYYY y el DD/MM/YYYY". */
