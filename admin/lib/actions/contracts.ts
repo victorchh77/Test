@@ -77,27 +77,45 @@ async function construirDocxBuffer(data: ContratoInput, filename: string): Promi
   return Packer.toBuffer(doc)
 }
 
-/** Arma el .docx con todos los pagarés individuales (ver lib/contracts/pagare-plantilla.ts). */
+/**
+ * Arma el .docx con todos los pagarés individuales (ver
+ * lib/contracts/pagare-plantilla.ts). El tab derecho en 9026 y el tamaño
+ * de página A4 con márgenes de 1" están tomados del XML del documento
+ * real de VH Group — no son valores arbitrarios.
+ */
 async function construirPagaresDocxBuffer(data: PagareInput): Promise<Buffer> {
   const parrafos = construirPagares(data)
-  const tabStops = [{ type: TabStopType.LEFT, position: 4500 }]
+  const tabStops = [{ type: TabStopType.RIGHT, position: 9026 }]
 
   const children = parrafos.map(p => {
-    if (p.texto === '') {
+    if (p.segmentos.length === 0) {
       return new Paragraph({ spacing: { after: 200 } })
     }
     return new Paragraph({
       alignment: p.centrado ? AlignmentType.CENTER : AlignmentType.LEFT,
-      spacing: { after: p.negrita ? 160 : 120, line: p.tab ? undefined : 300 },
+      spacing: { after: 120, line: p.tab ? undefined : 300 },
       tabStops: p.tab ? tabStops : undefined,
-      children: [new TextRun({ text: p.texto, bold: p.negrita })],
+      children: p.segmentos.map(s => new TextRun({
+        text: s.texto,
+        bold: s.bold,
+        underline: s.underline ? {} : undefined,
+        size: s.size ? s.size * 2 : undefined, // docx usa medios-puntos
+      })),
     })
   })
 
   const doc = new Document({
     creator: 'VH Group S.R.L.',
     title: 'Pagarés',
-    sections: [{ properties: {}, children }],
+    sections: [{
+      properties: {
+        page: {
+          size: { width: 11906, height: 16838 }, // A4, en twips
+          margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 },
+        },
+      },
+      children,
+    }],
   })
 
   return Packer.toBuffer(doc)
