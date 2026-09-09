@@ -20,3 +20,7 @@ export const VEHICLE_STATES = [
 export const COLORS_VEHICULO = [
   'Blanco','Negro','Gris','Plata','Rojo','Azul','Verde','Amarillo','Naranja','Marrón','Otro',
 ]
+
+export const COMBUSTIBLES = [
+  'Nafta','Diésel','GNC','Híbrido','Eléctrico','Otro',
+]

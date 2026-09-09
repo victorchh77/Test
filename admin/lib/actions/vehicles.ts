@@ -162,6 +162,7 @@ export async function createVehicle(formData: VehicleFormData): Promise<ActionRe
     km_publico:     (vehicleData.km_publico     ?? '').trim() || null,
     numero_chassis: (vehicleData.numero_chassis ?? '').trim() || null,
     fecha_compra:   (vehicleData.fecha_compra   ?? '').trim() || null,
+    cambio:         (vehicleData.cambio         ?? '').trim() || null,
   }
   const { data, error } = await supabase
     .from('vehicles')
@@ -184,6 +185,7 @@ export async function updateVehicle(id: string, formData: VehicleFormData): Prom
     km_publico:     (vehicleData.km_publico     ?? '').trim() || null,
     numero_chassis: (vehicleData.numero_chassis ?? '').trim() || null,
     fecha_compra:   (vehicleData.fecha_compra   ?? '').trim() || null,
+    cambio:         (vehicleData.cambio         ?? '').trim() || null,
   }
 
   // Capture old price to record history with the reason.

@@ -79,7 +79,7 @@ export default async function VehiculosPage({ searchParams }: { searchParams: Ve
                       <Badge color={statusBadge[v.estado]} dot>{v.estado}</Badge>
                     </div>
                     <p className="text-xs text-textsec mt-0.5">
-                      {v.anio} · {formatKm(v.km)}{v.color ? ` · ${v.color}` : ''}
+                      {[String(v.anio), formatKm(v.km), v.color, v.combustible, v.cambio].filter(Boolean).join(' · ')}
                     </p>
                     <p className="font-bold text-orange mt-1 tabular">{formatCurrency(v.precio_venta, v.moneda)}</p>
                     {admin && <p className="text-[11px] text-textsec tabular">Compra: {formatCurrency(v.precio_compra, v.moneda)}</p>}
@@ -136,7 +136,11 @@ export default async function VehiculosPage({ searchParams }: { searchParams: Ve
 
                       <td className="table-cell">
                         <p className="font-semibold text-textprim">{v.marca} {v.modelo}</p>
-                        {v.color && <p className="text-xs text-textsec">{v.color}</p>}
+                        {(v.color || v.combustible || v.cambio) && (
+                          <p className="text-xs text-textsec">
+                            {[v.color, v.combustible, v.cambio].filter(Boolean).join(' · ')}
+                          </p>
+                        )}
                       </td>
                       <td className="table-cell text-textsec">{v.anio}</td>
                       <td className="table-cell text-textsec">{formatKm(v.km)}</td>

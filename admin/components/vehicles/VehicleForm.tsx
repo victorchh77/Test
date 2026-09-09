@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Textarea } from '@/components/ui/Textarea'
 import { Button } from '@/components/ui/Button'
-import { MARCAS, COLORS_VEHICULO, VEHICLE_STATES } from '@/lib/utils/constants'
+import { MARCAS, COLORS_VEHICULO, COMBUSTIBLES, VEHICLE_STATES } from '@/lib/utils/constants'
 import type { Vehicle } from '@/types'
 
 interface Props {
@@ -29,6 +29,8 @@ export function VehicleForm({ onSubmit, defaultValues, isEdit, loading, error }:
       km_publico:     defaultValues?.km_publico ?? '',
       ocultar_km:     defaultValues?.ocultar_km ?? false,
       color:          defaultValues?.color ?? '',
+      combustible:    defaultValues?.combustible ?? '',
+      cambio:         defaultValues?.cambio ?? '',
       numero_chassis: defaultValues?.numero_chassis ?? '',
       precio_compra:  defaultValues?.precio_compra ?? 0,
       precio_venta:  defaultValues?.precio_venta ?? 0,
@@ -81,6 +83,20 @@ export function VehicleForm({ onSubmit, defaultValues, isEdit, loading, error }:
           label="Color"
           options={COLORS_VEHICULO.map(c => ({ value: c, label: c }))}
           placeholder="Color"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <Select
+          {...register('combustible')}
+          label="Combustible"
+          options={COMBUSTIBLES.map(c => ({ value: c, label: c }))}
+          placeholder="Combustible"
+        />
+        <Input
+          {...register('cambio')}
+          label="Cambio (volante)"
+          placeholder="Ej: Manual, Automático, Convertido..."
         />
       </div>
 
