@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, Car, Receipt, Users, ShoppingBag,
   X, UserCog, ListOrdered, ChevronRight, Settings,
-  ArrowDownCircle, FileText, ShieldCheck, ShieldAlert, Wand2,
+  ArrowDownCircle, FileText, ShieldCheck, ShieldAlert, Wand2, FileSignature,
 } from 'lucide-react'
 import type { Profile } from '@/types'
 
@@ -21,6 +21,7 @@ const adminNav = [
   { href: '/lista-precios',     label: 'Lista de Precios',    icon: ListOrdered },
   { href: '/transferencias',    label: 'Transferencias',      icon: ArrowDownCircle },
   { href: '/planilla-pagares',  label: 'Planilla de Pagarés', icon: FileText },
+  { href: '/contratos',         label: 'Creación de Contratos', icon: FileSignature },
   { href: '/usuarios',          label: 'Usuarios',            icon: ShieldCheck },
   { href: '/auditoria',         label: 'Auditoría',           icon: ShieldAlert },
   { href: '/flyers',            label: 'Generador de Flyers', icon: Wand2 },
@@ -44,6 +45,7 @@ const secretariaNav = [
   { href: '/lista-precios',    label: 'Lista de Precios',    icon: ListOrdered },
   { href: '/transferencias',   label: 'Transferencias',      icon: ArrowDownCircle },
   { href: '/planilla-pagares', label: 'Planilla de Pagarés', icon: FileText },
+  { href: '/contratos',        label: 'Creación de Contratos', icon: FileSignature },
   { href: '/settings',         label: 'Configuración',       icon: Settings },
 ]
 

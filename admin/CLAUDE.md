@@ -76,7 +76,7 @@ Authentication uses Supabase Auth. On sign-up, a trigger auto-creates a `profile
 Three roles control access:
 - **admin** — full access, can create/edit/delete vehicles, users, etc.
 - **vendedor** — read-only on vehicles; can register sales and view clients/price lists.
-- **secretaria** — full access to clientes, empleados, and lista de precios (create/edit/delete); also transferencias and planilla-pagarés. Cannot access vehículos, gastos, ventas, usuarios, or flyers.
+- **secretaria** — full access to clientes, empleados, and lista de precios (create/edit/delete); also transferencias, planilla-pagarés, and contratos. Cannot access vehículos, gastos, ventas, usuarios, or flyers.
 
 Role checks live in `lib/auth/roles.ts`. Server components and Server Actions call `isAdmin()`, `getRole()`, or `requireAdmin()` from there. The sidebar shows role-specific nav items via `components/layout/Sidebar.tsx`.
 
@@ -89,6 +89,14 @@ All database access goes through **Server Actions** in `lib/actions/`. Pages are
 2. Add Zod schema in `lib/validations/`
 3. Add Server Actions in `lib/actions/`
 4. Build the page as a server component in `app/(dashboard)/`
+
+### Contract generation (`/contratos`)
+
+Admin/secretaría-only page that generates VH Group's real "Contrato Privado de Compraventa de Vehículo" as a downloadable `.docx`, filled in from structured form inputs — contado, financiado (con pagarés) and/or permuta, combinable via two independent checkboxes (`esPermuta`/`financiado`, mirroring `sales.es_permuta`/`sales.financiado`). Distinct from `/planilla-pagares`'s docx **scanner** (`scanParesContract` in `lib/actions/pares.ts`), which reads an already-signed contract; this feature writes a new one.
+
+- `lib/utils/numero-a-letras.ts` — pure number/date → Spanish words helpers (`GUARANIES TREINTA Y SIETE MILLONES (Gs37.000.000)`, `a los dos días del mes de septiembre del dos mil veintiséis`), used to match the notarial phrasing VH Group's real contracts use.
+- `lib/contracts/plantillas.ts` — pure functions (no server/DB imports, safe to import from a client component for a live preview) that build the clause paragraphs from a `ContratoInput`. Clauses PRIMERA and TERCERA–OCTAVA are copied verbatim from a real signed contrato-al-contado VH Group provided; only SEGUNDA (forma de pago) changes per sale type, and its financiado/permuta wording is a best-effort reconstruction from phrase fragments in the pares.ts scanner regexes (no real financiado/permuta contract sample was available) — reconcile against a real one if VH Group provides it.
+- `lib/actions/contracts.ts` — `generarContrato()` re-validates server-side, renders the `.docx` with the `docx` npm package, and returns it as base64 (client decodes to a `Blob` and downloads — same pattern as the flyer PNG download, no REST route needed). When financiado, can also auto-register the sale in Planilla de Pagarés (`createParesContractWithCuotas`) via a checkbox.
 
 ### Supabase Client Helpers
 
