@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createPublicClient, isPublicSupabaseConfigured } from '@/lib/supabase/public'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { isAdmin } from '@/lib/auth/roles'
+import { isAdmin, isAdminOrSecretary } from '@/lib/auth/roles'
 import { vehicleSchema, type VehicleFormData } from '@/lib/validations/vehicle'
 import { parseInput } from '@/lib/validations/parse'
 import { hasUsefulDescription, stripPriceLines } from '@/lib/utils/vehicle'
@@ -127,6 +127,19 @@ export async function getVehiclePublicDetail(id: string): Promise<VehiclePublicD
   }
 }
 
+/**
+ * El precio de compra es información sensible (costo/margen del negocio) —
+ * solo admin lo ve. Se enmascara acá, en el origen de los datos, en vez de
+ * solo ocultarlo en el JSX: varias de estas funciones alimentan componentes
+ * cliente (formularios de venta, de contrato, de lista de precios), y ahí
+ * cualquier valor en las props viaja al navegador en la respuesta de la
+ * Server Action aunque la UI nunca lo muestre.
+ */
+async function maskPrecioCompra<T extends { precio_compra: number }>(rows: T[]): Promise<T[]> {
+  if (await isAdmin()) return rows
+  return rows.map(r => ({ ...r, precio_compra: 0 }))
+}
+
 export async function getVehicles(filters?: { marca?: string; estado?: string; search?: string }) {
   const supabase = createClient()
   let query = supabase.from('vehicles').select('*').order('created_at', { ascending: false })
@@ -141,17 +154,20 @@ export async function getVehicles(filters?: { marca?: string; estado?: string; s
   }
   const { data, error } = await query
   if (error) { console.error(error); return [] }
-  return (data ?? []) as Vehicle[]
+  return maskPrecioCompra((data ?? []) as Vehicle[])
 }
 
 export async function getVehicle(id: string) {
   const supabase = createClient()
   const { data } = await supabase.from('vehicles').select('*').eq('id', id).single()
-  return (data ?? null) as Vehicle | null
+  if (!data) return null
+  const [masked] = await maskPrecioCompra([data as Vehicle])
+  return masked
 }
 
 export async function createVehicle(formData: VehicleFormData): Promise<ActionResult<Vehicle>> {
-  if (!(await isAdmin())) return { error: 'No autorizado: solo administradores pueden agregar vehículos.' }
+  if (!(await isAdminOrSecretary())) return { error: 'No autorizado: solo administradores y secretaría pueden agregar vehículos.' }
+  const admin = await isAdmin()
   const parsed = parseInput(vehicleSchema, formData)
   if (!parsed.success) return { error: parsed.error }
   const supabase = createClient()
@@ -159,6 +175,10 @@ export async function createVehicle(formData: VehicleFormData): Promise<ActionRe
   const { motivo_precio: _omit, ...vehicleData } = parsed.data
   const payload = {
     ...vehicleData,
+    // Secretaría no maneja precio de compra (costo/margen del negocio) —
+    // se ignora lo que haya mandado el formulario y se usa el mismo
+    // placeholder "1" que ya se usa en toda la base para "costo desconocido".
+    precio_compra:  admin ? vehicleData.precio_compra : 1,
     km_publico:     (vehicleData.km_publico     ?? '').trim() || null,
     numero_chassis: (vehicleData.numero_chassis ?? '').trim() || null,
     fecha_compra:   (vehicleData.fecha_compra   ?? '').trim() || null,
@@ -171,22 +191,29 @@ export async function createVehicle(formData: VehicleFormData): Promise<ActionRe
     .single()
   if (error) return { error: error.message }
   revalidatePath('/vehiculos')
-  return { data: data as Vehicle }
+  const [masked] = await maskPrecioCompra([data as Vehicle])
+  return { data: masked }
 }
 
 export async function updateVehicle(id: string, formData: VehicleFormData): Promise<ActionResult<Vehicle>> {
-  if (!(await isAdmin())) return { error: 'No autorizado: solo administradores pueden modificar vehículos.' }
+  if (!(await isAdminOrSecretary())) return { error: 'No autorizado: solo administradores y secretaría pueden modificar vehículos.' }
+  const admin = await isAdmin()
   const parsed = parseInput(vehicleSchema, formData)
   if (!parsed.success) return { error: parsed.error }
   const supabase = createClient()
   const { motivo_precio, ...vehicleData } = parsed.data
-  const payload = {
+  const payload: Record<string, unknown> = {
     ...vehicleData,
     km_publico:     (vehicleData.km_publico     ?? '').trim() || null,
     numero_chassis: (vehicleData.numero_chassis ?? '').trim() || null,
     fecha_compra:   (vehicleData.fecha_compra   ?? '').trim() || null,
     cambio:         (vehicleData.cambio         ?? '').trim() || null,
   }
+  // Secretaría no puede tocar el precio de compra del vehículo existente —
+  // se saca del payload en vez de forzarlo a un valor, así se preserva el
+  // que ya tenía cargado (a diferencia del alta, acá sí puede haber un
+  // costo real cargado por un admin que no debe pisarse).
+  if (!admin) delete payload.precio_compra
 
   // Capture old price to record history with the reason.
   const { data: old } = await supabase
@@ -217,7 +244,51 @@ export async function updateVehicle(id: string, formData: VehicleFormData): Prom
 
   revalidatePath('/vehiculos')
   revalidatePath(`/vehiculos/${id}`)
-  return { data: data as Vehicle }
+  const [masked] = await maskPrecioCompra([data as Vehicle])
+  return { data: masked }
+}
+
+/**
+ * Actualización rápida y liviana de un solo campo (precio de venta), para la
+ * vista de edición masiva de precios (/vehiculos/precios) — a diferencia de
+ * updateVehicle() no exige el formulario completo del vehículo. Disponible
+ * para admin y secretaría por igual: es exactamente el mismo precio que ya
+ * puede tocar hoy desde la lista de precios, solo que acá vive en
+ * `vehicles.precio_venta` en vez de en un ítem de price_list_items.
+ */
+export async function updateVehiclePrecioVenta(id: string, precioVenta: number): Promise<ActionResult<{ precio_venta: number }>> {
+  if (!(await isAdminOrSecretary())) return { error: 'No autorizado: solo administradores y secretaría pueden modificar precios.' }
+  const precio_venta = Math.round(Number(precioVenta))
+  if (!Number.isFinite(precio_venta) || precio_venta < 1) {
+    return { error: 'El precio de venta debe ser mayor a 0.' }
+  }
+  const supabase = createClient()
+
+  const { data: old } = await supabase
+    .from('vehicles')
+    .select('precio_venta')
+    .eq('id', id)
+    .single()
+  if (!old) return { error: 'Vehículo no encontrado.' }
+
+  const { error } = await supabase.from('vehicles').update({ precio_venta }).eq('id', id)
+  if (error) return { error: error.message }
+
+  if (old.precio_venta !== precio_venta) {
+    const { data: { user } } = await supabase.auth.getUser()
+    await supabase.from('price_history').insert({
+      vehicle_id: id,
+      precio_anterior: old.precio_venta,
+      precio_nuevo: precio_venta,
+      motivo: 'Edición rápida de precios',
+      changed_by: user?.id,
+    })
+  }
+
+  revalidatePath('/vehiculos')
+  revalidatePath('/vehiculos/precios')
+  revalidatePath(`/vehiculos/${id}`)
+  return { data: { precio_venta } }
 }
 
 export async function toggleVehicleVisibility(id: string, oculto: boolean): Promise<ActionResult> {
@@ -300,12 +371,13 @@ export async function getVehiclesWithMainPhoto(filters?: { marca?: string; estad
   }
   const { data, error } = await query
   if (error) { console.error(error); return [] }
-  return (data ?? []).map((v: any) => {
+  const withPhotos = (data ?? []).map((v: any) => {
     const photos: { url: string; is_main: boolean }[] = v.vehicle_photos ?? []
     const main = photos.find((p) => p.is_main) ?? photos[0] ?? null
     const { vehicle_photos: _photos, ...rest } = v
     return { ...rest, mainPhotoUrl: main?.url ?? null } as Vehicle & { mainPhotoUrl: string | null }
   })
+  return maskPrecioCompra(withPhotos)
 }
 
 export async function getDashboardStats() {

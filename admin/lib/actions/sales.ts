@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { isAdminOrSecretary } from '@/lib/auth/roles'
+import { getRole } from '@/lib/auth/roles'
 import { saleSchema, type SaleFormData } from '@/lib/validations/sale'
 import { parseInput } from '@/lib/validations/parse'
 import type { ActionResult } from '@/types'
@@ -21,7 +21,11 @@ export async function getSales(fromDate?: string, toDate?: string) {
 }
 
 export async function createSale(formData: SaleFormData): Promise<ActionResult> {
-  if (!(await isAdminOrSecretary())) return { error: 'No autorizado: solo administradores y secretaría pueden registrar ventas.' }
+  // Los tres roles del panel pueden registrar ventas (vendedor incluido —
+  // es su función principal). La UI de /ventas/nueva ya distingue: un
+  // vendedor se auto-asigna y no puede elegir otro; admin/secretaría eligen
+  // el vendedor libremente.
+  if (!(await getRole())) return { error: 'No autenticado.' }
   const parsed = parseInput(saleSchema, formData)
   if (!parsed.success) return { error: parsed.error }
   const supabase = createClient()

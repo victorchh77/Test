@@ -40,7 +40,9 @@ const vendedorNav = [
 
 const secretariaNav = [
   { href: '/dashboard',        label: 'Dashboard',           icon: LayoutDashboard },
+  { href: '/vehiculos',        label: 'Vehículos',           icon: Car },
   { href: '/clientes',         label: 'Clientes',            icon: Users },
+  { href: '/ventas',           label: 'Ventas',              icon: ShoppingBag },
   { href: '/empleados',        label: 'Empleados',           icon: UserCog },
   { href: '/lista-precios',    label: 'Lista de Precios',    icon: ListOrdered },
   { href: '/transferencias',   label: 'Transferencias',      icon: ArrowDownCircle },

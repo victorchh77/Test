@@ -10,7 +10,7 @@ import { EXPENSE_TYPES } from '@/lib/utils/constants'
 import { AddExpenseModal } from './AddExpenseModal'
 import { DeleteVehicleBtn } from './DeleteVehicleBtn'
 import { PhotoSection } from './PhotoSection'
-import { isAdmin } from '@/lib/auth/roles'
+import { isAdmin, isAdminOrSecretary } from '@/lib/auth/roles'
 import type { VehicleStatus } from '@/types'
 
 const statusBadge: Record<VehicleStatus, 'success' | 'warning' | 'error'> = {
@@ -20,12 +20,13 @@ const statusBadge: Record<VehicleStatus, 'success' | 'warning' | 'error'> = {
 }
 
 export default async function VehicleDetailPage({ params }: { params: { id: string } }) {
-  const [vehicle, expenses, priceHistory, photos, admin] = await Promise.all([
+  const [vehicle, expenses, priceHistory, photos, admin, canEdit] = await Promise.all([
     getVehicle(params.id),
     getVehicleExpenses(params.id),
     getVehiclePriceHistory(params.id),
     getVehiclePhotos(params.id),
     isAdmin(),
+    isAdminOrSecretary(),
   ])
 
   if (!vehicle) notFound()
@@ -58,10 +59,10 @@ export default async function VehicleDetailPage({ params }: { params: { id: stri
             </div>
           </div>
         </div>
-        {admin && (
+        {canEdit && (
           <div className="flex items-center gap-2">
-            {/* Toggle de visibilidad en el catálogo web (solo Disponible puede mostrarse) */}
-            {vehicle.estado === 'Disponible' && (
+            {/* Toggle de visibilidad en el catálogo web (solo Disponible puede mostrarse) — admin only */}
+            {admin && vehicle.estado === 'Disponible' && (
               <form action={async () => {
                 'use server'
                 await toggleVehicleVisibility(vehicle.id, !vehicle.oculto)
@@ -76,7 +77,7 @@ export default async function VehicleDetailPage({ params }: { params: { id: stri
             <Link href={`/vehiculos/${vehicle.id}/editar`}>
               <Button variant="secondary" size="sm"><Edit className="w-3.5 h-3.5" />Editar</Button>
             </Link>
-            <DeleteVehicleBtn vehicleId={vehicle.id} />
+            {admin && <DeleteVehicleBtn vehicleId={vehicle.id} />}
           </div>
         )}
       </div>
