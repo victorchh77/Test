@@ -29,7 +29,12 @@ export default function NuevaVentaPage() {
   const [employees, setEmployees] = useState<Employee[]>([])
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
   const [totalGastos, setTotalGastos]         = useState(0)
+  // `admin` habilita ver el precio de compra / rentabilidad (dato sensible).
+  // `canPickVendedor` habilita elegir vendedor libremente — admin Y
+  // secretaría lo necesitan (secretaría registra ventas por otros, no
+  // tiene un legajo de "vendedor" propio para auto-asignarse).
   const [admin, setAdmin]                     = useState(false)
+  const [canPickVendedor, setCanPickVendedor] = useState(false)
   const [myEmployeeId, setMyEmployeeId]       = useState<string>('')
   const [loading, setLoading]                 = useState(false)
   const [error, setError]                     = useState('')
@@ -61,10 +66,13 @@ export default function NuevaVentaPage() {
       setClients(c)
       const active = (e as Employee[]).filter(emp => emp.activo)
       setEmployees(active)
-      const isAdminUser = (p as any)?.role === 'admin'
+      const role = (p as any)?.role
+      const isAdminUser = role === 'admin'
       setAdmin(isAdminUser)
-      // If vendedor: auto-find and lock their employee record
-      if (!isAdminUser && p) {
+      setCanPickVendedor(isAdminUser || role === 'secretaria')
+      // Solo un vendedor real se auto-asigna y queda bloqueado — secretaría
+      // registra ventas de otros, así que elige el vendedor libremente.
+      if (role === 'vendedor' && p) {
         const mine = active.find(emp => emp.profile_id === (p as any).id)
         if (mine) {
           setMyEmployeeId(mine.id)
@@ -260,7 +268,7 @@ export default function NuevaVentaPage() {
 
           {/* Vendor section */}
           <div className="flex flex-col gap-1.5">
-            {admin ? (
+            {canPickVendedor ? (
               <Select
                 {...register('vendedor_id')}
                 label="Vendedor"

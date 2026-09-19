@@ -9,7 +9,7 @@ import { StatCard } from '@/components/shared/StatCard'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { VehicleFiltersClient } from './VehicleFiltersClient'
 import { formatCurrency, formatKm, formatDate } from '@/lib/utils/format'
-import { isAdmin } from '@/lib/auth/roles'
+import { isAdmin, isAdminOrSecretary } from '@/lib/auth/roles'
 import type { VehicleStatus, VehicleFilters } from '@/types'
 
 const statusBadge: Record<VehicleStatus, 'success' | 'warning' | 'error'> = {
@@ -19,7 +19,11 @@ const statusBadge: Record<VehicleStatus, 'success' | 'warning' | 'error'> = {
 }
 
 export default async function VehiculosPage({ searchParams }: { searchParams: VehicleFilters }) {
-  const [vehicles, admin] = await Promise.all([getVehiclesWithMainPhoto(searchParams), isAdmin()])
+  const [vehicles, admin, canEdit] = await Promise.all([
+    getVehiclesWithMainPhoto(searchParams),
+    isAdmin(),
+    isAdminOrSecretary(),
+  ])
 
   const disponibles = vehicles.filter(v => v.estado === 'Disponible').length
   const reservados  = vehicles.filter(v => v.estado === 'Reservado').length
@@ -34,11 +38,18 @@ export default async function VehiculosPage({ searchParams }: { searchParams: Ve
             {vehicles.length} vehículo{vehicles.length !== 1 ? 's' : ''} en inventario
           </p>
         </div>
-        {admin && (
-          <Link href="/vehiculos/nuevo">
-            <Button><Plus className="w-4 h-4" />Nuevo vehículo</Button>
-          </Link>
-        )}
+        <div className="flex items-center gap-2">
+          {canEdit && (
+            <Link href="/vehiculos/precios">
+              <Button variant="secondary">Actualizar precios</Button>
+            </Link>
+          )}
+          {canEdit && (
+            <Link href="/vehiculos/nuevo">
+              <Button><Plus className="w-4 h-4" />Nuevo vehículo</Button>
+            </Link>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -55,7 +66,7 @@ export default async function VehiculosPage({ searchParams }: { searchParams: Ve
           icon={Car}
           title="Sin vehículos"
           description="No se encontraron vehículos con los filtros aplicados."
-          action={admin ? { label: 'Nuevo vehículo', href: '/vehiculos/nuevo' } : undefined}
+          action={canEdit ? { label: 'Nuevo vehículo', href: '/vehiculos/nuevo' } : undefined}
         />
       ) : (
         <>
@@ -89,7 +100,7 @@ export default async function VehiculosPage({ searchParams }: { searchParams: Ve
                   <Link href={`/vehiculos/${v.id}`} className="flex-1">
                     <Button variant="secondary" size="sm" className="w-full">Ver detalle</Button>
                   </Link>
-                  {admin && (
+                  {canEdit && (
                     <Link href={`/vehiculos/${v.id}/editar`} className="flex-1">
                       <Button variant="ghost" size="sm" className="w-full">Editar</Button>
                     </Link>
@@ -106,7 +117,7 @@ export default async function VehiculosPage({ searchParams }: { searchParams: Ve
             <table className="w-full text-sm">
               <thead>
                 <tr>
-                  {['Foto', 'Vehículo', 'Año', 'Km', 'P. Compra', 'P. Venta', 'Estado', 'F. Compra', 'Ingreso', 'Acciones'].map(h => (
+                  {['Foto', 'Vehículo', 'Año', 'Km', ...(admin ? ['P. Compra'] : []), 'P. Venta', 'Estado', 'F. Compra', 'Ingreso', 'Acciones'].map(h => (
                     <th key={h} className="table-header-cell">{h}</th>
                   ))}
                 </tr>
@@ -144,7 +155,7 @@ export default async function VehiculosPage({ searchParams }: { searchParams: Ve
                       </td>
                       <td className="table-cell text-textsec">{v.anio}</td>
                       <td className="table-cell text-textsec">{formatKm(v.km)}</td>
-                      <td className="table-cell text-textsec">{formatCurrency(v.precio_compra, v.moneda)}</td>
+                      {admin && <td className="table-cell text-textsec">{formatCurrency(v.precio_compra, v.moneda)}</td>}
                       <td className="table-cell font-semibold text-textprim">{formatCurrency(v.precio_venta, v.moneda)}</td>
                       <td className="table-cell">
                         <Badge color={statusBadge[v.estado]} dot>{v.estado}</Badge>
@@ -156,7 +167,7 @@ export default async function VehiculosPage({ searchParams }: { searchParams: Ve
                           <Link href={`/vehiculos/${v.id}`}>
                             <Button variant="secondary" size="sm">Ver</Button>
                           </Link>
-                          {admin && (
+                          {canEdit && (
                             <Link href={`/vehiculos/${v.id}/editar`}>
                               <Button variant="ghost" size="sm">Editar</Button>
                             </Link>

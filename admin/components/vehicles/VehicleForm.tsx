@@ -16,9 +16,11 @@ interface Props {
   isEdit?: boolean
   loading?: boolean
   error?: string
+  /** Secretaría no ve ni maneja el precio de compra (costo/margen) — el campo se oculta y se ignora en el servidor. */
+  canSeePrecioCompra?: boolean
 }
 
-export function VehicleForm({ onSubmit, defaultValues, isEdit, loading, error }: Props) {
+export function VehicleForm({ onSubmit, defaultValues, isEdit, loading, error, canSeePrecioCompra = true }: Props) {
   const form = useForm<VehicleFormData, unknown, VehicleFormData>({
     resolver: zodResolver(vehicleSchema) as any,
     defaultValues: {
@@ -32,7 +34,9 @@ export function VehicleForm({ onSubmit, defaultValues, isEdit, loading, error }:
       combustible:    defaultValues?.combustible ?? '',
       cambio:         defaultValues?.cambio ?? '',
       numero_chassis: defaultValues?.numero_chassis ?? '',
-      precio_compra:  defaultValues?.precio_compra ?? 0,
+      // Si no puede verlo, mandamos un valor válido cualquiera — el server
+      // action lo ignora igual para este rol y usa su propia lógica.
+      precio_compra:  canSeePrecioCompra ? (defaultValues?.precio_compra ?? 0) : 1,
       precio_venta:  defaultValues?.precio_venta ?? 0,
       moneda:        defaultValues?.moneda ?? 'Gs',
       estado:        defaultValues?.estado ?? 'Disponible',
@@ -139,14 +143,16 @@ export function VehicleForm({ onSubmit, defaultValues, isEdit, loading, error }:
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <Input
-          {...register('precio_compra')}
-          label="Precio de compra *"
-          type="number"
-          placeholder="50000000"
-          error={errors.precio_compra?.message}
-        />
+      <div className={canSeePrecioCompra ? 'grid grid-cols-2 gap-4' : ''}>
+        {canSeePrecioCompra && (
+          <Input
+            {...register('precio_compra')}
+            label="Precio de compra *"
+            type="number"
+            placeholder="50000000"
+            error={errors.precio_compra?.message}
+          />
+        )}
         <Input
           {...register('precio_venta')}
           label="Precio de venta *"
