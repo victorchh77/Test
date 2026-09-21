@@ -291,6 +291,27 @@ export async function updateVehiclePrecioVenta(id: string, precioVenta: number):
   return { data: { precio_venta } }
 }
 
+/**
+ * Cambio rápido de estado (Disponible / Reservado / Vendido) sin pasar por el
+ * formulario completo del vehículo — disponible para admin y secretaría por
+ * igual, ya que marcar un vehículo como vendido (venta directa, sin pasar por
+ * /ventas/nueva) es parte de su trabajo diario. Si se marca como Vendido y el
+ * vehículo estaba visible en la web, se lo oculta automáticamente (ya no
+ * corresponde mostrarlo como disponible en el catálogo público).
+ */
+export async function updateVehicleEstado(id: string, estado: VehicleStatus): Promise<ActionResult> {
+  if (!(await isAdminOrSecretary())) return { error: 'No autorizado: solo administradores y secretaría pueden cambiar el estado del vehículo.' }
+  const supabase = createClient()
+  const payload: Record<string, unknown> = { estado }
+  if (estado !== 'Disponible') payload.oculto = true
+  const { error } = await supabase.from('vehicles').update(payload).eq('id', id)
+  if (error) return { error: error.message }
+  revalidatePath('/vehiculos')
+  revalidatePath('/vehiculos/precios')
+  revalidatePath(`/vehiculos/${id}`)
+  return {}
+}
+
 export async function toggleVehicleVisibility(id: string, oculto: boolean): Promise<ActionResult> {
   if (!(await isAdmin())) return { error: 'No autorizado: solo administradores pueden cambiar la visibilidad.' }
   const supabase = createClient()
