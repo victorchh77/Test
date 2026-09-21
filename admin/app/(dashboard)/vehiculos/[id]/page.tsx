@@ -10,6 +10,7 @@ import { EXPENSE_TYPES } from '@/lib/utils/constants'
 import { AddExpenseModal } from './AddExpenseModal'
 import { DeleteVehicleBtn } from './DeleteVehicleBtn'
 import { PhotoSection } from './PhotoSection'
+import { EstadoQuickSelect } from './EstadoQuickSelect'
 import { isAdmin, isAdminOrSecretary } from '@/lib/auth/roles'
 import type { VehicleStatus } from '@/types'
 
@@ -48,7 +49,11 @@ export default async function VehicleDetailPage({ params }: { params: { id: stri
               {vehicle.marca} {vehicle.modelo} {vehicle.anio}
             </h1>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
-              <Badge color={statusBadge[vehicle.estado]}>{vehicle.estado}</Badge>
+              {canEdit ? (
+                <EstadoQuickSelect vehicleId={vehicle.id} estado={vehicle.estado} />
+              ) : (
+                <Badge color={statusBadge[vehicle.estado]}>{vehicle.estado}</Badge>
+              )}
               <Badge color={visibleEnWeb ? 'success' : 'default'}>
                 {visibleEnWeb ? 'Visible en web' : 'Oculto en web'}
               </Badge>
