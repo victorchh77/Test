@@ -6,11 +6,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "video:studio": "remotion studio remotion/index.ts",
+    "video:render": "remotion render remotion/index.ts WhatsAppBrunoMateo out/whatsapp-bruno-mateo.mp4"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
     "@notionhq/client": "^2.3.0",
+    "@remotion/player": "^4.0.528",
     "@sentry/nextjs": "^10.66.0",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.2",
@@ -24,9 +27,11 @@
     "react": "^18",
     "react-dom": "^18",
     "react-hook-form": "^7.80.0",
+    "remotion": "^4.0.528",
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@remotion/cli": "^4.0.528",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
