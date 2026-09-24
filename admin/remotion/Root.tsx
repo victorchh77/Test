@@ -1,5 +1,6 @@
 import { Composition } from 'remotion'
 import { Cierre, CIERRE_DURATION } from './Cierre'
+import { Titulo, TITULO_DURATION } from './Titulo'
 import { WhatsAppChat, WHATSAPP_CHAT_DURATION } from './WhatsAppChat'
 
 export const RemotionRoot: React.FC = () => {
@@ -17,6 +18,14 @@ export const RemotionRoot: React.FC = () => {
         id="CierreUltimaCarta"
         component={Cierre}
         durationInFrames={CIERRE_DURATION}
+        fps={30}
+        width={1080}
+        height={1920}
+      />
+      <Composition
+        id="TituloUltimaCarta"
+        component={Titulo}
+        durationInFrames={TITULO_DURATION}
         fps={30}
         width={1080}
         height={1920}

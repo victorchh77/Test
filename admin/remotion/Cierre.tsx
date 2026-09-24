@@ -26,7 +26,7 @@ export const CIERRE_DURATION = 600
 
 const FONT = '"Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif'
 
-const FadingText: React.FC<{
+export const FadingText: React.FC<{
   duration: number
   fade: number
   children: React.ReactNode
