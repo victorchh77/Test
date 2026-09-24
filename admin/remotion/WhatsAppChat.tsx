@@ -1,5 +1,8 @@
 import {
   AbsoluteFill,
+  Audio,
+  Sequence,
+  staticFile,
   interpolate,
   spring,
   useCurrentFrame,
@@ -16,13 +19,15 @@ const T = {
   mateoSend: 385,
   delivered: 410,
   read: 440,
-  end: 540,
+  voiceOver: 460,
+  end: 600,
 }
 
 export const WHATSAPP_CHAT_DURATION = T.end
 
 const BRUNO_TEXT = 'Hoy en la plaza. Una última partida. Mi reloj contra tu plata.'
 const MATEO_TEXT = 'Voy.'
+const VOICE_OVER_TEXT = 'No siempre empieza pareciendo un problema.'
 
 const C = {
   bg: '#0B141A',
@@ -321,7 +326,15 @@ export const WhatsAppChat: React.FC = () => {
     [0, 1, 1, 0],
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' },
   )
-  const endFade = interpolate(frame, [T.end - 30, T.end], [0, 1], {
+  const voDim = interpolate(frame, [T.voiceOver - 10, T.voiceOver + 10], [0, 0.6], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  })
+  const voText = interpolate(frame, [T.voiceOver, T.voiceOver + 15], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  })
+  const endFade = interpolate(frame, [T.end - 25, T.end], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   })
@@ -380,6 +393,27 @@ export const WhatsAppChat: React.FC = () => {
       />
 
       {lockOpacity > 0 && <LockScreen opacity={lockOpacity} />}
+      <AbsoluteFill style={{ background: '#000', opacity: voDim }} />
+      <AbsoluteFill
+        style={{
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '0 90px',
+          opacity: voText,
+          color: '#fff',
+          fontSize: 64,
+          fontStyle: 'italic',
+          fontWeight: 300,
+          textAlign: 'center',
+          lineHeight: 1.3,
+          textShadow: '0 2px 12px rgba(0,0,0,0.8)',
+        }}
+      >
+        {VOICE_OVER_TEXT}
+      </AbsoluteFill>
+      <Sequence from={T.voiceOver}>
+        <Audio src={staticFile('voz-en-off.wav')} />
+      </Sequence>
       <AbsoluteFill style={{ background: '#000', opacity: endFade }} />
     </AbsoluteFill>
   )
