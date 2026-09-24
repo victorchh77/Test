@@ -2,28 +2,33 @@ import { AbsoluteFill, Sequence } from 'remotion'
 import { FadingText } from './Cierre'
 
 // Créditos finales del corto, a 30 fps, en silencio.
-// Estructura: tema (5 s) → reparto (5 pantallas de 5,5 s) → equipo técnico (8 s)
+// Estructura: tema y grupo (5 s) → reparto (5 pantallas de 6 s) → equipo técnico (9 s)
 // → mensaje final (5 s) → 2 s de negro absoluto.
 
 type Credito = { rol?: string; nombre: string }
 type Pantalla = { titulo?: string; creditos: Credito[]; duracion: number }
 
-const APERTURA = { titulo: 'LA ÚLTIMA CARTA', subtitulo: 'Un cortometraje sobre las apuestas', duracion: 150 }
+const APERTURA = {
+  titulo: 'LA ÚLTIMA CARTA',
+  tema: 'Normalización de la ludopatía en adolescentes',
+  grupo: 'GRUPO 17',
+  duracion: 150,
+}
 
 const REPARTO: Pantalla[] = [
   {
     titulo: 'REPARTO',
-    duracion: 165,
+    duracion: 180,
     creditos: [
       { rol: 'Mateo', nombre: 'Mahdi Bhejei' },
       { rol: 'Bruno', nombre: 'Bruno Martinez' },
-      { rol: 'Lucas', nombre: 'Guille Centurion' },
+      { rol: 'Lucas', nombre: 'Guillermo Centurion' },
       { rol: 'Valentina', nombre: 'Luana Davalos' },
     ],
   },
   {
     titulo: 'REPARTO',
-    duracion: 165,
+    duracion: 180,
     creditos: [
       { rol: 'Sofía', nombre: 'Danna Delvalle' },
       { rol: 'Santiago', nombre: 'Fabri Balbuena' },
@@ -33,7 +38,7 @@ const REPARTO: Pantalla[] = [
   },
   {
     titulo: 'REPARTO',
-    duracion: 165,
+    duracion: 180,
     creditos: [
       { rol: 'Profesora', nombre: 'Mayra Duarte' },
       { rol: 'Directora', nombre: 'Maia Garay' },
@@ -42,29 +47,30 @@ const REPARTO: Pantalla[] = [
   },
   {
     titulo: 'REPARTO',
-    duracion: 165,
+    duracion: 180,
     creditos: [
       { rol: 'Padre', nombre: 'Jeremías Chamorro' },
       { rol: 'Compañero 1', nombre: 'Juan Dilan' },
-      { rol: 'Compañero 2', nombre: 'Alejando Arevalos' },
+      { rol: 'Compañero 2', nombre: 'Alejandro Arevalos' },
     ],
   },
   {
     titulo: 'EXTRAS',
-    duracion: 165,
+    duracion: 180,
     creditos: [{ nombre: 'Dante Elian' }, { nombre: 'Maximiliano Fabrizio Fretes' }, { nombre: 'Bautista Chavez' }],
   },
 ]
 
 const EQUIPO: Pantalla = {
-  duracion: 240,
+  duracion: 270,
   creditos: [
+    { rol: 'Guion', nombre: 'Cristina Cano' },
     { rol: 'Edición', nombre: 'Victor Chavez' },
     { rol: 'Producción', nombre: 'Guillermo Centurion' },
   ],
 }
 
-const MENSAJE_FINAL = { texto: 'GRACIAS POR MIRAR', duracion: 150 }
+const MENSAJE_FINAL = { texto: 'GRACIAS POR VER', duracion: 150 }
 
 const NEGRO_FINAL = 60
 
@@ -114,7 +120,12 @@ export const Creditos: React.FC = () => {
           <div style={{ fontSize: 76, fontWeight: 600, letterSpacing: 10, whiteSpace: 'nowrap' }}>
             {APERTURA.titulo}
           </div>
-          <div style={{ fontSize: 38, color: GRIS, marginTop: 36, fontStyle: 'italic' }}>{APERTURA.subtitulo}</div>
+          <div style={{ fontSize: 38, color: GRIS, marginTop: 36, fontStyle: 'italic', lineHeight: 1.35 }}>
+            {APERTURA.tema}
+          </div>
+          <div style={{ fontSize: 32, color: GRIS, marginTop: 56, letterSpacing: 10, fontWeight: 600 }}>
+            {APERTURA.grupo}
+          </div>
         </FadingText>
       </Sequence>
 
