@@ -8,19 +8,19 @@ import {
 } from 'remotion'
 
 // Cierre (7:10–7:30 de la película): 20 s a 30 fps.
-// 0–2 s negro (el fundido lento a negro del plano anterior termina acá),
+// 0–1,5 s negro (el fundido lento a negro del plano anterior termina acá),
 // tres pantallas con voz en off, título sin voz y negro en silencio al final.
 const SCREENS = [
-  { from: 60, duration: 90, text: 'No siempre empieza pareciendo un problema.', voice: 'cierre-1.wav' },
-  { from: 150, duration: 90, text: 'A veces empieza con una apuesta entre amigos.', voice: 'cierre-2.wav' },
+  { from: 45, duration: 99, text: 'No siempre empieza pareciendo un problema.', voice: 'cierre-1.wav' },
+  { from: 144, duration: 102, text: 'A veces empieza con una apuesta entre amigos.', voice: 'cierre-2.wav' },
   {
-    from: 240,
-    duration: 195,
+    from: 246,
+    duration: 204,
     text: 'Si las apuestas te están controlando, hablá con un adulto de confianza y buscá ayuda profesional.',
     voice: 'cierre-3.wav',
   },
 ]
-const TITLE = { from: 435, duration: 120 }
+const TITLE = { from: 450, duration: 120 }
 
 export const CIERRE_DURATION = 600
 
