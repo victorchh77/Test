@@ -16,13 +16,23 @@ interface Props {
   clients: Client[]
 }
 
-const VENDEDOR_DEFAULT = {
-  nombre: 'VICTOR CHAVEZ LEZCANO',
-  nacionalidad: 'paraguayo',
-  estadoCivil: 'soltero',
-  ci: '3.209.608',
-  domicilio: 'Ruta Sexta Km. 3 de esta ciudad',
-}
+// En el entorno de demostración (NEXT_PUBLIC_DEMO_MODE=1) se precarga un
+// vendedor ficticio en vez de los datos reales del representante de VH Group.
+const VENDEDOR_DEFAULT = process.env.NEXT_PUBLIC_DEMO_MODE === '1'
+  ? {
+      nombre: 'VENDEDOR DE EJEMPLO',
+      nacionalidad: 'paraguayo',
+      estadoCivil: 'soltero',
+      ci: '0.000.000',
+      domicilio: 'Dirección de ejemplo',
+    }
+  : {
+      nombre: 'VICTOR CHAVEZ LEZCANO',
+      nacionalidad: 'paraguayo',
+      estadoCivil: 'soltero',
+      ci: '3.209.608',
+      domicilio: 'Ruta Sexta Km. 3 de esta ciudad',
+    }
 
 const TIPOS_VEHICULO = ['AUTOMOVIL', 'CAMIONETA', 'FURGONETA', 'CAMION', 'MOTOCICLETA', 'MICROBUS', 'OTRO']
 
